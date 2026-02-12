@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="client/assets/Logo.svg" width="120" height="120" alt="OpenFishTools Logo">
+  <img src="client/assets/Logo.svg" width="300" height="300" alt="OpenFishTools Logo">
 </p>
 
 # 🐟 OpenFishTools v0.0.1
