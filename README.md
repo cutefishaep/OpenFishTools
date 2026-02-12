@@ -5,7 +5,7 @@
 # 🐟 OpenFishTools v0.0.1
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![After Effects](https://img.shields.io/badge/After%20Effects-CC%202014+-orange.svg)](https://www.adobe.com/products/aftereffects.html)
+[![After Effects](https://img.shields.io/badge/After%20Effects-CC%202017+-orange.svg)](https://www.adobe.com/products/aftereffects.html)
 [![Version](https://img.shields.io/badge/Version-0.0.1-blue.svg)](./changelog.md)
 
 **OpenFishTools** is a professional-grade Adobe After Effects CEP extension designed to optimize motion graphics workflows. It combines core creative utilities and a sleek dashboard to help you work faster.
