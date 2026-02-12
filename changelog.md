@@ -2,7 +2,7 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
-## [1.0.0] - 2026-02-13
+## [0.0.1] - 2026-02-13
 ### Added
 - **Cubic Bezier Graph Editor**: A visual easing editor for keyframes.
 - **Preset Library**: Save and load custom easing curves with automatic thumbnail generation.
@@ -26,7 +26,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 
 ---
 
-## [0.0.1] - 2026-02-10
+## [0.0.0] - 2026-02-10
 ### Added
 - **Initial Release**: Core toolbox functionality for After Effects.
 - **Layer Tools**: Freeze Frame, Fit to Comp, Drop Shadow, Mirror, Adjustment Layer.
