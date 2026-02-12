@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Fish Tools</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="./js/libs/CSInterface.js"></script>
+</head>
+
+<body>
+
+
+    <!-- Main Content -->
+    <div class="content-container">
+
+        <!-- Tab: Main -->
+        <div id="tab-main" class="tab-content active">
+            <!-- Card: System Status -->
+            <div class="card status-card">
+                <h3>System Status</h3>
+                <div class="status-grid">
+                    <div class="status-box">
+                        <span class="status-label">System Time</span>
+                        <span class="status-value" id="info-time">00:00:00</span>
+                    </div>
+                    <div class="status-box">
+                        <span class="status-label">Extension</span>
+                        <span class="status-value" id="info-ext-ver">...</span>
+                    </div>
+                    <div class="status-box">
+                        <span class="status-label">AE Version</span>
+                        <span class="status-value" id="info-ae-ver">Loading...</span>
+                    </div>
+                    <div class="status-box">
+                        <span class="status-label">OS System</span>
+                        <span class="status-value" id="info-os">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Stopwatch -->
+            <div class="card stopwatch-card">
+                <h3>Stopwatch</h3>
+                <div class="stopwatch-container">
+                    <div class="timer-label">Session Timer</div>
+                    <div class="timer-display" id="stopwatch-display">00:00:00</div>
+                    <div class="stopwatch-controls">
+                        <button id="sw-start" title="Start">
+                            <span class="material-icons">play_arrow</span>
+                        </button>
+                        <button id="sw-stop" title="Pause">
+                            <span class="material-icons">pause</span>
+                        </button>
+                        <button id="sw-reset" title="Reset">
+                            <span class="material-icons">refresh</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Tips/Log -->
+            <div class="card tip-card">
+                <h3>Log</h3>
+                <p id="tip-content" style="font-size: 0.75em; opacity: 0.6; margin: 0; line-height: 1.4;">Loading log...
+                </p>
+            </div>
+        </div>
+
+        <!-- Tab: Graph -->
+        <div id="tab-graph" class="tab-content">
+            <div class="card graph-card" style="padding: 8px;">
+                <h3 style="margin-bottom: 10px;">Graph Editor</h3>
+
+                <!-- Graph Area -->
+                <div class="graph-wrapper"
+                    style="position: relative; width: 100%; background: #151515; border: 1px solid var(--card-border); border-radius: 4px; margin-bottom: 15px; cursor: crosshair; overflow: hidden;">
+                    <canvas id="ease-graph" width="400" height="400"
+                        style="width: 100%; height: 100%; display: block;"></canvas>
+                </div>
+
+                <!-- Controls -->
+                <div class="graph-toolbar" style="display: flex; gap: 8px; margin-bottom: 15px; align-items: center;">
+                    <div class="toggle-group">
+                        <button id="btn-graph-snap" class="icon-toggle" title="Snap to Grid">
+                            <span class="material-icons" style="font-size: 16px;">grid_4x4</span>
+                        </button>
+                        <button id="btn-graph-overshoot" class="icon-toggle" title="Overshoot (Elastic)">
+                            <span class="material-icons" style="font-size: 16px;">all_inclusive</span>
+                        </button>
+                        <button id="btn-graph-auto" class="icon-toggle" title="Auto-Apply Changes">
+                            <span class="material-icons" style="font-size: 16px;">auto_fix_high</span>
+                        </button>
+                    </div>
+                    <div style="flex:1;"></div>
+                    <button id="btn-graph-read" class="graph-action-btn read" title="Read from AE">
+                        READ
+                    </button>
+                    <button id="btn-graph-apply" class="graph-action-btn apply" title="Apply to AE">
+                        APPLY
+                    </button>
+                </div>
+
+                <!-- Presets -->
+                <div class="presets-section">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">
+                        <span
+                            style="font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; opacity: 0.5; color: #fff; text-transform: uppercase;">Presets
+                            Library</span>
+                        <button id="btn-save-preset" title="Add Current Curve to Presets"
+                            style="background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; display: flex; align-items: center;">
+                            <span class="material-icons" style="font-size: 18px;">add_circle</span>
+                        </button>
+                    </div>
+                    <div id="preset-list"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px;">
+                        <!-- Presets injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Tools -->
+        <div id="tab-tools" class="tab-content">
+
+            <!-- Card: Toolbox -->
+            <div class="card toolbox-card">
+                <h3>Toolbox</h3>
+
+                <!-- Row 1: Layer Tools -->
+                <div class="toolbox-section-label">Layer</div>
+                <div class="toolbox-grid">
+                    <button class="tool-btn" data-tool="FRZ" title="Freeze Frame">
+                        <span class="material-icons">ac_unit</span>
+                        <span class="tool-label">FRZ</span>
+                    </button>
+                    <button class="tool-btn" data-tool="FIT" data-has-alter="true"
+                        title="Fit to Comp &#10;Right-click: Fit to Width">
+                        <span class="material-icons">fit_screen</span>
+                        <span class="tool-label">FIT</span>
+                    </button>
+                    <button class="tool-btn" data-tool="DSH" title="Drop Shadow">
+                        <span class="material-icons">filter_drama</span>
+                        <span class="tool-label">DSH</span>
+                    </button>
+                    <button class="tool-btn" data-tool="MIR" data-has-alter="true"
+                        title="Mirror Horizontal &#10;Right-click: Mirror Vertical">
+                        <span class="material-icons">flip</span>
+                        <span class="tool-label">MIR</span>
+                    </button>
+                </div>
+
+                <!-- Row 2: Create -->
+                <div class="toolbox-section-label">Create</div>
+                <div class="toolbox-grid">
+                    <button class="tool-btn" data-tool="SHA" title="Shape Layer">
+                        <span class="material-icons">pentagon</span>
+                        <span class="tool-label">SHA</span>
+                    </button>
+                    <button class="tool-btn" data-tool="SOL" data-has-alter="true"
+                        title="Solid (Random Color) &#10;Right-click: Solid (Black)">
+                        <span class="material-icons">rectangle</span>
+                        <span class="tool-label">SOL</span>
+                    </button>
+                    <button class="tool-btn" data-tool="NUL" title="Null Object">
+                        <span class="material-icons">control_camera</span>
+                        <span class="tool-label">NUL</span>
+                    </button>
+                    <button class="tool-btn" data-tool="CAM" title="Camera">
+                        <span class="material-icons">videocam</span>
+                        <span class="tool-label">CAM</span>
+                    </button>
+                    <button class="tool-btn" data-tool="ADJ" title="Adjustment Layer">
+                        <span class="material-icons">tune</span>
+                        <span class="tool-label">ADJ</span>
+                    </button>
+                </div>
+
+                <!-- Row 3: Effects -->
+                <div class="toolbox-section-label">Effects</div>
+                <div class="toolbox-grid">
+                    <button class="tool-btn" data-tool="FILL" title="Fill Effect">
+                        <span class="material-icons">format_color_fill</span>
+                        <span class="tool-label">FILL</span>
+                    </button>
+                    <button class="tool-btn" data-tool="TINT" title="Tint Effect">
+                        <span class="material-icons">gradient</span>
+                        <span class="tool-label">TINT</span>
+                    </button>
+                    <button class="tool-btn" data-tool="BLUR" data-has-alter="true"
+                        title="Gaussian Blur &#10;Right-click: Camera Lens Blur">
+                        <span class="material-icons">blur_on</span>
+                        <span class="tool-label">BLUR</span>
+                    </button>
+                    <button class="tool-btn" data-tool="LUM" title="Lumetri Color">
+                        <span class="material-icons">contrast</span>
+                        <span class="tool-label">LUM</span>
+                    </button>
+                    <button class="tool-btn" data-tool="CURV" title="Curves">
+                        <span class="material-icons">show_chart</span>
+                        <span class="tool-label">CURV</span>
+                    </button>
+                    <button class="tool-btn" data-tool="HUE" title="Hue/Saturation">
+                        <span class="material-icons">palette</span>
+                        <span class="tool-label">HUE</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card: Anchor Point -->
+            <div class="card anchor-card">
+                <h3>Anchor Point</h3>
+                <div class="anchor-grid-wrapper">
+                    <div class="anchor-grid">
+                        <div class="anchor-cell" data-pos="1" title="Top Left"></div>
+                        <div class="anchor-cell" data-pos="2" title="Top Center"></div>
+                        <div class="anchor-cell" data-pos="3" title="Top Right"></div>
+                        <div class="anchor-cell" data-pos="4" title="Middle Left"></div>
+                        <div class="anchor-cell anchor-active" data-pos="5" title="Center"></div>
+                        <div class="anchor-cell" data-pos="6" title="Middle Right"></div>
+                        <div class="anchor-cell" data-pos="7" title="Bottom Left"></div>
+                        <div class="anchor-cell" data-pos="8" title="Bottom Center"></div>
+                        <div class="anchor-cell" data-pos="9" title="Bottom Right"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Actions -->
+            <div class="card actions-card">
+                <h3>Actions</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-precomp" class="secondary-btn" style="flex: 1; padding: 10px;">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">layers</span>
+                        PRE-COMP
+                    </button>
+                    <button id="btn-center" class="secondary-btn" style="flex: 1; padding: 10px;">
+                        <span class="material-icons"
+                            style="font-size: 16px; vertical-align: middle;">filter_center_focus</span>
+                        CENTER
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Settings -->
+        <div id="tab-settings" class="tab-content">
+            <!-- Card: Donation -->
+            <div class="card donation-card">
+                <h3>Support Mission</h3>
+                <p style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 15px; line-height: 1.4;">
+                    Fuel our development. Your support keeps this project alive and evolving.
+                </p>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-paypal" class="secondary-btn" style="flex: 1; padding: 12px 5px;">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">payment</span>
+                        PAYPAL
+                    </button>
+                    <button id="btn-qris" class="secondary-btn" style="flex: 1; padding: 12px 5px;">
+                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">qr_code_2</span>
+                        QRIS
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card: Theme -->
+            <div class="card settings-card" id="advanced-theme-card">
+                <h3>Theme</h3>
+                <p style="font-size: 0.8em; opacity: 0.7; margin-bottom: 15px;">Customize your dashboard colors.</p>
+
+                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
+                    <label style="font-size: 0.75rem;">Accent Color</label>
+                    <div style="display:flex; gap:8px; align-items: center;">
+                        <div class="color-swatch" data-id="color-accent" aria-label="Accent Color"
+                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
+                        </div>
+                        <input type="hidden" id="color-accent" value="#ffb400">
+                    </div>
+                </div>
+
+                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
+                    <label style="font-size: 0.75rem;">Background</label>
+                    <div style="display:flex; gap:8px; align-items: center;">
+                        <div class="color-swatch" data-id="color-bg" aria-label="Background Color"
+                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
+                        </div>
+                        <input type="hidden" id="color-bg" value="#0b0b0b">
+                    </div>
+                </div>
+
+                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
+                    <label style="font-size: 0.75rem;">Card Background</label>
+                    <div style="display:flex; gap:8px; align-items: center;">
+                        <div class="color-swatch" data-id="color-card" aria-label="Card Background"
+                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
+                        </div>
+                        <input type="hidden" id="color-card" value="#111111">
+                    </div>
+                </div>
+
+                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
+                    <label style="font-size: 0.75rem;">Text Color</label>
+                    <div style="display:flex; gap:8px; align-items: center;">
+                        <div class="color-swatch" data-id="color-text" aria-label="Text Color"
+                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
+                        </div>
+                        <input type="hidden" id="color-text" value="#ffffff">
+                    </div>
+                </div>
+
+                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
+                    <label style="font-size: 0.75rem;">Border Color</label>
+                    <div style="display:flex; gap:8px; align-items: center;">
+                        <div class="color-swatch" data-id="color-border" aria-label="Border Color"
+                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
+                        </div>
+                        <input type="hidden" id="color-border" value="#333333">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Update System -->
+            <div class="card update-card">
+                <h3>Updater</h3>
+                <div class="update-status">
+                    <div class="update-info-grid"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                        <div class="update-item">
+                            <span class="status-label"
+                                style="font-size: 0.6rem; color: var(--accent); opacity: 0.6; display: block; margin-bottom: 5px;">LOCAL
+                                VERSION</span>
+                            <span id="update-ver"
+                                style="font-size: 1.1rem; font-weight: bold; font-family: monospace; letter-spacing: 1px;">v...</span>
+                        </div>
+                        <div class="update-item" style="text-align: right;">
+                            <span class="status-label"
+                                style="font-size: 0.6rem; color: var(--accent); opacity: 0.6; display: block; margin-bottom: 5px;">LATEST
+                                RELEASE</span>
+                            <span id="update-latest-ver"
+                                style="font-size: 1.1rem; font-weight: bold; font-family: monospace; letter-spacing: 1px; color: var(--accent);">---</span>
+                        </div>
+                    </div>
+
+                    <div id="releasenotes-container"
+                        style="display:none; margin-bottom: 20px; border: 1px solid rgba(255,180,0,0.1); background: rgba(0,0,0,0.3); border-radius: 4px; padding: 10px;">
+                        <span class="status-label"
+                            style="font-size: 0.5rem; color: var(--accent); opacity: 0.6; margin-bottom: 8px; display: block;">RELEASE
+                            NOTES</span>
+                        <div id="releasenotes-content"
+                            style="font-size: 0.65rem; color: #ccc; line-height: 1.5; font-family: monospace; overflow-wrap: break-word; word-break: break-word;">
+                            No data.</div>
+                    </div>
+
+                    <div id="update-label"
+                        style="font-size: 0.65rem; color: var(--accent); font-weight: bold; text-transform: uppercase; text-align: center; margin-bottom: 15px; letter-spacing: 1px;">
+                        SYSTEM STANDBY</div>
+
+                    <div class="progress-container" style="display: none; margin-bottom: 15px;">
+                        <div class="progress-bar-bg"
+                            style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+                            <div id="update-progress"
+                                style="width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 10px var(--accent); transition: width 0.3s ease;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-check-update" class="secondary-btn" style="width: 100%;">
+                        <span class="material-icons" style="font-size: 18px; vertical-align: middle;">sync</span> CHECK
+                        REPOSITORY
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card: General -->
+            <div class="card settings-card">
+                <h3>General</h3>
+                <button id="btn-reset-settings" class="danger-btn">
+                    <span class="material-icons">restart_alt</span> Reset to Default
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Navigation (Bottom) -->
+    <div class="nav-hover-zone">
+        <nav class="floating-nav">
+            <button class="tab-btn active" data-tab="main" title="Dashboard">
+                <span class="material-icons">home</span>
+            </button>
+            <button class="tab-btn" data-tab="tools" title="Tools">
+                <span class="material-icons">construction</span>
+            </button>
+            <button class="tab-btn" data-tab="graph" title="Graph Editor">
+                <span class="material-icons">show_chart</span>
+            </button>
+            <button class="tab-btn" data-tab="settings" title="Settings">
+                <span class="material-icons">settings</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- QRIS Modal (Placed outside for safety) -->
+    <div id="qris-modal" class="modal">
+        <div class="modal-content"
+            style="max-width: 250px; padding: 25px; border-radius: 8px; background: #0d0d0d; border: 1px solid var(--accent); text-align: center; box-shadow: 0 0 30px rgba(255,180,0,0.15);">
+            <span class="status-label"
+                style="color: var(--accent); font-size: 0.6rem; opacity: 0.8; margin-bottom: 12px; display: block; font-weight: 900; letter-spacing: 2px;">SECURE
+                PAYMENT QRIS</span>
+
+            <div
+                style="background: #fff; padding: 12px; border-radius: 8px; display: inline-block; margin-bottom: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);">
+                <div id="qrcode" style="display: flex; justify-content: center;"></div>
+            </div>
+
+            <p
+                style="color: var(--text-color); font-family: monospace; font-size: 0.65rem; font-weight: bold; margin-bottom: 20px; opacity: 0.7;">
+                SCAN TO SUPPORT DEV</p>
+            <button id="close-qris" class="danger-btn" style="width: 100%; padding: 10px; font-size: 0.65rem;">
+                <span class="material-icons" style="font-size: 14px;">close</span> CLOSE</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="./js/modules/colorpicker.js"></script>
+    <script src="./js/modules/settings.js"></script>
+    <script src="./js/modules/tips.js"></script>
+    <script src="./js/modules/stopwatch.js"></script>
+    <script src="./js/modules/updater.js"></script>
+    <script src="./js/modules/modal.js"></script>
+    <script src="./js/modules/tools.js"></script>
+    <script src="./js/modules/graph.js"></script>
+    <script src="./js/main.js"></script>
+    <!-- Custom Tooltip -->
+    <div id="custom-tooltip"></div>
+</body>
+
+</html>
