@@ -2,7 +2,7 @@
   <img src="client/assets/Logo.svg" width="300" height="300" alt="OpenFishTools Logo">
 </p>
 
-# 🐟 OpenFishTools v0.0.1
+# 🐟 OpenFishTools
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![After Effects](https://img.shields.io/badge/After%20Effects-CC%202017+-orange.svg)](https://www.adobe.com/products/aftereffects.html)
