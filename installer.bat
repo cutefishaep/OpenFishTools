@@ -38,7 +38,7 @@ if %errorLevel% NEQ 0 (
 
 :: --- Check for Updates ---
 echo Checking for updates...
-powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms; $ErrorActionPreference = 'Stop'; try { $latest = Invoke-RestMethod -Uri 'https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest'; if ($latest -and $latest.tag_name -ne '%VERSION%') { $choice = [System.Windows.Forms.MessageBox]::Show('New version ' + $latest.tag_name + ' is available. Download now?', 'Update Available', 'YesNo'); if ($choice -eq 'Yes') { Start-Process 'https://github.com/cutefishaep/OpenFishTools/releases/latest' } } } catch { Write-Host 'Skipping update check (network error or timeout).' }"
+powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms; $ErrorActionPreference = 'Stop'; try { $latest = Invoke-RestMethod -Uri 'https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest'; $localVer = [System.Version]('%VERSION%'.TrimStart('v')); $remoteVer = [System.Version]($latest.tag_name.TrimStart('v')); if ($latest -and $remoteVer -gt $localVer) { $choice = [System.Windows.Forms.MessageBox]::Show('New version ' + $latest.tag_name + ' is available. Download now?', 'Update Available', 'YesNo'); if ($choice -eq 'Yes') { Start-Process 'https://github.com/cutefishaep/OpenFishTools/releases/latest' } } } catch { Write-Host 'Skipping update check (network error or timeout).' }"
 
 :: --- Clean Cache ---
 echo Cleaning CEP Cache...

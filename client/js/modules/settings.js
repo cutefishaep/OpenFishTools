@@ -20,7 +20,7 @@ window.SettingsModule = class SettingsModule {
         };
 
         this.settings = JSON.parse(JSON.stringify(this.defaults));
-        this.settingsPath = "settings.json";
+        this.settingsPath = "config.json";
         this.csInterface = new CSInterface();
 
         try {
@@ -121,7 +121,7 @@ window.SettingsModule = class SettingsModule {
                     }
                 }
             } else {
-                const saved = localStorage.getItem('fishToolsSettings');
+                const saved = localStorage.getItem('fishToolsConfig');
                 if (saved) {
                     const obj = JSON.parse(saved);
                     for (const k in obj) { this.settings[k] = obj[k]; }
@@ -138,7 +138,7 @@ window.SettingsModule = class SettingsModule {
             if (window.cep && window.cep.fs) {
                 window.cep.fs.writeFile(this.settingsFullPath, data);
             } else {
-                localStorage.setItem('fishToolsSettings', data);
+                localStorage.setItem('fishToolsConfig', data);
             }
         } catch (e) {
             console.error("Settings save error:", e);
@@ -166,7 +166,7 @@ window.SettingsModule = class SettingsModule {
     }
 
     restoreLastTab() {
-        const lastTab = this.settings.lastTab || 'tools';
+        const lastTab = this.settings.lastTab || 'main';
         const tabBtn = document.querySelector('.tab-btn[data-tab="' + lastTab + '"]');
         if (tabBtn) {
             tabBtn.click();
@@ -183,6 +183,7 @@ window.SettingsModule = class SettingsModule {
     }
 
     saveLastTab(tabName) {
+        if (this.settings.lastTab === tabName) return;
         this.settings.lastTab = tabName;
         this.saveSettings();
     }
