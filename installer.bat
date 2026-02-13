@@ -53,7 +53,8 @@ if exist "!TARGET_DIR!" (
 
 :: --- Check for Updates ---
 echo Checking for updates...
-powershell -NoProfile -Command ^
+set "NEW_SOURCE="
+for /f "delims=" %%p in ('powershell -NoProfile -Command ^
     "$repo = 'cutefishaep/OpenFishTools';" ^
     "$VERSION = '%VERSION%';" ^
     "try {" ^
@@ -64,22 +65,32 @@ powershell -NoProfile -Command ^
     "    Add-Type -AssemblyName System.Windows.Forms;" ^
     "    $choice = [System.Windows.Forms.MessageBox]::Show(\"New version $($latest.tag_name) is available. Download and update now?\", 'Update Available', 'YesNo', 'Information');" ^
     "    if ($choice -eq 'Yes') {" ^
-    "      $asset = $latest.assets | Where-Object { $_.name -like '*.zip' } | Select-Object -First 1;" ^
-    "      if ($asset) {" ^
-    "        Write-Host \"Downloading $($asset.name)...\" -ForegroundColor Cyan;" ^
-    "        $tempZip = Join-Path $env:TEMP $asset.name;" ^
-    "        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempZip;" ^
-    "        Write-Host 'Extracting files...' -ForegroundColor Cyan;" ^
-    "        Expand-Archive -Path $tempZip -DestinationPath '.' -Force;" ^
-    "        Remove-Item $tempZip;" ^
-    "        Write-Host 'Update finished. Continuing installation...' -ForegroundColor Green;" ^
-    "      } else {" ^
-    "        Write-Host 'No zip asset found. Opening release page...' -ForegroundColor Yellow;" ^
-    "        Start-Process $latest.html_url;" ^
-    "      }" ^
+    "      $asset = $latest.assets | Where-Object { $_.name -like '*.zip' -or $_.name -like '*.zxp' } | Select-Object -First 1;" ^
+    "      $downloadUrl = if ($asset) { $asset.browser_download_url } else { $latest.zipball_url };" ^
+    "      $fileName = if ($asset) { $asset.name } else { 'source.zip' };" ^
+    "      $updateFolder = Join-Path $pwd 'FishTools_New';" ^
+    "      if (Test-Path $updateFolder) { Remove-Item $updateFolder -Recurse -Force };" ^
+    "      New-Item -ItemType Directory -Path $updateFolder | Out-Null;" ^
+    "      Write-Host \"Downloading update...\" -ForegroundColor Cyan;" ^
+    "      $tempZip = Join-Path $env:TEMP $fileName;" ^
+    "      Invoke-WebRequest -Uri $downloadUrl -OutFile $tempZip;" ^
+    "      Write-Host 'Extracting files...' -ForegroundColor Cyan;" ^
+    "      $extractPath = Join-Path $env:TEMP 'FishToolsUpdateTemp';" ^
+    "      if (Test-Path $extractPath) { Remove-Item $extractPath -Recurse -Force };" ^
+    "      Expand-Archive -Path $tempZip -DestinationPath $extractPath -Force;" ^
+    "      $inner = Get-ChildItem -Path $extractPath | Where-Object { $_.PSIsContainer } | Select-Object -First 1;" ^
+    "      if ($inner) { Move-Item -Path \"$($inner.FullName)\*\" -Destination $updateFolder -Force } else { Move-Item -Path \"$($extractPath)\*\" -Destination $updateFolder -Force };" ^
+    "      Remove-Item $tempZip, $extractPath -Recurse -Force;" ^
+    "      Write-Host 'Update downloaded to FishTools_New folder.' -ForegroundColor Green;" ^
+    "      Write-Output $updateFolder;" ^
     "    }" ^
     "  }" ^
-    "} catch { Write-Host 'Skipping update check (network error or timeout).' -ForegroundColor Gray; }"
+    "} catch { Write-Host 'Skipping update check (network error or timeout).' -ForegroundColor Gray; }"') do set "NEW_SOURCE=%%p"
+
+if defined NEW_SOURCE (
+    SET "SOURCE_DIR=%NEW_SOURCE%"
+    echo Using updated files from: !SOURCE_DIR!
+)
 
 :: --- Clean Cache ---
 echo Cleaning Temporary Files...
