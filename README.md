@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="client/assets/Logo.svg" alt="Fish Tools Logo" width="120" height="120">
+  <img src="client/assets/Logo.svg" alt="Fish Tools Logo" width="300" height="300">
 
   # Fish Tools
   An extension for Adobe After Effects.
