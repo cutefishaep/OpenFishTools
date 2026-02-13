@@ -34,21 +34,23 @@
 
 ### Windows (Automated)
 
-Klik tombol di bawah ini untuk mengunduh file installer:
+Click the button below to download the installer directly:
 
-[![Download Installer](https://img.shields.io/badge/Download-Installer.bat-brightgreen?style=for-the-badge&logo=windows)](https://raw.githubusercontent.com/cutefishaep/OpenFishTools/refs/heads/main/installer.bat)
+[![Download Installer](https://img.shields.io/badge/Download-Installer.bat-brightgreen?style=for-the-badge&logo=windows)](https://raw.githubusercontent.com/cutefishaep/OpenFishTools/main/installer.bat)
 
-1.  **Download** file melalui tombol di atas (Klik kanan > *Save Link As* jika terbuka sebagai teks).
-2.  Klik kanan pada `installer.bat` dan pilih **Run as Administrator**.
-3.  Script akan otomatis menangani konfigurasi dan penempatan file.
+> **Note:** If the link opens as text in your browser, press **Ctrl + S** to save it as `installer.bat`.
+
+1.  **Download** the file using the button above.
+2.  Right-click `installer.bat` and select **Run as Administrator**.
+3.  The script will automatically handle registry settings and file placement.
 4.  **Restart After Effects**.
 
 ---
 
 ## 📖 Usage
-1.  Buka After Effects.
-2.  Pergi ke menu **Window > Extensions > Fish Tools**.
-3.  Pastikan opsi **"Allow Scripts to Write Files and Access Network"** sudah dicentang di *Preferences > Scripting & Expressions*.
+1.  Open After Effects.
+2.  Go to **Window > Extensions > Fish Tools**.
+3.  Ensure **"Allow Scripts to Write Files and Access Network"** is checked in *Preferences > Scripting & Expressions*.
 
 ---
 
@@ -66,7 +68,7 @@ Distributed under the **GNU General Public License v3**.
 
 ## 💖 Support
 * [Donate via PayPal](https://www.paypal.com/paypalme/cutefishae)
-* **QRIS Support**: Tersedia di tab Settings.
+* **QRIS Support**: Available in the Settings tab.
 
 ---
 *Developed by cutefishaep.*
