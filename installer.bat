@@ -39,7 +39,7 @@ echo Downloading from GitHub...
 if exist "!TEMP_DIR!" rmdir /s /q "!TEMP_DIR!"
 mkdir "!TEMP_DIR!"
 
-powershell -NoProfile -Command "try { $r=Invoke-RestMethod 'https://api.github.com/repos/!GITHUB_REPO!/releases/latest'; $a=$r.assets|?{$_.name -like '*.zip'}|select -First 1; if($a){iwr $a.browser_download_url -OutFile '!TEMP_DIR!\dl.zip'}else{iwr 'https://github.com/!GITHUB_REPO!/archive/refs/heads/master.zip' -OutFile '!TEMP_DIR!\dl.zip'}; Expand-Archive '!TEMP_DIR!\dl.zip' '!TEMP_DIR!\ext' -Force; Write-Host 'OK' -Fore Green} catch {Write-Host 'Download failed' -Fore Red; exit 1}"
+powershell -NoProfile -Command "try { Write-Host 'Downloading source code...'; iwr 'https://github.com/!GITHUB_REPO!/archive/refs/heads/main.zip' -OutFile '!TEMP_DIR!\dl.zip'; Expand-Archive '!TEMP_DIR!\dl.zip' '!TEMP_DIR!\ext' -Force; Write-Host 'Download complete.' -Fore Green } catch { Write-Host 'Download failed: ' $_.Exception.Message -Fore Red; exit 1 }"
 
 :: Find extracted folder
 for /d %%D in ("!TEMP_DIR!\ext\*") do SET "SRC=%%D"
