@@ -10,8 +10,8 @@ if "%SOURCE_DIR:~-1%"=="\" SET "SOURCE_DIR=%SOURCE_DIR:~0,-1%"
 
 :: --- Version Detection ---
 SET "VERSION=v0.0.0"
-if exist "%SOURCE_DIR%\CSXS\manifest.xml" (
-    for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[xml]$m = Get-Content -Raw -Path '%SOURCE_DIR%\CSXS\manifest.xml'; $m.ExtensionManifest.ExtensionBundleVersion"') do set "VERSION=v%%v"
+if exist "!SOURCE_DIR!\CSXS\manifest.xml" (
+    for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[xml]$m = Get-Content -Raw -Path '!SOURCE_DIR!\CSXS\manifest.xml'; $m.ExtensionManifest.ExtensionBundleVersion"') do set "VERSION=v%%v"
 )
 
 echo Installing %EXT_NAME% %VERSION%...
@@ -26,21 +26,17 @@ if %errorLevel% NEQ 0 (
 )
 
 :UACPrompt
-    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
-    :: Use Quote for path to handle spaces correctly
-    echo UAC.ShellExecute "cmd.exe", "/c ""%~f0""", "", "runas", 1 >> "%temp%\getadmin.vbs"
-    "%temp%\getadmin.vbs"
+    powershell -Command "Start-Process cmd -ArgumentList '/k \"%~f0\"' -Verb RunAs"
     exit /B
 
 :gotAdmin
-    if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
     cd /d "%SOURCE_DIR%"
 
 :: --- Check Existing Installation ---
-if exist "%TARGET_DIR%" (
+if exist "!TARGET_DIR!" (
     echo.
     echo %EXT_NAME% is already installed at:
-    echo %TARGET_DIR%
+    echo !TARGET_DIR!
     echo.
     set /p "CHOICE=Do you want to reinstall (delete and replace)? [Y/N]: "
     if /I "!CHOICE!" NEQ "Y" (
@@ -51,18 +47,47 @@ if exist "%TARGET_DIR%" (
     ) else (
         echo.
         echo Removing existing installation...
-        rmdir /s /q "%TARGET_DIR%"
+        rmdir /s /q "!TARGET_DIR!"
     )
 )
 
 :: --- Check for Updates ---
 echo Checking for updates...
-powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms; $ErrorActionPreference = 'Stop'; try { $latest = Invoke-RestMethod -Uri 'https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest'; $localVer = [System.Version]('%VERSION%'.TrimStart('v')); $remoteVer = [System.Version]($latest.tag_name.TrimStart('v')); if ($latest -and $remoteVer -gt $localVer) { $choice = [System.Windows.Forms.MessageBox]::Show('New version ' + $latest.tag_name + ' is available. Download now?', 'Update Available', 'YesNo'); if ($choice -eq 'Yes') { Start-Process 'https://github.com/cutefishaep/OpenFishTools/releases/latest' } } } catch { Write-Host 'Skipping update check (network error or timeout).' }"
+powershell -NoProfile -Command ^
+    "$repo = 'cutefishaep/OpenFishTools';" ^
+    "$VERSION = '%VERSION%';" ^
+    "try {" ^
+    "  $latest = Invoke-RestMethod -Uri \"https://api.github.com/repos/$repo/releases/latest\";" ^
+    "  $localVer = [System.Version]($VERSION.TrimStart('v'));" ^
+    "  $remoteVer = [System.Version]($latest.tag_name.TrimStart('v'));" ^
+    "  if ($latest -and $remoteVer -gt $localVer) {" ^
+    "    Add-Type -AssemblyName System.Windows.Forms;" ^
+    "    $choice = [System.Windows.Forms.MessageBox]::Show(\"New version $($latest.tag_name) is available. Download and update now?\", 'Update Available', 'YesNo', 'Information');" ^
+    "    if ($choice -eq 'Yes') {" ^
+    "      $asset = $latest.assets | Where-Object { $_.name -like '*.zip' } | Select-Object -First 1;" ^
+    "      if ($asset) {" ^
+    "        Write-Host \"Downloading $($asset.name)...\" -ForegroundColor Cyan;" ^
+    "        $tempZip = Join-Path $env:TEMP $asset.name;" ^
+    "        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $tempZip;" ^
+    "        Write-Host 'Extracting files...' -ForegroundColor Cyan;" ^
+    "        Expand-Archive -Path $tempZip -DestinationPath '.' -Force;" ^
+    "        Remove-Item $tempZip;" ^
+    "        Write-Host 'Update finished. Continuing installation...' -ForegroundColor Green;" ^
+    "      } else {" ^
+    "        Write-Host 'No zip asset found. Opening release page...' -ForegroundColor Yellow;" ^
+    "        Start-Process $latest.html_url;" ^
+    "      }" ^
+    "    }" ^
+    "  }" ^
+    "} catch { Write-Host 'Skipping update check (network error or timeout).' -ForegroundColor Gray; }"
 
 :: --- Clean Cache ---
-echo Cleaning CEP Cache...
-rmdir /s /q "%APPDATA%\Adobe\CEP\extensions\FishTools\Meta" 2>nul
+echo Cleaning Temporary Files...
+rmdir /s /q "%APPDATA%\Adobe\CEP\extensions\%EXT_NAME%" 2>nul
 rmdir /s /q "%LOCALAPPDATA%\Temp\cep_cache" 2>nul
+rmdir /s /q "%LOCALAPPDATA%\Temp\%EXT_NAME%" 2>nul
+del /q "%TEMP%\%EXT_NAME%*.log" 2>nul
+del /q "%TEMP%\getadmin.vbs" 2>nul
 
 :: --- Clean Target & Copy Files ---
 echo Copying files to destination...

@@ -15,25 +15,29 @@ if %errorLevel% NEQ 0 (
 )
 
 :UACPrompt
-    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
-    echo UAC.ShellExecute "cmd.exe", "/c ""%~f0""", "", "runas", 1 >> "%temp%\getadmin.vbs"
-    "%temp%\getadmin.vbs"
+    powershell -Command "Start-Process cmd -ArgumentList '/k \"%~f0\"' -Verb RunAs"
     exit /B
 
 :gotAdmin
-    if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
 
 :: --- Uninstallation ---
-if exist "%TARGET_DIR%" (
-    echo Found %EXT_NAME% at %TARGET_DIR%
+if exist "!TARGET_DIR!" (
+    echo Found %EXT_NAME% at !TARGET_DIR!
     echo Uninstalling...
-    rmdir /s /q "%TARGET_DIR%"
+    rmdir /s /q "!TARGET_DIR!"
     
-    if exist "%TARGET_DIR%" (
+    if exist "!TARGET_DIR!" (
         echo Failed to remove directory. Please close Adobe apps and try again.
     ) else (
         echo.
         echo %EXT_NAME% uninstalled successfully!
+        
+        echo Cleaning leftovers...
+        rmdir /s /q "%APPDATA%\Adobe\CEP\extensions\%EXT_NAME%" 2>nul
+        rmdir /s /q "%LOCALAPPDATA%\Temp\cep_cache" 2>nul
+        rmdir /s /q "%LOCALAPPDATA%\Temp\%EXT_NAME%" 2>nul
+        del /q "%TEMP%\%EXT_NAME%*.log" 2>nul
+        del /q "%TEMP%\getadmin.vbs" 2>nul
     )
 ) else (
     echo.
