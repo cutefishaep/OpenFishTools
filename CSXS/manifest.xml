@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ExtensionManifest Version="7.0" ExtensionBundleId="com.cutefish.tools" ExtensionBundleVersion="0.0.2"
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.cutefish.tools" ExtensionBundleVersion="0.0.3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ExtensionList>
-        <Extension Id="com.cutefish.tools.panel" Version="0.0.2" />
+        <Extension Id="com.cutefish.tools.panel" Version="0.0.3" />
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>

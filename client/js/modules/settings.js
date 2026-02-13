@@ -4,7 +4,7 @@ window.SettingsModule = class SettingsModule {
             version: window.EXTENSION_VERSION,
 
             // UI State
-            lastTab: "tools",
+            lastTab: "main",
             navAutoHide: false,
             tipsEnabled: true,
 

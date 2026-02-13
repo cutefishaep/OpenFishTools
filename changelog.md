@@ -2,6 +2,16 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [0.0.3] - 2026-02-13
+### Added
+- **Enhanced Null Tool**: Right-click on Null tool now creates a "Controller" Null, centers it to selected layers, and automatically parents them.
+
+### Changed
+- **UI Organization**: Reordered Tools tab cards to: Anchor Point, Toolbox, Actions, and Color Palette.
+- **Default State**: The extension now opens the Dashboard (Home) tab by default.
+
+---
+
 ## [0.0.2] - 2026-02-13
 ### Added
 - **Offline Assets**: Bundled Material Icons and Roboto font for full offline capability.

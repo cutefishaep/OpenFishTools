@@ -89,23 +89,28 @@
                 </div>
 
                 <!-- Controls -->
-                <div class="graph-toolbar" style="display: flex; gap: 8px; margin-bottom: 15px; align-items: center;">
-                    <div class="toggle-group">
-                        <button id="btn-graph-snap" class="icon-toggle" title="Snap to Grid">
-                            <span class="material-icons" style="font-size: 16px;">grid_4x4</span>
-                        </button>
-                        <button id="btn-graph-overshoot" class="icon-toggle" title="Overshoot (Elastic)">
-                            <span class="material-icons" style="font-size: 16px;">all_inclusive</span>
-                        </button>
-                        <button id="btn-graph-auto" class="icon-toggle" title="Auto-Apply Changes">
-                            <span class="material-icons" style="font-size: 16px;">auto_fix_high</span>
-                        </button>
+                <div class="graph-toolbar"
+                    style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <div class="toggle-group">
+                            <button id="btn-graph-snap" class="icon-toggle" title="Snap to Grid">
+                                <span class="material-icons" style="font-size: 16px;">grid_4x4</span>
+                            </button>
+                            <button id="btn-graph-overshoot" class="icon-toggle" title="Overshoot (Elastic)">
+                                <span class="material-icons" style="font-size: 16px;">all_inclusive</span>
+                            </button>
+                            <button id="btn-graph-auto" class="icon-toggle" title="Auto-Apply Changes">
+                                <span class="material-icons" style="font-size: 16px;">auto_fix_high</span>
+                            </button>
+                        </div>
+                        <div class="toggle-group">
+                            <button id="btn-graph-read" class="icon-toggle" title="Read from AE">
+                                <span class="material-icons" style="font-size: 16px;">colorize</span>
+                            </button>
+                        </div>
                     </div>
-                    <div style="flex:1;"></div>
-                    <button id="btn-graph-read" class="graph-action-btn read" title="Read from AE">
-                        READ
-                    </button>
-                    <button id="btn-graph-apply" class="graph-action-btn apply" title="Apply to AE">
+                    <button id="btn-graph-apply" class="graph-action-btn apply" title="Apply to AE"
+                        style="width: 100%;">
                         APPLY
                     </button>
                 </div>
@@ -123,7 +128,7 @@
                         </button>
                     </div>
                     <div id="preset-list"
-                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px;">
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; border: 1px solid var(--card-border); padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.2);">
                         <!-- Presets injected by JS -->
                     </div>
                 </div>
@@ -132,6 +137,24 @@
 
         <!-- Tab: Tools -->
         <div id="tab-tools" class="tab-content">
+
+            <!-- Card: Anchor Point -->
+            <div class="card anchor-card">
+                <h3>Anchor Point</h3>
+                <div class="anchor-grid-wrapper">
+                    <div class="anchor-grid">
+                        <div class="anchor-cell" data-pos="1" title="Top Left"></div>
+                        <div class="anchor-cell" data-pos="2" title="Top Center"></div>
+                        <div class="anchor-cell" data-pos="3" title="Top Right"></div>
+                        <div class="anchor-cell" data-pos="4" title="Middle Left"></div>
+                        <div class="anchor-cell anchor-active" data-pos="5" title="Center"></div>
+                        <div class="anchor-cell" data-pos="6" title="Middle Right"></div>
+                        <div class="anchor-cell" data-pos="7" title="Bottom Left"></div>
+                        <div class="anchor-cell" data-pos="8" title="Bottom Center"></div>
+                        <div class="anchor-cell" data-pos="9" title="Bottom Right"></div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Card: Toolbox -->
             <div class="card toolbox-card">
@@ -172,7 +195,8 @@
                         <span class="material-icons">rectangle</span>
                         <span class="tool-label">SOL</span>
                     </button>
-                    <button class="tool-btn" data-tool="NUL" title="Null Object">
+                    <button class="tool-btn" data-tool="NUL" data-has-alter="true"
+                        title="Null Object &#10;Right-click: Add Null & Parent">
                         <span class="material-icons">control_camera</span>
                         <span class="tool-label">NUL</span>
                     </button>
@@ -217,24 +241,6 @@
                 </div>
             </div>
 
-            <!-- Card: Anchor Point -->
-            <div class="card anchor-card">
-                <h3>Anchor Point</h3>
-                <div class="anchor-grid-wrapper">
-                    <div class="anchor-grid">
-                        <div class="anchor-cell" data-pos="1" title="Top Left"></div>
-                        <div class="anchor-cell" data-pos="2" title="Top Center"></div>
-                        <div class="anchor-cell" data-pos="3" title="Top Right"></div>
-                        <div class="anchor-cell" data-pos="4" title="Middle Left"></div>
-                        <div class="anchor-cell anchor-active" data-pos="5" title="Center"></div>
-                        <div class="anchor-cell" data-pos="6" title="Middle Right"></div>
-                        <div class="anchor-cell" data-pos="7" title="Bottom Left"></div>
-                        <div class="anchor-cell" data-pos="8" title="Bottom Center"></div>
-                        <div class="anchor-cell" data-pos="9" title="Bottom Right"></div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Card: Actions -->
             <div class="card actions-card">
                 <h3>Actions</h3>
@@ -248,6 +254,55 @@
                             style="font-size: 16px; vertical-align: middle;">filter_center_focus</span>
                         CENTER
                     </button>
+                </div>
+            </div>
+
+            <!-- Card: Color Palette -->
+            <div class="card palette-card">
+                <h3>Color Palette</h3>
+                <div class="palette-controls"
+                    style="display: flex; gap: 6px; margin-bottom: 12px; align-items: center; flex-wrap: nowrap;">
+                    <!-- Base Color Picker -->
+                    <div id="palette-base-trigger" class="secondary-btn" title="Pick Base Color"
+                        style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border-radius: 4px; background: #FFD700; border: 1px solid rgba(255,255,255,0.1);">
+                        <span class="material-icons"
+                            style="font-size: 16px; color: #000; text-shadow: 0 0 2px rgba(255,255,255,0.5);">colorize</span>
+                        <input type="hidden" id="palette-base-color" value="#FFD700">
+                    </div>
+
+                    <!-- Scheme Selector -->
+                    <select id="palette-scheme"
+                        style="background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 4px; font-size: 0.75rem; flex: 1; min-width: 0; cursor: pointer;">
+                        <option value="random">Random Mode</option>
+                        <option value="analogous">Analogous</option>
+                        <option value="complementary">Complementary</option>
+                        <option value="triadic">Triadic</option>
+                    </select>
+
+                    <!-- Count Input -->
+                    <input type="number" id="palette-count" value="1" min="1" max="10"
+                        style="width: 35px; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 4px; text-align: center; font-size: 0.75rem;">
+
+                    <!-- Icon-Only Randomize Button -->
+                    <button id="btn-generate-palette" class="secondary-btn" title="Randomize Palette"
+                        style="padding: 6px 10px; display: flex; align-items: center; justify-content: center; min-width: 32px;">
+                        <span class="material-icons" style="font-size: 18px;">shuffle</span>
+                    </button>
+                </div>
+
+                <div id="palette-container"
+                    style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                    <!-- Generated palettes go here -->
+                </div>
+
+                <div class="saved-palettes-section">
+                    <span class="status-label"
+                        style="font-size: 0.55rem; color: var(--accent); opacity: 0.5; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px;">Saved
+                        Palettes</span>
+                    <div id="saved-palettes-list"
+                        style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto;">
+                        <!-- Saved palettes go here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -438,6 +493,7 @@
     <script src="./js/modules/modal.js"></script>
     <script src="./js/modules/tools.js"></script>
     <script src="./js/modules/graph.js"></script>
+    <script src="./js/modules/colorpalette.js"></script>
     <script src="./js/main.js"></script>
     <!-- Custom Tooltip -->
     <div id="custom-tooltip"></div>

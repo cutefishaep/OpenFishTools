@@ -28,7 +28,7 @@ var tools = {
     ADJ: function () { return _ADJ(); },
     SHA: function () { return _SHA(); },
     SOL: function (alter) { return _SOL(alter); },
-    NUL: function () { return _NUL(); },
+    NUL: function (alter) { return _NUL(alter); },
     CAM: function () { return _CAM(); },
     HUE: function () { return _HUE(); },
     FILL: function () { return _FILL(); },
@@ -152,22 +152,54 @@ function _SOL(alter) {
     return true;
 }
 
-function _NUL() {
+function _NUL(alter) {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return false;
-    var hasSelection = comp.selectedLayers.length > 0;
-    var targetLayer = hasSelection ? comp.selectedLayers[0] : null;
-    app.beginUndoGroup("Create Null Object");
+    var selectedLayers = [];
+    for (var i = 0; i < comp.selectedLayers.length; i++) {
+        selectedLayers.push(comp.selectedLayers[i]);
+    }
+    var hasSelection = selectedLayers.length > 0;
+    var targetLayer = hasSelection ? selectedLayers[0] : null;
+
+    app.beginUndoGroup(alter ? "Create Null and Parent" : "Create Null Object");
+
     var nullLayer = comp.layers.addNull();
-    nullLayer.name = "Null";
+    nullLayer.name = alter ? "Controller" : "Null";
     nullLayer.label = 1;
+
     if (hasSelection) {
         nullLayer.inPoint = targetLayer.inPoint;
         nullLayer.outPoint = targetLayer.outPoint;
         nullLayer.moveBefore(targetLayer);
+
+        // Center null to selection if parenting
+        if (alter) {
+            var bounds = _getSelectionBounds(selectedLayers);
+            nullLayer.property("ADBE Transform Group").property("ADBE Position").setValue([bounds.x, bounds.y]);
+
+            for (var j = 0; j < selectedLayers.length; j++) {
+                selectedLayers[j].parent = nullLayer;
+            }
+        }
     }
+
     app.endUndoGroup();
     return true;
+}
+
+function _getSelectionBounds(layers) {
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (var i = 0; i < layers.length; i++) {
+        var rect = layers[i].sourceRectAtTime(layers[i].containingComp.time, false);
+        var pos = layers[i].property("ADBE Transform Group").property("ADBE Position").value;
+        // Simple approximation for centering
+        minX = Math.min(minX, pos[0]);
+        maxX = Math.max(maxX, pos[0]);
+        minY = Math.min(minY, pos[1]);
+        maxY = Math.max(maxY, pos[1]);
+    }
+    return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 }
 
 function _CAM() {

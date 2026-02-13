@@ -108,33 +108,72 @@ body {
     /* Invisible interactable area */
 }
 
-/* Floating Navigation - Auto Hide State */
+/* Floating Navigation - Auto Hide State (iPhone Home Indicator Style) */
 .floating-nav {
     /* Reset fixed positioning since parent handles layout */
     position: relative;
-    bottom: auto;
+    bottom: -20px;
     left: auto;
-    transform: translateY(120%) scale(0.9);
+    transform: none;
+
+    /* Indicator Look (Collapsed) */
+    width: 60px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+
+    overflow: hidden;
+    opacity: 1;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Hide buttons in collapsed state */
+.floating-nav .tab-btn {
+    opacity: 0;
+    width: 0;
+    min-width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+    transform: scale(0.5);
+}
+
+/* Reveal on Hover (Expanded State) */
+/* Reveal on Hover (Expanded State) */
+.nav-hover-zone:hover .floating-nav {
+    width: 155px;
+    /* Compact fit for 4 buttons */
+    height: 44px;
+    bottom: 0;
 
     background: rgba(17, 17, 17, 0.95);
     border: 1px solid var(--card-border);
     padding: 4px;
     border-radius: 999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     gap: 4px;
+
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
-
-    opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
+    overflow: visible;
 }
 
-/* Reveal on Hover */
-.nav-hover-zone:hover .floating-nav {
-    transform: translateY(-10px) scale(1);
+/* Show buttons on hover */
+.nav-hover-zone:hover .floating-nav .tab-btn {
     opacity: 1;
+    width: 32px;
+    height: 32px;
+    transform: scale(1);
+    margin: 0;
 }
 
 .tab-btn {
@@ -148,7 +187,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
     margin: 0;
 }
@@ -165,8 +204,12 @@ body {
 .tab-btn.active {
     background: var(--accent);
     color: #000;
-    box-shadow: 0 0 8px var(--accent);
-    transform: none;
+    box-shadow: 0 0 10px var(--accent);
+}
+
+/* Specific scale for active button when dock is visible */
+.nav-hover-zone:hover .floating-nav .tab-btn.active {
+    transform: scale(1.1);
 }
 
 /* Content Navigation */
@@ -191,6 +234,44 @@ body {
 
 .tab-content.active {
     display: block;
+}
+
+/* Color Palette Swatches */
+.palette-swatch {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.palette-swatch:hover {
+    filter: brightness(1.1);
+}
+
+.palette-swatch span {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.5px;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Custom Scrollbar for Saved Palettes */
+#saved-palettes-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#saved-palettes-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+#saved-palettes-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+#saved-palettes-list::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
 }
 
 /* Dashboard Card */

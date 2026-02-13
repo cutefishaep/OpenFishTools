@@ -167,7 +167,48 @@ function loadHostScript(callback) {
     }
 }
 
-function setupTooltips() {
+window.showTooltip = function (el, text, duration = 1500) {
+    const tooltip = document.getElementById('custom-tooltip');
+    if (!tooltip) return;
+
+    tooltip.textContent = text;
+    tooltip.classList.add('visible');
+
+    const rect = el.getBoundingClientRect();
+    const winW = window.innerWidth;
+
+    const tx = rect.left + (rect.width / 2);
+    const ty = rect.top - 8;
+
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top = ty + 'px';
+
+    requestAnimationFrame(() => {
+        const ttRect = tooltip.getBoundingClientRect();
+        const halfW = ttRect.width / 2;
+        let offset = 0;
+
+        if (tx - halfW < 10) {
+            offset = 10 - (tx - halfW);
+        }
+        else if (tx + halfW > winW - 10) {
+            offset = (winW - 10) - (tx + halfW);
+        }
+
+        tooltip.style.transform = `translate(calc(-50% + ${offset}px), -100%)`;
+        tooltip.style.setProperty('--arrow-offset', `${-offset}px`);
+    });
+
+    if (duration > 0) {
+        if (el._ttTimeout) clearTimeout(el._ttTimeout);
+        el._ttTimeout = setTimeout(() => {
+            tooltip.classList.remove('visible');
+            el._ttTimeout = null;
+        }, duration);
+    }
+};
+
+window.setupTooltips = function () {
     const tooltip = document.getElementById('custom-tooltip');
     if (!tooltip) return;
 
@@ -185,37 +226,13 @@ function setupTooltips() {
         }
 
         el.addEventListener('mouseenter', () => {
-            tooltip.textContent = text;
-            tooltip.classList.add('visible');
-
-            const rect = el.getBoundingClientRect();
-            const winW = window.innerWidth;
-
-            const tx = rect.left + (rect.width / 2);
-            const ty = rect.top - 8;
-
-            tooltip.style.left = tx + 'px';
-            tooltip.style.top = ty + 'px';
-
-            requestAnimationFrame(() => {
-                const ttRect = tooltip.getBoundingClientRect();
-                const halfW = ttRect.width / 2;
-                let offset = 0;
-
-                if (tx - halfW < 10) {
-                    offset = 10 - (tx - halfW);
-                }
-                else if (tx + halfW > winW - 10) {
-                    offset = (winW - 10) - (tx + halfW);
-                }
-
-                tooltip.style.transform = `translate(calc(-50% + ${offset}px), -100%)`;
-                tooltip.style.setProperty('--arrow-offset', `${-offset}px`);
-            });
+            window.showTooltip(el, text, 0); // 0 means don't auto-hide on hover
         });
 
         el.addEventListener('mouseleave', () => {
-            tooltip.classList.remove('visible');
+            if (!el._ttTimeout) {
+                tooltip.classList.remove('visible');
+            }
         });
 
         el.setAttribute('data-tt-init', 'true');
@@ -261,6 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 stopwatch.init();
             } catch (e) { console.error("Stopwatch init error", e); }
+        }
+
+        if (window.ColorPaletteModule) {
+            try {
+                window.ColorPaletteModule.init();
+            } catch (e) { console.error("ColorPaletteModule init error", e); }
         }
 
         let updater;

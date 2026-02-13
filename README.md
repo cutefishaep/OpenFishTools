@@ -16,7 +16,7 @@ Fish Tools is a utility panel for After Effects users. It combines common layer 
 - **Controls**: Includes grid snapping and auto-apply options.
 
 ### Toolbox
-- **Assets**: Create Shapes, Solids, Nulls, Cameras, and Adjustment Layers.
+- **Assets**: Create Shapes, Solids, Nulls, Cameras, and Adjustment Layers (Right-click for alternate actions, e.g., Null & Parent).
 - **Effects**: Apply standard effects like Fill, Tint, Blur, and Curves.
 - **Helpers**: Freeze frame, fit to comp, mirror layers, and adjust anchor points.
 

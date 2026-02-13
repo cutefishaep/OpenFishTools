@@ -45,3 +45,4 @@ if exist "!TARGET_DIR!" (
 )
 
 pause
+exit
