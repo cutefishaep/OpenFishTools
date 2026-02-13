@@ -2,7 +2,18 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
-## [0.0.1] - 2026-02-13
+## [0.0.2] - 2026-02-13
+### Added
+- **Offline Assets**: Bundled Material Icons and Roboto font for full offline capability.
+- **Splash Screen**: New opening animation featuring the Fish Tools logo.
+- **Release Notes Renderer**: GitHub-style markdown rendering for updater release notes.
+
+### Changed
+- **UI Polish**: Improved card header styling to prevent style bleeding into content.
+- **Performance**: Optimized splash screen animation timing.
+
+---
+
 ### Added
 - **Cubic Bezier Graph Editor**: A visual easing editor for keyframes.
 - **Preset Library**: Save and load custom easing curves with automatic thumbnail generation.
@@ -26,7 +37,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 
 ---
 
-## [0.0.0] - 2026-02-10
+## [0.0.1] - 2026-02-10
 ### Added
 - **Initial Release**: Core toolbox functionality for After Effects.
 - **Layer Tools**: Freeze Frame, Fit to Comp, Drop Shadow, Mirror, Adjustment Layer.

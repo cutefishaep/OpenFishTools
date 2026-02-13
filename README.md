@@ -1,74 +1,47 @@
-<p align="center">
-  <img src="client/assets/Logo.svg" width="300" height="300" alt="OpenFishTools Logo">
-</p>
+<div align="center">
+  <img src="client/assets/Logo.svg" alt="Fish Tools Logo" width="120" height="120">
 
-# 🐟 OpenFishTools
+  # Fish Tools
+  An extension for Adobe After Effects.
+</div>
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![After Effects](https://img.shields.io/badge/After%20Effects-CC%202017+-orange.svg)](https://www.adobe.com/products/aftereffects.html)
+## Overview
+Fish Tools is a utility panel for After Effects users. It combines common layer operations, a keyframe graph editor, and system monitoring tools into a single interface.
 
-**OpenFishTools** is a professional-grade Adobe After Effects CEP extension designed to optimize motion graphics workflows. It combines core creative utilities and a sleek dashboard to help you work faster.
+## Key Features
 
----
+### Graph Editor
+- **Curve adjustments**: Edit easing curves using bezier handles.
+- **Presets**: Save and apply custom easing settings.
+- **Controls**: Includes grid snapping and auto-apply options.
 
-## ✨ Key Features
+### Toolbox
+- **Assets**: Create Shapes, Solids, Nulls, Cameras, and Adjustment Layers.
+- **Effects**: Apply standard effects like Fill, Tint, Blur, and Curves.
+- **Helpers**: Freeze frame, fit to comp, mirror layers, and adjust anchor points.
 
-### 📈 Graph Editor (Beta)
-* Visual easing control with Cubic Bezier interface.
-* Preset library for common motion curves.
+### System Info
+- **Dashboard**: Displays standard system and project details.
+- **Timer**: Simple session stopwatch.
+- **Updater**: Checks only for updates from the repository.
 
-### 🛠️ Creative Toolbox
-* **Layer Utilities**: Freeze Frame, Fit to Comp, Drop Shadow, and Mirroring.
-* **One-Click Creation**: Instant creation of Shapes, Solids, Nulls, Cameras, and Adjustment Layers.
-* **Effect Shortcuts**: Rapidly apply Fill, Tint, Blur, Lumetri Color, and Curves.
-* **Anchor Point Grid**: 3x3 grid for fast anchor point repositioning.
+## Installation
 
-### 🎨 Integrated Dashboard
-* **System Info**: Track OS, AE version, and project status.
-* **Session Timer**: Built-in stopwatch for production tracking.
-* **Theme Customization**: UI color settings.
+### Windows Installer
+1. Download the release.
+2. Run installer.bat as Administrator.
+3. Restart After Effects.
 
----
+### Manual Method
+1. Place the FishTools folder in:
+   - **Win**: C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\
+   - **Mac**: /Library/Application Support/Adobe/CEP/extensions/
+2. Restart After Effects.
 
-## 🚀 Installation
+**Note**: Enable "Allow Scripts to Write Files" in AE Preferences > Scripting & Expressions.
 
-### Windows (Automated)
-
-Click the button below to download the installer directly:
-
-[![Download Installer](https://img.shields.io/badge/Download-Installer.bat-brightgreen?style=for-the-badge&logo=windows)](https://raw.githubusercontent.com/cutefishaep/OpenFishTools/main/installer.bat)
-
-> **Note:** If the link opens as text in your browser, press **Ctrl + S** to save it as `installer.bat`.
-
-1.  **Download** the file using the button above.
-2.  Right-click `installer.bat` and select **Run as Administrator**.
-3.  The script will automatically handle registry settings and file placement.
-4.  **Restart After Effects**.
+## Usage
+Open via **Window > Extensions > Fish Tools**.
 
 ---
-
-## 📖 Usage
-1.  Open After Effects.
-2.  Go to **Window > Extensions > Fish Tools**.
-3.  Ensure **"Allow Scripts to Write Files and Access Network"** is checked in *Preferences > Scripting & Expressions*.
-
----
-
-## 🛠️ Tech Stack
-* **UI**: HTML5, CSS3, ES6 JavaScript.
-* **Core**: ExtendScript for After Effects.
-* **Platform**: Adobe CEP.
-
----
-
-## 📜 License
-Distributed under the **GNU General Public License v3**.
-
----
-
-## 💖 Support
-* [Donate via PayPal](https://www.paypal.com/paypalme/cutefishae)
-* **QRIS Support**: Available in the Settings tab.
-
----
-*Developed by cutefishaep.*
+**Compatibility**: After Effects CC 2017+

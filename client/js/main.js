@@ -223,6 +223,17 @@ function setupTooltips() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Splash Screen Logic
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+        setTimeout(() => {
+            splash.classList.add('fade-out');
+            setTimeout(() => {
+                splash.remove();
+            }, 300); // Wait for CSS transition
+        }, 800); // 0.8s duration
+    }
+
     // Version already detected at top-level
     detectExtensionVersion();
     setupFlyoutMenu();

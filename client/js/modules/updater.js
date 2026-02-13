@@ -89,7 +89,7 @@ window.UpdaterModule = class UpdaterModule {
 
         if (this.notesContainer && this.notesContent) {
             this.notesContainer.style.display = 'block';
-            this.notesContent.textContent = notes || "No release notes available.";
+            this.notesContent.innerHTML = this.parseMarkdown(notes || "No release notes available.");
         }
 
         const isNewer = this.isNewerVersion(this.currentVersion, latestVer);
@@ -112,5 +112,66 @@ window.UpdaterModule = class UpdaterModule {
         setTimeout(() => {
             if (this.progressContainer) this.progressContainer.style.display = 'none';
         }, 1500);
+    }
+
+    parseMarkdown(text) {
+        if (!text) return "";
+
+        const lines = text.split('\n');
+        let inList = false;
+        let finalHtml = "";
+
+        for (let line of lines) {
+            let trimmed = line.trim();
+
+            // Unordered Lists
+            if (trimmed.startsWith('- ')) {
+                if (!inList) {
+                    finalHtml += "<ul>";
+                    inList = true;
+                }
+                finalHtml += `<li>${this.parseInline(trimmed.slice(2))}</li>`;
+                continue;
+            }
+
+            // Close list if we were in one
+            if (inList && trimmed !== "" && !trimmed.startsWith('- ')) {
+                finalHtml += "</ul>";
+                inList = false;
+            }
+
+            // Headers
+            if (trimmed.startsWith('### ')) {
+                finalHtml += `<h3>${this.parseInline(trimmed.slice(4))}</h3>`;
+            } else if (trimmed.startsWith('## ')) {
+                finalHtml += `<h2>${this.parseInline(trimmed.slice(3))}</h2>`;
+            } else if (trimmed.startsWith('# ')) {
+                finalHtml += `<h1>${this.parseInline(trimmed.slice(2))}</h1>`;
+            }
+            // Empty lines
+            else if (trimmed === "") {
+                if (inList) {
+                    finalHtml += "</ul>";
+                    inList = false;
+                }
+            }
+            // Regular paragraphs
+            else {
+                finalHtml += `<p>${this.parseInline(trimmed)}</p>`;
+            }
+        }
+
+        if (inList) finalHtml += "</ul>";
+        return finalHtml;
+    }
+
+    parseInline(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/`(.*?)`/g, '<code>$1</code>');
     }
 }
