@@ -36,6 +36,25 @@ if %errorLevel% NEQ 0 (
     if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
     cd /d "%SOURCE_DIR%"
 
+:: --- Check Existing Installation ---
+if exist "%TARGET_DIR%" (
+    echo.
+    echo %EXT_NAME% is already installed at:
+    echo %TARGET_DIR%
+    echo.
+    set /p "CHOICE=Do you want to reinstall (delete and replace)? [Y/N]: "
+    if /I "!CHOICE!" NEQ "Y" (
+        echo.
+        echo Installation cancelled by user.
+        pause
+        exit /b
+    ) else (
+        echo.
+        echo Removing existing installation...
+        rmdir /s /q "%TARGET_DIR%"
+    )
+)
+
 :: --- Check for Updates ---
 echo Checking for updates...
 powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms; $ErrorActionPreference = 'Stop'; try { $latest = Invoke-RestMethod -Uri 'https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest'; $localVer = [System.Version]('%VERSION%'.TrimStart('v')); $remoteVer = [System.Version]($latest.tag_name.TrimStart('v')); if ($latest -and $remoteVer -gt $localVer) { $choice = [System.Windows.Forms.MessageBox]::Show('New version ' + $latest.tag_name + ' is available. Download now?', 'Update Available', 'YesNo'); if ($choice -eq 'Yes') { Start-Process 'https://github.com/cutefishaep/OpenFishTools/releases/latest' } } } catch { Write-Host 'Skipping update check (network error or timeout).' }"
@@ -50,7 +69,7 @@ echo Copying files to destination...
 if not exist "%TARGET_DIR%" mkdir "%TARGET_DIR%"
 
 :: Use Robocopy to exclude .git, installer.bat, etc.
-robocopy "%SOURCE_DIR%" "%TARGET_DIR%" /MIR /XD .git .debug node_modules .vscode /XF installer.bat .gitignore .DS_Store *.log /R:1 /W:1 >nul
+robocopy "%SOURCE_DIR%" "%TARGET_DIR%" /MIR /XD .git .debug node_modules .vscode /XF installer.bat uninstaller.bat .gitignore .DS_Store *.log /R:1 /W:1 >nul
 
 :: Robocopy exit codes: 0-7 are success (0=No Change, 1=Copy Successful, etc.). >=8 is failure.
 if %ERRORLEVEL% GEQ 8 (
