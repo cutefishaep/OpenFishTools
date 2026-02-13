@@ -484,7 +484,7 @@ function _applyEase(dataObj) {
     var y1 = dataObj.y1;
     var x2 = dataObj.x2;
     var y2 = dataObj.y2;
-    var useOvershoot = dataObj.overshoot;
+    var useOvershoot = dataObj.overshoot === true;
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return false;
     var props = comp.selectedProperties;
@@ -513,6 +513,10 @@ function _applyEase(dataObj) {
                 "}else{value}";
             prop.expression = expr;
             prop.expressionEnabled = true;
+        } else {
+            if (prop.expressionEnabled) {
+                prop.expressionEnabled = false;
+            }
         }
         keys.sort(function (a, b) { return a - b; });
         for (var k = 0; k < keys.length - 1; k++) {
@@ -532,9 +536,8 @@ function _applyEase(dataObj) {
             var safeX2 = (x2 >= 1) ? 0.999 : x2;
             var m1 = y1 / safeX1;
             var m2 = (y2 - 1) / (safeX2 - 1);
-            var dim = 1;
-            if (prop.propertyValueType === PropertyValueType.TwoD_SPATIAL || prop.propertyValueType === PropertyValueType.TwoD) dim = 2;
-            else if (prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL || prop.propertyValueType === PropertyValueType.ThreeD) dim = 3;
+            var currentEase = prop.keyOutTemporalEase(idx1);
+            var dim = currentEase.length;
             var easeOut = [];
             var easeIn = [];
             for (var d = 0; d < dim; d++) {
