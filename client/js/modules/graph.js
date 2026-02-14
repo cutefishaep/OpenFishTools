@@ -373,19 +373,23 @@ var GraphModule = (function () {
     }
 
     function loadPresets() {
-        const defaults = [
-            { name: "Linear", x1: 0, y1: 0, x2: 1, y2: 1 },
-            { name: "Ease", x1: 0.8, y1: 0, x2: 0.2, y2: 1 },
-            { name: "Ease In", x1: 0.75, y1: 0, x2: 1, y2: 1 },
-            { name: "Ease Out", x1: 0, y1: 0, x2: 0.25, y2: 1 }
-        ];
+        if (!window.settings) return;
 
-        defaults.forEach(function (p) { addPresetBtn(p, false); });
+        let allPresets = window.settings.get('presets');
 
-        if (window.settings) {
-            const userPresets = window.settings.get('presets') || [];
-            userPresets.forEach(function (p) { addPresetBtn(p, true); });
+        // If first run or no presets (and hasn't been explicitly cleared to empty array), initialize with defaults
+        // Note: we check if it's undefined specifically to allow an empty array if user deletes all
+        if (allPresets === undefined) {
+            allPresets = [
+                { name: "Linear", x1: 0, y1: 0, x2: 1, y2: 1 },
+                { name: "Ease", x1: 0.8, y1: 0, x2: 0.2, y2: 1 },
+                { name: "Ease In", x1: 0.75, y1: 0, x2: 1, y2: 1 },
+                { name: "Ease Out", x1: 0, y1: 0, x2: 0.25, y2: 1 }
+            ];
+            window.settings.set('presets', allPresets);
         }
+
+        allPresets.forEach(function (p) { addPresetBtn(p, true); });
     }
 
     function addPresetBtn(p, isUser) {

@@ -20,6 +20,12 @@ Fish Tools is a utility panel for After Effects users. It combines common layer 
 - **Effects**: Apply standard effects like Fill, Tint, Blur, and Curves.
 - **Helpers**: Freeze frame, fit to comp, mirror layers, and adjust anchor points.
 
+### Velocity Tools
+- **Ghost**: Instant "echo" trail effect with fast-out easing.
+- **Flash**: Exposure flash animation relative to layer markers.
+- **Shake**: Camera shake effect (requires Sapphire) on adjustment layer.
+- **Warp**: Impact distortion using Wave Warp with steep initial curve.
+
 ### System Info
 - **Dashboard**: Displays standard system and project details.
 - **Timer**: Simple session stopwatch.

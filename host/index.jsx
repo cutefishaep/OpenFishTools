@@ -38,7 +38,13 @@ var tools = {
     CURV: function () { return _CURV(); },
     PRECOMP: function () { return _PRECOMP(); },
     CENTERINCOMP: function () { return _CENTERINCOMP(); },
-    setAnchorPoint: function (pos) { return _setAnchorPoint(pos); }
+    setAnchorPoint: function (pos) { return _setAnchorPoint(pos); },
+    TWIX: function () { return _TWIX(); },
+    TMRE: function () { return _TMRE(); },
+    GHST: function () { return _GHST(); },
+    EXPO: function () { return _EXPO(); },
+    SHKE: function () { return _SHAKE(); },
+    WARP: function () { return _WARP(); }
 };
 
 function _FRZ() {
@@ -193,7 +199,6 @@ function _getSelectionBounds(layers) {
     for (var i = 0; i < layers.length; i++) {
         var rect = layers[i].sourceRectAtTime(layers[i].containingComp.time, false);
         var pos = layers[i].property("ADBE Transform Group").property("ADBE Position").value;
-        // Simple approximation for centering
         minX = Math.min(minX, pos[0]);
         maxX = Math.max(maxX, pos[0]);
         minY = Math.min(minY, pos[1]);
@@ -525,30 +530,9 @@ function _applyEase(dataObj) {
         var prop = props[i];
         if (!prop.canVaryOverTime) continue;
         var keys = prop.selectedKeys;
-        if (keys.length < 2 && !useOvershoot) continue;
-        if (useOvershoot) {
-            var expr = "amp = .05; freq = 4.0; decay = 2.0;\n" +
-                "n = 0;\n" +
-                "if (numKeys > 0){\n" +
-                "  n = nearestKey(time).index;\n" +
-                "  if (key(n).time > time){\n" +
-                "    n--;\n" +
-                "  }\n" +
-                "}\n" +
-                "if (n == 0){ t = 0; }\n" +
-                "else{\n" +
-                "  t = time - key(n).time;\n" +
-                "}\n" +
-                "if (n > 0 && n < numKeys){\n" +
-                "  v = velocityAtTime(key(n).time - thisComp.frameDuration/10);\n" +
-                "  value + v*amp*Math.sin(freq*t*2*Math.PI)/Math.exp(decay*t);\n" +
-                "}else{value}";
-            prop.expression = expr;
-            prop.expressionEnabled = true;
-        } else {
-            if (prop.expressionEnabled) {
-                prop.expressionEnabled = false;
-            }
+        if (keys.length < 2) continue;
+        if (prop.expressionEnabled) {
+            prop.expressionEnabled = false;
         }
         keys.sort(function (a, b) { return a - b; });
         for (var k = 0; k < keys.length - 1; k++) {
@@ -594,6 +578,343 @@ function _applyEase(dataObj) {
     }
     app.endUndoGroup();
     return true;
+}
+
+function _getLayerMarkers(layer) {
+    var markers = [];
+    var markerProp = layer.property("ADBE Marker");
+    if (markerProp && markerProp.numKeys > 0) {
+        for (var i = 1; i <= markerProp.numKeys; i++) {
+            markers.push(markerProp.keyTime(i));
+        }
+    } else {
+        var comp = layer.containingComp;
+        var globalMarkers = comp.markerProperty;
+        if (globalMarkers && globalMarkers.numKeys > 0) {
+            for (var j = 1; j <= globalMarkers.numKeys; j++) {
+                var t = globalMarkers.keyTime(j);
+                if (t >= layer.inPoint && t <= layer.outPoint) {
+                    markers.push(t);
+                }
+            }
+        }
+    }
+    markers.sort(function (a, b) { return a - b; });
+    return markers;
+}
+
+function _TWIX() {
+    var comp = app.project.activeItem;
+    if (!comp || comp.selectedLayers.length === 0) return false;
+    var layer = comp.selectedLayers[0];
+    app.beginUndoGroup("Apply Twixtor Velocity");
+    try {
+        var twix = layer.Effects.addProperty("Twixtor");
+        if (!twix) {
+            alert("Twixtor effect not found. Please make sure it's installed.");
+            return false;
+        }
+
+        // Set Input Frame Rate
+        for (var i = 1; i <= twix.numProperties; i++) {
+            var p = twix.property(i);
+            if (p.name === "In FPS is Out FPS") p.setValue(false);
+            if (p.name === "Input: Frame Rate") p.setValue(comp.frameRate);
+        }
+
+        var speedProp = null;
+        for (var j = 1; j <= twix.numProperties; j++) {
+            if (twix.property(j).name === "Speed %") {
+                speedProp = twix.property(j);
+                break;
+            }
+        }
+
+        if (speedProp) {
+            var markers = _getLayerMarkers(layer);
+            if (markers.length > 1) {
+                for (var k = 0; k < markers.length; k++) {
+                    speedProp.setValueAtTime(markers[k], 100);
+                    if (k < markers.length - 1) {
+                        var mid = (markers[k] + markers[k + 1]) / 2;
+                        speedProp.setValueAtTime(mid, 20);
+                    }
+                }
+            } else {
+                speedProp.setValue(100);
+            }
+        }
+        return true;
+    } catch (err) {
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _TMRE() {
+    var comp = app.project.activeItem;
+    if (!comp || comp.selectedLayers.length === 0) return false;
+    var layer = comp.selectedLayers[0];
+    app.beginUndoGroup("Time Remap Velocity");
+    try {
+        layer.timeRemapEnabled = true;
+        var tr = layer.property("ADBE Time Remapping");
+        var markers = _getLayerMarkers(layer);
+
+        if (markers.length > 0) {
+            for (var i = 0; i < markers.length; i++) {
+                var t = markers[i];
+                var val = tr.valueAtTime(t, true);
+                tr.setValueAtTime(t, val);
+            }
+
+            // Apply Easing: Fast (at markers) -> Slow (in middle) -> Fast (at markers)
+            for (var j = 1; j < tr.numKeys; j++) {
+                var t1 = tr.keyTime(j);
+                var t2 = tr.keyTime(j + 1);
+                var v1 = tr.keyValue(j);
+                var v2 = tr.keyValue(j + 1);
+                var avgSpeed = Math.abs((v2 - v1) / (t2 - t1));
+
+                // Set high speed at the markers to force slow motion in the middle
+                var targetSpeed = avgSpeed * 4;
+                var easeOut = new KeyframeEase(targetSpeed, 20);
+                var easeIn = new KeyframeEase(targetSpeed, 20);
+
+                tr.setTemporalEaseAtKey(j, tr.keyInTemporalEase(j), [easeOut]);
+                tr.setTemporalEaseAtKey(j + 1, [easeIn], tr.keyOutTemporalEase(j + 1));
+            }
+        }
+
+        layer.frameBlended = true;
+        layer.frameBlendType = FrameBlendType.PIXEL_MOTION;
+        return true;
+    } catch (err) {
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _GHST() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return false;
+    var layer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
+    app.beginUndoGroup("Ghost Effect");
+    try {
+        var curTime = comp.time;
+
+        var adj = comp.layers.addSolid([0, 0, 0], "Ghost Effect", comp.width, comp.height, 1);
+        adj.adjustmentLayer = true;
+        adj.startTime = curTime;
+        adj.outPoint = curTime + 2;
+        adj.label = 5;
+        if (layer) adj.moveBefore(layer);
+
+
+        var transformEffect = adj.Effects.addProperty("ADBE Geometry2");
+
+        transformEffect.property(3).setValue(true);
+        var scale = transformEffect.property(4); // Scale is Property 4
+        scale.setValueAtTime(curTime, 100);
+        scale.setValueAtTime(curTime + 2, 250);
+
+        var opacity = adj.property("ADBE Transform Group").property("ADBE Opacity");
+        opacity.setValueAtTime(curTime, 100);
+        opacity.setValueAtTime(curTime + 2, 0);
+
+        var easeOutFast = new KeyframeEase(0, 0.1);
+        var easeInSlow = new KeyframeEase(0, 95);
+
+        scale.setTemporalEaseAtKey(1, [new KeyframeEase(0, 33)], [easeOutFast]);
+        scale.setTemporalEaseAtKey(2, [easeInSlow], [new KeyframeEase(0, 33)]);
+
+        opacity.setTemporalEaseAtKey(1, [new KeyframeEase(0, 33)], [easeOutFast]);
+        opacity.setTemporalEaseAtKey(2, [easeInSlow], [new KeyframeEase(0, 33)]);
+
+        return true;
+    } catch (err) {
+        alert("Ghost Effect Error: " + err.toString());
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _EXPO() {
+    var comp = app.project.activeItem;
+    if (!comp || comp.selectedLayers.length === 0) return false;
+    var layer = comp.selectedLayers[0];
+    app.beginUndoGroup("Exposure Flash");
+    try {
+        var adj = comp.layers.addSolid([0, 0, 0], "Exposure Flash", comp.width, comp.height, 1);
+        adj.adjustmentLayer = true;
+        adj.inPoint = layer.inPoint;
+        adj.outPoint = layer.outPoint;
+        adj.moveBefore(layer);
+        adj.label = 5;
+
+        var expo = adj.Effects.addProperty("ADBE Exposure");
+
+
+        var masterExpo = null;
+        for (var j = 1; j <= expo.numProperties; j++) {
+            var p = expo.property(j);
+            if (p.name === "Exposure") { masterExpo = p; break; }
+            if (p.numProperties > 0) {
+                var sub = p.property("Exposure");
+                if (sub) { masterExpo = sub; break; }
+            }
+        }
+
+        if (!masterExpo) {
+            alert("Could not find Exposure slider.");
+            return false;
+        }
+
+        var markers = _getLayerMarkers(layer);
+        var fd = comp.frameDuration;
+
+        for (var i = 0; i < markers.length; i++) {
+            var t = markers[i];
+
+            // Keyframe 1
+
+            var kIdxZero = masterExpo.nearestKeyIndex(t - fd);
+            var easeInSlow = new KeyframeEase(0, 100);
+            masterExpo.setTemporalEaseAtKey(kIdxZero, [easeInSlow], masterExpo.keyOutTemporalEase(kIdxZero));
+
+            // Keyframe 2
+
+            var kIdxPeak = masterExpo.nearestKeyIndex(t);
+            var easeOutFast = new KeyframeEase(0, 0.1);
+            masterExpo.setTemporalEaseAtKey(kIdxPeak, masterExpo.keyInTemporalEase(kIdxPeak), [easeOutFast]);
+        }
+
+        return true;
+    } catch (err) {
+        alert("Exposure Flash Error: " + err.toString());
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+
+function _SHAKE() {
+    var comp = app.project.activeItem;
+    if (!comp || comp.selectedLayers.length === 0) return false;
+    var layer = comp.selectedLayers[0];
+    app.beginUndoGroup("Apply S_Shake");
+    try {
+        // Create Adjustment Layer
+        var adj = comp.layers.addSolid([0, 0, 0], "S_Shake Adjust", comp.width, comp.height, 1);
+        adj.adjustmentLayer = true;
+        adj.inPoint = layer.inPoint;
+        adj.outPoint = layer.outPoint;
+        adj.label = 5;
+
+
+        try {
+            if (adj.index !== layer.index - 1) adj.moveBefore(layer);
+        } catch (e) { /* ignore move error */ }
+
+        var shake = adj.Effects.addProperty("S_Shake");
+        if (!shake) {
+            alert("S_Shake effect not found. Please make sure Sapphire plugin is installed.");
+            adj.remove();
+            return false;
+        }
+
+
+        var mb = shake.property("Motion Blur");
+        if (mb) mb.setValue(true);
+
+        var amp = shake.property("Amplitude");
+        if (!amp) {
+            alert("Amplitude property not found in S_Shake.");
+            return false;
+        }
+
+        var markers = _getLayerMarkers(layer);
+        var fd = comp.frameDuration;
+
+        for (var i = 0; i < markers.length; i++) {
+            var t = markers[i];
+
+
+            amp.setValueAtTime(t - fd, 0);
+            var kIdxZero = amp.nearestKeyIndex(t - fd);
+            var easeInSlow = new KeyframeEase(0, 100);
+            amp.setTemporalEaseAtKey(kIdxZero, [easeInSlow], amp.keyOutTemporalEase(kIdxZero));
+
+
+            amp.setValueAtTime(t, 1);
+            var kIdxPeak = amp.nearestKeyIndex(t);
+            var easeOutFast = new KeyframeEase(0, 0.1);
+            amp.setTemporalEaseAtKey(kIdxPeak, amp.keyInTemporalEase(kIdxPeak), [easeOutFast]);
+        }
+
+        return true;
+    } catch (err) {
+        alert("S_Shake Error: " + err.toString());
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _WARP() {
+    var comp = app.project.activeItem;
+    if (!comp) return false;
+    app.beginUndoGroup("Warp Effect");
+    try {
+        var curTime = comp.time;
+        var adj = comp.layers.addSolid([0, 0, 0], "Warp Effect", comp.width, comp.height, 1);
+        adj.adjustmentLayer = true;
+        adj.startTime = curTime;
+        adj.outPoint = curTime + 1; // 1 second duration
+        adj.label = 5;
+
+        var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
+        if (selectedLayer) {
+            try {
+                if (adj.index !== selectedLayer.index - 1) adj.moveBefore(selectedLayer);
+            } catch (e) { /* ignore move error */ }
+        }
+
+        var warp = adj.Effects.addProperty("ADBE Wave Warp");
+        if (!warp) {
+            alert("Wave Warp effect not found.");
+            adj.remove();
+            return false;
+        }
+
+        warp.property("ADBE Wave Warp-0001").setValue(9); // Smooth Noise
+        warp.property("ADBE Wave Warp-0003").setValue(109);
+        warp.property("ADBE Wave Warp-0004").setValue(0);
+        warp.property("ADBE Wave Warp-0005").setValue(0.2);
+        warp.property("ADBE Wave Warp-0006").setValue(2);
+        warp.property("ADBE Wave Warp-0008").setValue(1);
+
+        var height = warp.property("ADBE Wave Warp-0002");
+        height.setValueAtTime(curTime, 228);
+        height.setValueAtTime(curTime + 1, 0);
+
+        var easeOutFast = new KeyframeEase(-50000, 0.1);
+        var easeInSlow = new KeyframeEase(0, 100);
+
+        height.setTemporalEaseAtKey(1, height.keyInTemporalEase(1), [easeOutFast]);
+        height.setTemporalEaseAtKey(2, [easeInSlow], height.keyOutTemporalEase(2));
+
+        return true;
+    } catch (err) {
+        alert("Warp Effect Error: " + err.toString());
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
 }
 
 $.global.FishTools = {

@@ -2,6 +2,19 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [0.0.4] - 2026-02-14
+### Added
+- **Velocity Tools**: Added 4 new motion tools: Ghost, Exposure Flash, S_Shake, and Wave Warp.
+- **Auto-Adjustment Layers**: Velocity tools now automatically create and animate Adjustment Layers above the selected footage.
+- **Smart Easing**: All Velocity tools use custom "Fast Start -> Slow End" easing curves for punchy animation.
+- **Wave Warp**: "Smooth Noise" wave type with maximized initial velocity (-50000) for sharp impact.
+
+### Changed
+- **S_Shake**: Refactored to use Adjustment Layer instead of direct effect application.
+- **Performance**: Optimized script execution by removing redundant guide text and unused CSS.
+
+---
+
 ## [0.0.3] - 2026-02-13
 ### Added
 - **Enhanced Null Tool**: Right-click on Null tool now creates a "Controller" Null, centers it to selected layers, and automatically parents them.
