@@ -179,7 +179,7 @@ function _NUL(alter) {
         nullLayer.outPoint = targetLayer.outPoint;
         nullLayer.moveBefore(targetLayer);
 
-        // Center null to selection if parenting
+
         if (alter) {
             var bounds = _getSelectionBounds(selectedLayers);
             nullLayer.property("ADBE Transform Group").property("ADBE Position").setValue([bounds.x, bounds.y]);
@@ -615,7 +615,7 @@ function _TWIX() {
             return false;
         }
 
-        // Set Input Frame Rate
+
         for (var i = 1; i <= twix.numProperties; i++) {
             var p = twix.property(i);
             if (p.name === "In FPS is Out FPS") p.setValue(false);
@@ -677,7 +677,7 @@ function _TMRE() {
                 var v2 = tr.keyValue(j + 1);
                 var avgSpeed = Math.abs((v2 - v1) / (t2 - t1));
 
-                // Set high speed at the markers to force slow motion in the middle
+
                 var targetSpeed = avgSpeed * 4;
                 var easeOut = new KeyframeEase(targetSpeed, 20);
                 var easeIn = new KeyframeEase(targetSpeed, 20);
@@ -716,7 +716,7 @@ function _GHST() {
         var transformEffect = adj.Effects.addProperty("ADBE Geometry2");
 
         transformEffect.property(3).setValue(true);
-        var scale = transformEffect.property(4); // Scale is Property 4
+        var scale = transformEffect.property(4);
         scale.setValueAtTime(curTime, 100);
         scale.setValueAtTime(curTime + 2, 250);
 
@@ -757,19 +757,21 @@ function _EXPO() {
 
         var expo = adj.Effects.addProperty("ADBE Exposure");
 
-
         var masterExpo = null;
-        for (var j = 1; j <= expo.numProperties; j++) {
-            var p = expo.property(j);
-            if (p.name === "Exposure") { masterExpo = p; break; }
-            if (p.numProperties > 0) {
-                var sub = p.property("Exposure");
-                if (sub) { masterExpo = sub; break; }
+        for (var k = 1; k <= expo.numProperties; k++) {
+            var prop = expo.property(k);
+            if (prop && prop.name === "Exposure" && prop.canSetExpression) {
+                masterExpo = prop;
+                break;
             }
         }
 
+        if (!masterExpo && expo.numProperties >= 3) {
+            masterExpo = expo.property(3);
+        }
+
         if (!masterExpo) {
-            alert("Could not find Exposure slider.");
+            alert("Could not find Exposure property.");
             return false;
         }
 
@@ -779,17 +781,21 @@ function _EXPO() {
         for (var i = 0; i < markers.length; i++) {
             var t = markers[i];
 
-            // Keyframe 1
+            masterExpo.setValueAtTime(t - fd, 0);
 
             var kIdxZero = masterExpo.nearestKeyIndex(t - fd);
-            var easeInSlow = new KeyframeEase(0, 100);
-            masterExpo.setTemporalEaseAtKey(kIdxZero, [easeInSlow], masterExpo.keyOutTemporalEase(kIdxZero));
+            if (kIdxZero > 0) {
+                var easeInSlow = new KeyframeEase(0, 100);
+                masterExpo.setTemporalEaseAtKey(kIdxZero, [easeInSlow], masterExpo.keyOutTemporalEase(kIdxZero));
+            }
 
-            // Keyframe 2
+            masterExpo.setValueAtTime(t, 1);
 
             var kIdxPeak = masterExpo.nearestKeyIndex(t);
-            var easeOutFast = new KeyframeEase(0, 0.1);
-            masterExpo.setTemporalEaseAtKey(kIdxPeak, masterExpo.keyInTemporalEase(kIdxPeak), [easeOutFast]);
+            if (kIdxPeak > 0) {
+                var easeOutFast = new KeyframeEase(0, 0.1);
+                masterExpo.setTemporalEaseAtKey(kIdxPeak, masterExpo.keyInTemporalEase(kIdxPeak), [easeOutFast]);
+            }
         }
 
         return true;

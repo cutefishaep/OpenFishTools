@@ -27,26 +27,26 @@ var ColorPaletteModule = (function () {
                 window.ColorPicker.open(baseHidden);
             });
 
-            // Listen for color changes
+
             baseHidden.addEventListener('input', () => {
                 const color = baseHidden.value;
                 baseTrigger.style.backgroundColor = color;
-                // Auto-generate on color change
+
                 generate();
             });
         }
 
         loadSaved();
-        generate(); // Initial generation
+        generate();
     }
 
-    /* --- Improved Palette Generation (Based on Reference) --- */
+
 
     function generate() {
         if (!container) return;
         container.innerHTML = '';
 
-        // Remove previous tooltips
+
         const tooltips = document.querySelectorAll('#custom-tooltip');
         tooltips.forEach(t => t.classList.remove('visible'));
 
@@ -58,19 +58,19 @@ var ColorPaletteModule = (function () {
         const selectedScheme = schemeSelect ? schemeSelect.value : 'random';
 
         for (let i = 0; i < count; i++) {
-            // 1. Get base color (use selected if it's the first one, or pick random for others if count > 1)
+
             let baseHex = baseHidden ? baseHidden.value : getRandomHex();
 
-            // If generating multiple, keep the first one as selected, randomize others
+
             if (i > 0) baseHex = getRandomHex();
 
-            // 2. Determine scheme
+
             let scheme = selectedScheme;
             if (scheme === 'random') {
                 scheme = schemes[Math.floor(Math.random() * schemes.length)];
             }
 
-            // 3. Generate Colors
+
             const baseHSL = hexToHSL(baseHex);
             let hues = [];
 
@@ -97,14 +97,14 @@ var ColorPaletteModule = (function () {
                 ];
             }
 
-            // Convert HSL back to Hex
+
             const colors = hues.map(h => {
-                // Normalize hue
+
                 let normalizedHue = (h + 360) % 360;
                 return hslToHex(normalizedHue, baseHSL.s, baseHSL.l);
             });
 
-            // 4. Create UI
+
             const el = createPaletteElement(colors, false);
             container.appendChild(el);
         }
@@ -117,7 +117,7 @@ var ColorPaletteModule = (function () {
         return "#" + ("000000" + hex).slice(-6);
     }
 
-    // Reference Logic: Hex to HSL
+
     function hexToHSL(hex) {
         hex = hex.replace('#', '');
         let r = parseInt(hex.substr(0, 2), 16) / 255;
@@ -145,7 +145,7 @@ var ColorPaletteModule = (function () {
         return { h: h, s: s * 100, l: l * 100 };
     }
 
-    // Reference Logic: HSL to Hex
+
     function hslToHex(h, s, l) {
         s /= 100;
         l /= 100;
@@ -162,7 +162,7 @@ var ColorPaletteModule = (function () {
         }).join('');
     }
 
-    /* --- UI Creation & Interaction --- */
+
 
     function createPaletteElement(colors, isSaved) {
         const row = document.createElement('div');
@@ -176,7 +176,7 @@ var ColorPaletteModule = (function () {
         row.style.borderRadius = '6px';
         row.style.transition = 'all 0.2s ease';
 
-        // Colors
+
         colors.forEach(color => {
             const swatch = document.createElement('div');
             swatch.className = 'palette-swatch';
@@ -189,7 +189,7 @@ var ColorPaletteModule = (function () {
             swatch.style.transition = 'transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
             swatch.setAttribute('data-tooltip', color.substring(1).toUpperCase());
 
-            // "COPIED" Text Overlay
+
             const copiedText = document.createElement('span');
             copiedText.innerText = 'COPIED';
             copiedText.style.position = 'absolute';
@@ -213,7 +213,7 @@ var ColorPaletteModule = (function () {
                 const hexCode = color.substring(1).toUpperCase();
                 copyToClipboard(hexCode);
 
-                // UX Feedback
+
                 if (window.showTooltip) window.showTooltip(swatch, hexCode, 1000);
 
                 copiedText.style.opacity = '1';
@@ -223,7 +223,7 @@ var ColorPaletteModule = (function () {
             row.appendChild(swatch);
         });
 
-        // Action Button
+
         const actionBtn = document.createElement('button');
         actionBtn.style.background = 'transparent';
         actionBtn.style.border = 'none';

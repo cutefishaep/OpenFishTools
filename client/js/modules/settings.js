@@ -3,12 +3,12 @@ window.SettingsModule = class SettingsModule {
         this.defaults = {
             version: window.EXTENSION_VERSION,
 
-            // UI State
+
             lastTab: "main",
             navAutoHide: false,
             tipsEnabled: true,
 
-            // Theme Colors
+
             customColors: {
                 enabled: true,
                 accent: "#FFD700",

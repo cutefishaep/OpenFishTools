@@ -124,7 +124,7 @@ window.UpdaterModule = class UpdaterModule {
         for (let line of lines) {
             let trimmed = line.trim();
 
-            // Unordered Lists
+
             if (trimmed.startsWith('- ')) {
                 if (!inList) {
                     finalHtml += "<ul>";
@@ -134,13 +134,13 @@ window.UpdaterModule = class UpdaterModule {
                 continue;
             }
 
-            // Close list if we were in one
+
             if (inList && trimmed !== "" && !trimmed.startsWith('- ')) {
                 finalHtml += "</ul>";
                 inList = false;
             }
 
-            // Headers
+
             if (trimmed.startsWith('### ')) {
                 finalHtml += `<h3>${this.parseInline(trimmed.slice(4))}</h3>`;
             } else if (trimmed.startsWith('## ')) {
@@ -148,14 +148,14 @@ window.UpdaterModule = class UpdaterModule {
             } else if (trimmed.startsWith('# ')) {
                 finalHtml += `<h1>${this.parseInline(trimmed.slice(2))}</h1>`;
             }
-            // Empty lines
+
             else if (trimmed === "") {
                 if (inList) {
                     finalHtml += "</ul>";
                     inList = false;
                 }
             }
-            // Regular paragraphs
+
             else {
                 finalHtml += `<p>${this.parseInline(trimmed)}</p>`;
             }
