@@ -23,6 +23,19 @@
                 script = NS + '.executeTool("' + toolName + '")';
             }
             this.csInterface.evalScript(script, (res) => {
+                if (!res || res === 'undefined') return;
+                // Try to parse JSON error response
+                try {
+                    var data = JSON.parse(res);
+                    if (data && data.error) {
+                        if (data.type === 'warn' || data.type === 'warning') {
+                            ModalModule.warn(data.message, data.tool || 'Warning');
+                        } else {
+                            ModalModule.error(data.message, data.tool || 'Error');
+                        }
+                        return;
+                    }
+                } catch (e) { /* not JSON, proceed normally */ }
                 if (res === "false" || res === false) {
                     console.warn("FishTools: Tool '" + toolName + "' returned false.");
                 }
@@ -85,6 +98,12 @@
             if (btnCenter) {
                 btnCenter.addEventListener('click', () => {
                     this._runTool('CENTERINCOMP');
+                });
+            }
+            const btnOverlap = document.getElementById('btn-overlap');
+            if (btnOverlap) {
+                btnOverlap.addEventListener('click', () => {
+                    this._runTool('OVERLAP');
                 });
             }
         }

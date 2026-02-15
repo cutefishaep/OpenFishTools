@@ -20,16 +20,7 @@ window.SettingsModule = class SettingsModule {
         };
 
         this.settings = JSON.parse(JSON.stringify(this.defaults));
-        this.settingsPath = "config.json";
-        this.csInterface = new CSInterface();
-
-        try {
-            this.extensionPath = this.csInterface.getSystemPath(SystemPath.EXTENSION);
-            this.settingsFullPath = this.extensionPath + "/" + this.settingsPath;
-        } catch (e) {
-            console.error("Settings: Failed to get system paths", e);
-            this.settingsFullPath = this.settingsPath;
-        }
+        // Removed file system logic to avoid permission issues
     }
 
     init() {
@@ -97,34 +88,26 @@ window.SettingsModule = class SettingsModule {
 
     loadSettings() {
         try {
-            if (window.cep && window.cep.fs) {
-                const result = window.cep.fs.readFile(this.settingsFullPath);
-                if (result.err === 0 && result.data) {
-                    try {
-                        const loaded = JSON.parse(result.data);
+            const saved = localStorage.getItem('fishToolsConfig');
+            if (saved) {
+                try {
+                    const loaded = JSON.parse(saved);
 
-                        for (const key in loaded) {
-                            if (loaded.hasOwnProperty(key)) {
-                                if (key === 'customColors' && typeof loaded[key] === 'object') {
-                                    for (const subKey in loaded[key]) {
-                                        if (loaded[key].hasOwnProperty(subKey)) {
-                                            this.settings.customColors[subKey] = loaded[key][subKey];
-                                        }
+                    for (const key in loaded) {
+                        if (loaded.hasOwnProperty(key)) {
+                            if (key === 'customColors' && typeof loaded[key] === 'object') {
+                                for (const subKey in loaded[key]) {
+                                    if (loaded[key].hasOwnProperty(subKey)) {
+                                        this.settings.customColors[subKey] = loaded[key][subKey];
                                     }
-                                } else {
-                                    this.settings[key] = loaded[key];
                                 }
+                            } else {
+                                this.settings[key] = loaded[key];
                             }
                         }
-                    } catch (parseError) {
-                        console.error("Settings: JSON parse error", parseError);
                     }
-                }
-            } else {
-                const saved = localStorage.getItem('fishToolsConfig');
-                if (saved) {
-                    const obj = JSON.parse(saved);
-                    for (const k in obj) { this.settings[k] = obj[k]; }
+                } catch (parseError) {
+                    console.error("Settings: JSON parse error", parseError);
                 }
             }
         } catch (e) {
@@ -135,11 +118,7 @@ window.SettingsModule = class SettingsModule {
     saveSettings() {
         try {
             const data = JSON.stringify(this.settings, null, 4);
-            if (window.cep && window.cep.fs) {
-                window.cep.fs.writeFile(this.settingsFullPath, data);
-            } else {
-                localStorage.setItem('fishToolsConfig', data);
-            }
+            localStorage.setItem('fishToolsConfig', data);
         } catch (e) {
             console.error("Settings save error:", e);
         }

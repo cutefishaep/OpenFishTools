@@ -243,11 +243,9 @@
 
             <!-- Card: Velocity -->
             <!-- Card: Velocity -->
+            <!-- Card: Velocity -->
             <div class="card velocity-card">
                 <h3>Velocity</h3>
-
-                <!-- Speed Adjustment -->
-                <div class="toolbox-section-label">Speed Adjustment</div>
                 <div class="toolbox-grid" style="grid-template-columns: repeat(2, 1fr);">
                     <button class="tool-btn" data-tool="TWIX" title="Twixtor Speed Ramp">
                         <span class="material-icons">speed</span>
@@ -258,9 +256,11 @@
                         <span class="tool-label">T-REMAP</span>
                     </button>
                 </div>
+            </div>
 
-                <!-- Effects -->
-                <div class="toolbox-section-label">Effects</div>
+            <!-- Card: Beat -->
+            <div class="card beat-card">
+                <h3>Beat</h3>
                 <div class="toolbox-grid" style="grid-template-columns: repeat(2, 1fr);">
                     <button class="tool-btn" data-tool="GHST" title="Ghost Effect">
                         <span class="material-icons">auto_awesome_motion</span>
@@ -274,6 +274,10 @@
                         <span class="material-icons">vibration</span>
                         <span class="tool-label">S_SHAKE</span>
                     </button>
+                    <button class="tool-btn" data-tool="LENS" title="Camera Lens Blur Beat">
+                        <span class="material-icons">blur_circular</span>
+                        <span class="tool-label">LENS</span>
+                    </button>
                     <button class="tool-btn" data-tool="WARP" title="Wave Warp">
                         <span class="material-icons">waves</span>
                         <span class="tool-label">WARP</span>
@@ -284,7 +288,7 @@
             <!-- Card: Actions -->
             <div class="card actions-card">
                 <h3>Actions</h3>
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                     <button id="btn-precomp" class="secondary-btn" style="flex: 1; padding: 10px;">
                         <span class="material-icons" style="font-size: 16px; vertical-align: middle;">layers</span>
                         PRE-COMP
@@ -293,6 +297,13 @@
                         <span class="material-icons"
                             style="font-size: 16px; vertical-align: middle;">filter_center_focus</span>
                         CENTER
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-overlap" class="secondary-btn" style="flex: 1; padding: 10px;">
+                        <span class="material-icons"
+                            style="font-size: 16px; vertical-align: middle;">layers_clear</span>
+                        OVERLAP
                     </button>
                 </div>
             </div>

@@ -2,6 +2,20 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [0.0.6] - 2026-02-15
+### Added
+- **Lens Blur (LENS)**: New beat-synced blur tool (Flash-like graph) in the Beat card.
+- **Beat Card**: Dedicated UI card for rhythmic effects (Ghost, Flash, Shake, Warp, Lens Blur).
+- **GUI Error Handler**: Replaced native alerts with styled modal popups for errors and warnings.
+
+### Changed
+- **Overlap**: Consolidated 2D & 3D buttons into a single smart "OVERLAP" button.
+- **Z-Graph Easing**: Implemented adaptive asymmetric easing for Overlap (steepest point at keyframes).
+- **Settings Persistence**: Fixed issue where UI state (Last Tab) wasn't saving by switching to reliable `localStorage`.
+- **Null Values**: Overlap nulls now use absolute keyframe values instead of deltas for easier graph editing.
+
+---
+
 ## [0.0.4] - 2026-02-14
 ### Added
 - **Velocity Tools**: Added 4 new motion tools: Ghost, Exposure Flash, S_Shake, and Wave Warp.
