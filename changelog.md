@@ -2,6 +2,22 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [0.0.7] - 2026-02-24
+### Added
+- **Duplicate Comp (DUP)**: True deep comp duplicator that smart-renames and replaces selected pre-comp layers automatically.
+- **Transitions Panel**: One-click Scale & Fade transitions (In & Out) matching smart CC2017 ease formulas.
+- **Task Tracker Dashboard**: To-Do list tracking logic and a Sticky Notes auto-save area.
+- **Fluid Toolbox UI**: Buttons now dynamically wrap cleanly without squishing when resizing panel width.
+- **Made in Indonesia**: Added signature heart flair to Info footer.
+
+### Changed
+- **Codebase Minification**: Reduced bundle size via Python script removal of large instructional logic and code comments.
+
+### Removed
+- **Auto-Updater**: Removed the GitHub release checker due to internal request conflicts running on After Effects CC 2017's engine.
+
+---
+
 ## [0.0.6] - 2026-02-15
 ### Added
 - **Lens Blur (LENS)**: New beat-synced blur tool (Flash-like graph) in the Beat card.

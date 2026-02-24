@@ -1,19 +1,21 @@
+'use strict';
+
 var GraphModule = (function () {
-    let canvas, ctx;
-    let width, height;
-    const padding = 12;
-    const paddingOvershoot = 45;
-    const graphSize = 200;
+    var canvas, ctx;
+    var width, height;
+    var padding = 12;
+    var paddingOvershoot = 45;
+    var graphSize = 200;
 
-    let cp1 = { x: 0.33, y: 0 };
-    let cp2 = { x: 0.67, y: 1 };
-    let isDragging = null;
-    let isSnapEnabled = false;
-    let isOvershootEnabled = false;
-    let isAutoApplyEnabled = false;
-    let autoApplyTimer = null;
+    var cp1 = { x: 0.33, y: 0 };
+    var cp2 = { x: 0.67, y: 1 };
+    var isDragging = null;
+    var isSnapEnabled = false;
+    var isOvershootEnabled = false;
+    var isAutoApplyEnabled = false;
+    var autoApplyTimer = null;
 
-    let btnSnap, btnOvershoot, btnRead, btnApply, btnSavePreset, presetList;
+    var btnSnap, btnOvershoot, btnRead, btnApply, btnSavePreset, presetList, btnAuto;
 
     function init() {
         canvas = document.getElementById('ease-graph');
@@ -61,8 +63,8 @@ var GraphModule = (function () {
     }
 
     function resize() {
-        const parent = canvas.parentElement;
-        const rect = parent.getBoundingClientRect();
+        var parent = canvas.parentElement;
+        var rect = parent.getBoundingClientRect();
         parent.style.height = rect.width + 'px';
         canvas.width = rect.width;
         canvas.height = rect.width;
@@ -75,7 +77,7 @@ var GraphModule = (function () {
         isSnapEnabled = !isSnapEnabled;
         btnSnap.classList.toggle('active', isSnapEnabled);
         if (isSnapEnabled) {
-            btnSnap.style.background = 'var(--accent)';
+            btnSnap.style.background = '#ffb400';
             btnSnap.style.color = '#000';
         } else {
             btnSnap.style.background = '';
@@ -87,7 +89,7 @@ var GraphModule = (function () {
         isOvershootEnabled = !isOvershootEnabled;
         btnOvershoot.classList.toggle('active', isOvershootEnabled);
         if (isOvershootEnabled) {
-            btnOvershoot.style.background = 'var(--accent)';
+            btnOvershoot.style.background = '#ffb400';
             btnOvershoot.style.color = '#000';
         } else {
             btnOvershoot.style.background = '';
@@ -102,25 +104,25 @@ var GraphModule = (function () {
     }
 
     function getLayout() {
-        const currentPad = isOvershootEnabled ? paddingOvershoot : padding;
-        const availSize = Math.min(width, height) - (currentPad * 2);
-        const size = availSize;
-        const offsetX = (width - size) / 2;
-        const offsetY = (height - size) / 2;
+        var currentPad = isOvershootEnabled ? paddingOvershoot : padding;
+        var availSize = Math.min(width, height) - (currentPad * 2);
+        var size = availSize;
+        var offsetX = (width - size) / 2;
+        var offsetY = (height - size) / 2;
         return { size: size, offsetX: offsetX, offsetY: offsetY };
     }
 
     function getScreenPos(nx, ny) {
-        const layout = getLayout();
-        const sx = layout.offsetX + (nx * layout.size);
-        const sy = (height - layout.offsetY) - (ny * layout.size);
+        var layout = getLayout();
+        var sx = layout.offsetX + (nx * layout.size);
+        var sy = (height - layout.offsetY) - (ny * layout.size);
         return { x: sx, y: sy };
     }
 
     function getNormPos(sx, sy) {
-        const layout = getLayout();
-        const nx = (sx - layout.offsetX) / layout.size;
-        const ny = ((height - layout.offsetY) - sy) / layout.size;
+        var layout = getLayout();
+        var nx = (sx - layout.offsetX) / layout.size;
+        var ny = ((height - layout.offsetY) - sy) / layout.size;
         return { x: nx, y: ny };
     }
 
@@ -134,23 +136,23 @@ var GraphModule = (function () {
     }
 
     function onMouseDown(e) {
-        const rect = canvas.getBoundingClientRect();
+        var rect = canvas.getBoundingClientRect();
         handleInputStart(e.clientX - rect.left, e.clientY - rect.top);
     }
 
     function onTouchStart(e) {
         e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
+        var rect = canvas.getBoundingClientRect();
+        var touch = e.touches[0];
         handleInputStart(touch.clientX - rect.left, touch.clientY - rect.top);
     }
 
     function handleInputStart(x, y) {
-        const s1 = getScreenPos(cp1.x, cp1.y);
-        const s2 = getScreenPos(cp2.x, cp2.y);
-        const dist1 = Math.hypot(x - s1.x, y - s1.y);
-        const dist2 = Math.hypot(x - s2.x, y - s2.y);
-        const threshold = 20;
+        var s1 = getScreenPos(cp1.x, cp1.y);
+        var s2 = getScreenPos(cp2.x, cp2.y);
+        var dist1 = Math.hypot(x - s1.x, y - s1.y);
+        var dist2 = Math.hypot(x - s2.x, y - s2.y);
+        var threshold = 20;
 
         if (dist1 < threshold) {
             isDragging = 'cp1';
@@ -160,15 +162,15 @@ var GraphModule = (function () {
     }
 
     function onMouseMove(e) {
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
+        var rect = canvas.getBoundingClientRect();
+        var mx = e.clientX - rect.left;
+        var my = e.clientY - rect.top;
 
         if (!isDragging) {
-            const s1 = getScreenPos(cp1.x, cp1.y);
-            const s2 = getScreenPos(cp2.x, cp2.y);
-            const d1 = Math.hypot(mx - s1.x, my - s1.y);
-            const d2 = Math.hypot(mx - s2.x, my - s2.y);
+            var s1 = getScreenPos(cp1.x, cp1.y);
+            var s2 = getScreenPos(cp2.x, cp2.y);
+            var d1 = Math.hypot(mx - s1.x, my - s1.y);
+            var d2 = Math.hypot(mx - s2.x, my - s2.y);
             canvas.style.cursor = (d1 < 20 || d2 < 20) ? 'pointer' : 'crosshair';
             return;
         }
@@ -180,13 +182,13 @@ var GraphModule = (function () {
     function onTouchMove(e) {
         if (!isDragging) return;
         e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
+        var rect = canvas.getBoundingClientRect();
+        var touch = e.touches[0];
         handleInputMove(touch.clientX - rect.left, touch.clientY - rect.top);
     }
 
     function handleInputMove(x, y) {
-        const nPos = getNormPos(x, y);
+        var nPos = getNormPos(x, y);
 
         nPos.x = clamp(snap(nPos.x), 0, 1);
         nPos.y = snap(nPos.y);
@@ -223,10 +225,10 @@ var GraphModule = (function () {
     function drawGraphOnCanvas(context, w, h, p1, p2, draggingState) {
         context.clearRect(0, 0, w, h);
 
-        let layout = getLayout();
+        var layout = getLayout();
         if (w !== width) {
-            const thumbPad = w * 0.2;
-            const thumbSize = w - (thumbPad * 2);
+            var thumbPad = w * 0.2;
+            var thumbSize = w - (thumbPad * 2);
             layout = {
                 size: thumbSize,
                 offsetX: (w - thumbSize) / 2,
@@ -234,9 +236,9 @@ var GraphModule = (function () {
             };
         }
 
-        const size = Math.floor(layout.size);
-        const offsetX = Math.floor(layout.offsetX);
-        const offsetY = Math.floor(layout.offsetY);
+        var size = Math.floor(layout.size);
+        var offsetX = Math.floor(layout.offsetX);
+        var offsetY = Math.floor(layout.offsetY);
 
         function toScreen(nx, ny) {
             return {
@@ -245,16 +247,16 @@ var GraphModule = (function () {
             };
         }
 
-        const start = toScreen(0, 0);
-        const end = toScreen(1, 1);
+        var start = toScreen(0, 0);
+        var end = toScreen(1, 1);
 
         context.lineWidth = 1;
         if (w === width) {
-            const steps = 10;
-            for (let i = 1; i < steps; i++) {
-                const pos = i / steps;
-                const cx = Math.round(offsetX + pos * size) + 0.5;
-                const cy = Math.round(offsetY + (1 - pos) * size) + 0.5;
+            var steps = 10;
+            for (var i = 1; i < steps; i++) {
+                var pos = i / steps;
+                var cx = Math.round(offsetX + pos * size) + 0.5;
+                var cy = Math.round(offsetY + (1 - pos) * size) + 0.5;
 
                 context.strokeStyle = (i === 5) ? 'rgba(255, 180, 0, 0.15)' : 'rgba(255, 180, 0, 0.06)';
                 context.beginPath();
@@ -287,8 +289,8 @@ var GraphModule = (function () {
         context.beginPath();
         context.moveTo(start.x, start.y);
 
-        const s1 = toScreen(p1.x, p1.y);
-        const s2 = toScreen(p2.x, p2.y);
+        var s1 = toScreen(p1.x, p1.y);
+        var s2 = toScreen(p2.x, p2.y);
 
         context.bezierCurveTo(s1.x, s1.y, s2.x, s2.y, end.x, end.y);
         context.stroke();
@@ -318,11 +320,11 @@ var GraphModule = (function () {
     }
 
     function readEase() {
-        const cs = new CSInterface();
+        var cs = new CSInterface();
         cs.evalScript('FishTools.readEase()', function (res) {
             try {
                 if (!res || res === 'false') return;
-                const data = JSON.parse(res);
+                var data = JSON.parse(res);
                 if (data.error) {
                     console.warn("Read Ease:", data.error);
                     return;
@@ -337,13 +339,13 @@ var GraphModule = (function () {
     }
 
     function applyEase() {
-        const args = {
+        var args = {
             x1: cp1.x, y1: cp1.y,
             x2: cp2.x, y2: cp2.y,
             overshoot: isOvershootEnabled
         };
 
-        const cs = new CSInterface();
+        var cs = new CSInterface();
         cs.evalScript("FishTools.applyEase(" + JSON.stringify(args) + ")");
     }
 
@@ -357,14 +359,14 @@ var GraphModule = (function () {
     }
 
     function performSave(name) {
-        const data = {
+        var data = {
             name: name,
             x1: cp1.x, y1: cp1.y,
             x2: cp2.x, y2: cp2.y
         };
 
         if (window.settings) {
-            const existing = window.settings.get('presets') || [];
+            var existing = window.settings.get('presets') || [];
             existing.push(data);
             window.settings.set('presets', existing);
         }
@@ -375,10 +377,8 @@ var GraphModule = (function () {
     function loadPresets() {
         if (!window.settings) return;
 
-        let allPresets = window.settings.get('presets');
+        var allPresets = window.settings.get('presets');
 
-        // If first run or no presets (and hasn't been explicitly cleared to empty array), initialize with defaults
-        // Note: we check if it's undefined specifically to allow an empty array if user deletes all
         if (allPresets === undefined) {
             allPresets = [
                 { name: "Linear", x1: 0, y1: 0, x2: 1, y2: 1 },
@@ -393,7 +393,7 @@ var GraphModule = (function () {
     }
 
     function addPresetBtn(p, isUser) {
-        const btn = document.createElement('div');
+        var btn = document.createElement('div');
         btn.className = 'preset-item';
         btn.title = p.name;
         btn.style.cursor = 'pointer';
@@ -405,27 +405,7 @@ var GraphModule = (function () {
         btn.style.transition = 'background 0.2s';
         btn.style.position = 'relative';
 
-        btn.onmouseover = function () {
-            this.style.background = 'rgba(255,255,255,0.05)';
-            if (isUser) delBtn.style.opacity = '1';
-        };
-        btn.onmouseout = function () {
-            this.style.background = 'transparent';
-            if (isUser) delBtn.style.opacity = '0';
-        };
-
-        const thumbCanvas = document.createElement('canvas');
-        thumbCanvas.width = 65;
-        thumbCanvas.height = 65;
-        thumbCanvas.style.background = '#0e0e0e';
-        thumbCanvas.style.border = '1px solid #333';
-        thumbCanvas.style.borderRadius = '4px';
-        thumbCanvas.style.marginBottom = '6px';
-
-        const tCtx = thumbCanvas.getContext('2d');
-        drawGraphOnCanvas(tCtx, 65, 65, { x: p.x1, y: p.y1 }, { x: p.x2, y: p.y2 }, null);
-
-        let delBtn;
+        var delBtn;
         if (isUser) {
             delBtn = document.createElement('div');
             delBtn.innerHTML = '&times;';
@@ -458,7 +438,27 @@ var GraphModule = (function () {
             btn.appendChild(delBtn);
         }
 
-        const lbl = document.createElement('span');
+        btn.onmouseover = function () {
+            this.style.background = 'rgba(255,255,255,0.05)';
+            if (isUser && delBtn) delBtn.style.opacity = '1';
+        };
+        btn.onmouseout = function () {
+            this.style.background = 'transparent';
+            if (isUser && delBtn) delBtn.style.opacity = '0';
+        };
+
+        var thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = 65;
+        thumbCanvas.height = 65;
+        thumbCanvas.style.background = '#0e0e0e';
+        thumbCanvas.style.border = '1px solid #333';
+        thumbCanvas.style.borderRadius = '4px';
+        thumbCanvas.style.marginBottom = '6px';
+
+        var tCtx = thumbCanvas.getContext('2d');
+        drawGraphOnCanvas(tCtx, 65, 65, { x: p.x1, y: p.y1 }, { x: p.x2, y: p.y2 }, null);
+
+        var lbl = document.createElement('span');
         lbl.innerText = p.name;
         lbl.style.fontSize = '0.6rem';
         lbl.style.color = '#888';
@@ -485,8 +485,8 @@ var GraphModule = (function () {
 
     function deletePreset(p) {
         if (!window.settings) return;
-        const existing = window.settings.get('presets') || [];
-        const filtered = existing.filter(function (item) {
+        var existing = window.settings.get('presets') || [];
+        var filtered = existing.filter(function (item) {
             return !(item.name === p.name && item.x1 === p.x1 && item.y1 === p.y1);
         });
         window.settings.set('presets', filtered);

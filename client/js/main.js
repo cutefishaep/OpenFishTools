@@ -1,6 +1,7 @@
-const QRIS_DATA = "00020101021126610014COM.GO-JEK.WWW01189360091437879754150210G7879754150303UMI51440014ID.CO.QRIS.WWW0215ID10254474210390303UMI5204581653033605802ID5919CUTEFISHRBX, Gaming6009SUKOHARJO61055751362070703A0163041D6B";
+'use strict';
 
-// Initialize Modules
+var QRIS_DATA = "00020101021126610014COM.GO-JEK.WWW01189360091437879754150210G7879754150303UMI51440014ID.CO.QRIS.WWW0215ID10254474210390303UMI5204581653033605802ID5919CUTEFISHRBX, Gaming6009SUKOHARJO61055751362070703A0163041D6B";
+
 try {
     window.csInterface = new CSInterface();
     window.settings = new window.SettingsModule();
@@ -12,14 +13,14 @@ try {
 
 function setupFlyoutMenu() {
     if (!csInterface) return;
-    const menuXML = '<Menu>' +
+    var menuXML = '<Menu>' +
         '<MenuItem Id="reloadInfo" Label="Reload Info" Enabled="true" Checked="false"/>' +
         '<MenuItem Id="reloadPanel" Label="Reload UI" Enabled="true" Checked="false"/>' +
         '</Menu>';
 
     try {
         csInterface.setPanelFlyoutMenu(menuXML);
-        csInterface.addEventListener("com.adobe.csxs.events.flyoutMenuClicked", (event) => {
+        csInterface.addEventListener("com.adobe.csxs.events.flyoutMenuClicked", function (event) {
             if (event.data.menuId === "reloadInfo") {
                 loadSystemInfo();
             } else if (event.data.menuId === "reloadPanel") {
@@ -33,13 +34,13 @@ function setupFlyoutMenu() {
 
 function getManifestVersion() {
     try {
-        const interfaceObj = window.csInterface || new CSInterface();
-        const extensionPath = interfaceObj.getSystemPath(SystemPath.EXTENSION);
-        const manifestPath = extensionPath + "/CSXS/manifest.xml";
+        var interfaceObj = window.csInterface || new CSInterface();
+        var extensionPath = interfaceObj.getSystemPath(SystemPath.EXTENSION);
+        var manifestPath = extensionPath + "/CSXS/manifest.xml";
         if (window.cep && window.cep.fs) {
-            const result = window.cep.fs.readFile(manifestPath);
+            var result = window.cep.fs.readFile(manifestPath);
             if (result.err === 0) {
-                const match = /ExtensionBundleVersion\s*=\s*["'](.*?)["']/.exec(result.data);
+                var match = /ExtensionBundleVersion\s*=\s*["'](.*?)["']/.exec(result.data);
                 if (match && match[1]) return match[1];
             }
         }
@@ -50,58 +51,58 @@ function getManifestVersion() {
 window.EXTENSION_VERSION = getManifestVersion();
 
 function detectExtensionVersion() {
-    const extVerEl = document.getElementById("info-ext-ver");
+    var extVerEl = document.getElementById("info-ext-ver");
     if (extVerEl) extVerEl.textContent = window.EXTENSION_VERSION;
-    const updateVerEl = document.getElementById("update-ver");
+    var updateVerEl = document.getElementById("update-ver");
     if (updateVerEl) updateVerEl.textContent = "v" + window.EXTENSION_VERSION;
 }
 
 function loadSystemInfo() {
     if (!window.csInterface) return;
 
-    setInterval(() => {
-        const now = new Date();
-        const timeStr = now.getHours().toString().padStart(2, '0') + ":" +
-            now.getMinutes().toString().padStart(2, '0');
-        const el = document.getElementById("info-time");
+    setInterval(function () {
+        var now = new Date();
+        var timeStr = String(now.getHours()).padStart(2, '0') + ":" +
+            String(now.getMinutes()).padStart(2, '0');
+        var el = document.getElementById("info-time");
         if (el) el.textContent = timeStr;
     }, 1000);
 
-    csInterface.evalScript("app.version", (res) => {
-        const el = document.getElementById("info-ae-ver");
+    csInterface.evalScript("app.version", function (res) {
+        var el = document.getElementById("info-ae-ver");
         if (el) el.textContent = res || "Unknown";
     });
 
-    csInterface.evalScript("$.os", (res) => {
-        let osName = "Unknown";
+    csInterface.evalScript("$.os", function (res) {
+        var osName = "Unknown";
         if (res) {
             if (res.indexOf("Windows") !== -1) osName = "Windows";
             else if (res.indexOf("Mac") !== -1) osName = "Mac OS";
             else osName = res;
         }
-        const el = document.getElementById("info-os");
+        var el = document.getElementById("info-os");
         if (el) el.textContent = osName;
     });
 
-    csInterface.evalScript("(app.project.file) ? app.project.file.name : 'Unsaved Project'", (res) => {
-        const el = document.getElementById("info-project");
+    csInterface.evalScript("(app.project.file) ? app.project.file.name : 'Unsaved Project'", function (res) {
+        var el = document.getElementById("info-project");
         if (el) el.textContent = res || "None";
     });
 }
 
 function setupTabs() {
-    const tabs = document.querySelectorAll('.tab-btn');
-    const contents = document.querySelectorAll('.tab-content');
+    var tabs = document.querySelectorAll('.tab-btn');
+    var contents = document.querySelectorAll('.tab-content');
 
-    tabs.forEach(tab => {
+    tabs.forEach(function (tab) {
         tab.addEventListener('click', function () {
-            const target = this.getAttribute('data-tab');
+            var target = this.getAttribute('data-tab');
 
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
+            tabs.forEach(function (t) { t.classList.remove('active'); });
+            contents.forEach(function (c) { c.classList.remove('active'); });
 
             this.classList.add('active');
-            const contentEl = document.getElementById('tab-' + target);
+            var contentEl = document.getElementById('tab-' + target);
             if (contentEl) contentEl.classList.add('active');
 
             if (settings) {
@@ -109,7 +110,7 @@ function setupTabs() {
             }
 
             if (target === 'graph' && window.GraphModule) {
-                setTimeout(() => {
+                setTimeout(function () {
                     window.GraphModule.resize();
                 }, 10);
             }
@@ -118,46 +119,65 @@ function setupTabs() {
 }
 
 function setupDonation() {
-    const btnPaypal = document.getElementById('btn-paypal');
+    var btnPaypal = document.getElementById('btn-paypal');
     if (btnPaypal) {
-        btnPaypal.addEventListener('click', () => {
+        btnPaypal.addEventListener('click', function () {
             csInterface.openURLInDefaultBrowser("https://www.paypal.com/paypalme/cutefishae");
         });
     }
 
-    const btnQris = document.getElementById('btn-qris');
+    var btnQris = document.getElementById('btn-qris');
     if (btnQris) {
-        btnQris.addEventListener('click', () => {
-            const modal = document.getElementById('qris-modal');
-            const qrcodeDiv = document.getElementById('qrcode');
+        btnQris.addEventListener('click', function () {
+            var modal = document.getElementById('qris-modal');
+            var qrcodeDiv = document.getElementById('qrcode');
             if (modal) {
                 modal.style.display = "flex";
-                const apiURL = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + encodeURIComponent(QRIS_DATA);
-                qrcodeDiv.innerHTML = '<img src="' + apiURL + '" alt="QRIS Code" style="border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">';
+                qrcodeDiv.innerHTML = '<img src="./assets/qris.png" alt="QRIS Code" style="width: 100%; max-width: 180px; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">';
             }
         });
     }
 
-    const closeQris = document.getElementById('close-qris');
+    var closeQris = document.getElementById('close-qris');
     if (closeQris) {
-        closeQris.addEventListener('click', () => {
+        closeQris.addEventListener('click', function () {
             document.getElementById('qris-modal').style.display = 'none';
         });
+    }
+
+    
+    var socialLinks = {
+        'btn-yt': 'https://www.youtube.com/@cutefishYT',
+        'btn-tt-aep': 'https://www.tiktok.com/@cutefishaep',
+        'btn-tt-rbx': 'https://www.tiktok.com/@cutefishrbx',
+        'btn-ig': 'https://www.instagram.com/cutefishae',
+        'btn-gh': 'https://www.github.com/cutefishaep'
+    };
+
+    for (var id in socialLinks) {
+        (function (btnId, url) {
+            var el = document.getElementById(btnId);
+            if (el) {
+                el.addEventListener('click', function () {
+                    csInterface.openURLInDefaultBrowser(url);
+                });
+            }
+        })(id, socialLinks[id]);
     }
 }
 
 function loadHostScript(callback) {
     if (!csInterface) { if (callback) callback(); return; }
     try {
-        const extPath = csInterface.getSystemPath(SystemPath.EXTENSION);
-        const jsxPath = extPath + "/host/index.jsx";
-        const result = window.cep && window.cep.fs ? window.cep.fs.readFile(jsxPath) : null;
+        var extPath = csInterface.getSystemPath(SystemPath.EXTENSION);
+        var jsxPath = extPath + "/host/index.jsx";
+        var result = window.cep && window.cep.fs ? window.cep.fs.readFile(jsxPath) : null;
         if (result && result.err === 0) {
-            csInterface.evalScript(result.data, () => {
+            csInterface.evalScript(result.data, function () {
                 if (callback) callback();
             });
         } else {
-            csInterface.evalScript('$.evalFile("' + jsxPath.replace(/\\/g, '/') + '")', () => {
+            csInterface.evalScript('$.evalFile("' + jsxPath.replace(/\\/g, '/') + '")', function () {
                 if (callback) callback();
             });
         }
@@ -167,26 +187,27 @@ function loadHostScript(callback) {
     }
 }
 
-window.showTooltip = function (el, text, duration = 1500) {
-    const tooltip = document.getElementById('custom-tooltip');
+window.showTooltip = function (el, text, duration) {
+    if (duration === undefined) duration = 1500;
+    var tooltip = document.getElementById('custom-tooltip');
     if (!tooltip) return;
 
     tooltip.textContent = text;
     tooltip.classList.add('visible');
 
-    const rect = el.getBoundingClientRect();
-    const winW = window.innerWidth;
+    var rect = el.getBoundingClientRect();
+    var winW = window.innerWidth;
 
-    const tx = rect.left + (rect.width / 2);
-    const ty = rect.top - 8;
+    var tx = rect.left + (rect.width / 2);
+    var ty = rect.top - 8;
 
     tooltip.style.left = tx + 'px';
     tooltip.style.top = ty + 'px';
 
-    requestAnimationFrame(() => {
-        const ttRect = tooltip.getBoundingClientRect();
-        const halfW = ttRect.width / 2;
-        let offset = 0;
+    requestAnimationFrame(function () {
+        var ttRect = tooltip.getBoundingClientRect();
+        var halfW = ttRect.width / 2;
+        var offset = 0;
 
         if (tx - halfW < 10) {
             offset = 10 - (tx - halfW);
@@ -195,13 +216,13 @@ window.showTooltip = function (el, text, duration = 1500) {
             offset = (winW - 10) - (tx + halfW);
         }
 
-        tooltip.style.transform = `translate(calc(-50% + ${offset}px), -100%)`;
-        tooltip.style.setProperty('--arrow-offset', `${-offset}px`);
+        tooltip.style.transform = 'translate(calc(-50% + ' + offset + 'px), -100%)';
+        tooltip.style.setProperty('--arrow-offset', (-offset) + 'px');
     });
 
     if (duration > 0) {
         if (el._ttTimeout) clearTimeout(el._ttTimeout);
-        el._ttTimeout = setTimeout(() => {
+        el._ttTimeout = setTimeout(function () {
             tooltip.classList.remove('visible');
             el._ttTimeout = null;
         }, duration);
@@ -209,15 +230,15 @@ window.showTooltip = function (el, text, duration = 1500) {
 };
 
 window.setupTooltips = function () {
-    const tooltip = document.getElementById('custom-tooltip');
+    var tooltip = document.getElementById('custom-tooltip');
     if (!tooltip) return;
 
-    const elements = document.querySelectorAll('[title], [data-tooltip]');
+    var elements = document.querySelectorAll('[title], [data-tooltip]');
 
-    elements.forEach((el) => {
+    elements.forEach(function (el) {
         if (el.hasAttribute('data-tt-init')) return;
 
-        const text = el.getAttribute('title') || el.getAttribute('data-tooltip');
+        var text = el.getAttribute('title') || el.getAttribute('data-tooltip');
         if (!text) return;
 
         if (el.hasAttribute('title')) {
@@ -225,11 +246,11 @@ window.setupTooltips = function () {
             el.removeAttribute('title');
         }
 
-        el.addEventListener('mouseenter', () => {
-            window.showTooltip(el, text, 0); // 0 means don't auto-hide on hover
+        el.addEventListener('mouseenter', function () {
+            window.showTooltip(el, text, 0);
         });
 
-        el.addEventListener('mouseleave', () => {
+        el.addEventListener('mouseleave', function () {
             if (!el._ttTimeout) {
                 tooltip.classList.remove('visible');
             }
@@ -237,27 +258,43 @@ window.setupTooltips = function () {
 
         el.setAttribute('data-tt-init', 'true');
     });
-}
+};
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Splash Screen Logic
-    const splash = document.getElementById('splash-screen');
+document.addEventListener('DOMContentLoaded', function () {
+    
+    var splash = document.getElementById('splash-screen');
     if (splash) {
-        setTimeout(() => {
+        setTimeout(function () {
             splash.classList.add('fade-out');
-            setTimeout(() => {
+            setTimeout(function () {
                 splash.remove();
-            }, 300); // Wait for CSS transition
-        }, 800); // 0.8s duration
+            }, 300);
+        }, 800);
     }
 
-    // Version already detected at top-level
+    
     detectExtensionVersion();
     setupFlyoutMenu();
     setupTabs();
     setupDonation();
 
-    loadHostScript(() => {
+    
+    csInterface.evalScript("app.version", function (res) {
+        var majorVersion = parseInt(res, 10);
+        
+        if (majorVersion && majorVersion <= 14) {
+            window.addEventListener('wheel', function (e) {
+                e.preventDefault();
+                var container = document.querySelector('.content-container');
+                if (container) {
+                    var scrollMultiplier = 0.2; 
+                    container.scrollTop += (e.deltaY * scrollMultiplier);
+                }
+            }, { passive: false });
+        }
+    });
+
+    loadHostScript(function () {
         if (window.ColorPicker) {
             window.ColorPicker.init();
         }
@@ -286,17 +323,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.error("ColorPaletteModule init error", e); }
         }
 
-        let updater;
-        if (window.UpdaterModule) {
-            try {
-                updater = new window.UpdaterModule();
-                updater.init();
-            } catch (e) { console.error("Updater init error", e); }
-        }
-
         if (window.ToolboxModule) {
             try {
-                const toolbox = new window.ToolboxModule();
+                var toolbox = new window.ToolboxModule();
                 toolbox.init();
             } catch (e) { console.error("Toolbox init error", e); }
         }
@@ -305,6 +334,20 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 window.ModalModule.init();
             } catch (e) { console.error("ModalModule init error", e); }
+        }
+
+        if (window.DashboardModule) {
+            try {
+                var dashboard = new window.DashboardModule();
+                dashboard.init();
+            } catch (e) { console.error("Dashboard init error", e); }
+        }
+
+        if (window.BeatMakerModule) {
+            try {
+                var beatMaker = new window.BeatMakerModule();
+                beatMaker.init(csInterface);
+            } catch (e) { console.error("BeatMaker init error", e); }
         }
 
         if (window.GraphModule) {
@@ -318,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-window.onerror = (msg, url, line, col, error) => {
+window.onerror = function (msg, url, line, col, error) {
     console.error("Global Error: " + msg + "\nLine: " + line + "\nSource: " + url);
     return false;
 };

@@ -1,6 +1,8 @@
+'use strict';
+
 var ColorPaletteModule = (function () {
 
-    let container, btnGenerate, inputCount, schemeSelect, baseTrigger, baseHidden, savedList;
+    var container, btnGenerate, inputCount, schemeSelect, baseTrigger, baseHidden, savedList;
 
     function init() {
         container = document.getElementById('palette-container');
@@ -12,8 +14,8 @@ var ColorPaletteModule = (function () {
         baseHidden = document.getElementById('palette-base-color');
 
         if (btnGenerate) {
-            btnGenerate.addEventListener('click', () => {
-                const newBase = getRandomHex();
+            btnGenerate.addEventListener('click', function () {
+                var newBase = getRandomHex();
                 if (baseHidden) {
                     baseHidden.value = newBase;
                     if (baseTrigger) baseTrigger.style.backgroundColor = newBase;
@@ -23,89 +25,97 @@ var ColorPaletteModule = (function () {
         }
 
         if (baseTrigger && baseHidden && window.ColorPicker) {
-            baseTrigger.addEventListener('click', () => {
-                window.ColorPicker.open(baseHidden);
+            baseTrigger.addEventListener('click', function (e) {
+                window.ColorPicker.open(baseHidden, baseTrigger);
             });
 
-
-            baseHidden.addEventListener('input', () => {
-                const color = baseHidden.value;
+            baseHidden.addEventListener('input', function () {
+                var color = baseHidden.value;
                 baseTrigger.style.backgroundColor = color;
-
                 generate();
             });
+            baseHidden.addEventListener('change', function () {
+                var color = baseHidden.value;
+                baseTrigger.style.backgroundColor = color;
+                generate();
+            });
+        }
+
+        if (schemeSelect) {
+            schemeSelect.addEventListener('change', generate);
+        }
+        if (inputCount) {
+            inputCount.addEventListener('change', generate);
+            inputCount.addEventListener('input', generate);
         }
 
         loadSaved();
         generate();
     }
 
-
-
     function generate() {
         if (!container) return;
         container.innerHTML = '';
 
+        var tooltips = document.querySelectorAll('#custom-tooltip');
+        tooltips.forEach(function (t) { t.classList.remove('visible'); });
 
-        const tooltips = document.querySelectorAll('#custom-tooltip');
-        tooltips.forEach(t => t.classList.remove('visible'));
-
-        let count = parseInt(inputCount.value) || 1;
+        var count = parseInt(inputCount.value) || 1;
         count = Math.max(1, Math.min(10, count));
         inputCount.value = count;
 
-        const schemes = ['analogous', 'complementary', 'triadic'];
-        const selectedScheme = schemeSelect ? schemeSelect.value : 'random';
+        var schemes = ['analogous', 'complementary', 'triadic', 'hue'];
+        var selectedScheme = schemeSelect ? schemeSelect.value : 'analogous';
 
-        for (let i = 0; i < count; i++) {
+        var originalBaseHex = baseHidden ? baseHidden.value : getRandomHex();
 
-            let baseHex = baseHidden ? baseHidden.value : getRandomHex();
+        for (var i = 0; i < count; i++) {
 
+            var baseHex = originalBaseHex;
+            var scheme = selectedScheme;
 
-            if (i > 0) baseHex = getRandomHex();
-
-
-            let scheme = selectedScheme;
-            if (scheme === 'random') {
-                scheme = schemes[Math.floor(Math.random() * schemes.length)];
+            if (i > 0 && scheme !== 'hue') {
+                baseHex = getRandomHex();
             }
 
-
-            const baseHSL = hexToHSL(baseHex);
-            let hues = [];
+            var baseHSL = hexToHSL(baseHex);
+            var colors = [];
 
             if (scheme === 'analogous') {
-                hues = [
-                    baseHSL.h - 30,
-                    baseHSL.h,
-                    baseHSL.h + 30,
-                    baseHSL.h + 60
-                ];
+                var hues = [baseHSL.h - 30, baseHSL.h, baseHSL.h + 30, baseHSL.h + 60];
+                colors = hues.map(function (h) { return hslToHex((h + 360) % 360, baseHSL.s, baseHSL.l); });
             } else if (scheme === 'complementary') {
-                hues = [
-                    baseHSL.h,
-                    baseHSL.h + 180,
-                    baseHSL.h + 150, // Accents
-                    baseHSL.h + 210
-                ];
+                var hues = [baseHSL.h, baseHSL.h + 180, baseHSL.h + 150, baseHSL.h + 210];
+                colors = hues.map(function (h) { return hslToHex((h + 360) % 360, baseHSL.s, baseHSL.l); });
             } else if (scheme === 'triadic') {
-                hues = [
-                    baseHSL.h,
-                    baseHSL.h + 120,
-                    baseHSL.h + 240,
-                    baseHSL.h + 60 // Variation
+                var hues = [baseHSL.h, baseHSL.h + 120, baseHSL.h + 240, baseHSL.h + 60];
+                colors = hues.map(function (h) { return hslToHex((h + 360) % 360, baseHSL.s, baseHSL.l); });
+            } else if (scheme === 'hue') {
+                var safeMinL = 15;
+                var rowStartL = baseHSL.l;
+
+                if (count > 1) {
+                    var targetEndRowL = Math.max(safeMinL + 15, baseHSL.l - 40);
+                    var rowDrop = (baseHSL.l - targetEndRowL) / (count - 1);
+                    rowStartL = baseHSL.l - (i * rowDrop);
+                }
+
+                var intraBoxDrop = 6;
+
+                var l0 = rowStartL;
+                var l1 = rowStartL - (1 * intraBoxDrop);
+                var l2 = rowStartL - (2 * intraBoxDrop);
+                var l3 = rowStartL - (3 * intraBoxDrop);
+
+                colors = [
+                    hslToHex(baseHSL.h, baseHSL.s, Math.max(safeMinL, l0)),
+                    hslToHex(baseHSL.h, baseHSL.s, Math.max(safeMinL, l1)),
+                    hslToHex(baseHSL.h, baseHSL.s, Math.max(safeMinL, l2)),
+                    hslToHex(baseHSL.h, baseHSL.s, Math.max(safeMinL, l3))
                 ];
             }
 
-
-            const colors = hues.map(h => {
-
-                let normalizedHue = (h + 360) % 360;
-                return hslToHex(normalizedHue, baseHSL.s, baseHSL.l);
-            });
-
-
-            const el = createPaletteElement(colors, false);
+            var el = createPaletteElement(colors, false);
             container.appendChild(el);
         }
 
@@ -113,25 +123,27 @@ var ColorPaletteModule = (function () {
     }
 
     function getRandomHex() {
-        const hex = Math.floor(Math.random() * 16777215).toString(16);
-        return "#" + ("000000" + hex).slice(-6);
+        
+        var h = Math.floor(Math.random() * 360);
+        var s = Math.floor(Math.random() * 30) + 70;
+        var l = Math.floor(Math.random() * 25) + 55;
+        return hslToHex(h, s, l);
     }
-
 
     function hexToHSL(hex) {
         hex = hex.replace('#', '');
-        let r = parseInt(hex.substr(0, 2), 16) / 255;
-        let g = parseInt(hex.substr(2, 2), 16) / 255;
-        let b = parseInt(hex.substr(4, 2), 16) / 255;
+        var r = parseInt(hex.substr(0, 2), 16) / 255;
+        var g = parseInt(hex.substr(2, 2), 16) / 255;
+        var b = parseInt(hex.substr(4, 2), 16) / 255;
 
-        let max = Math.max(r, g, b);
-        let min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
+        var max = Math.max(r, g, b);
+        var min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2;
 
         if (max === min) {
             h = s = 0;
         } else {
-            let d = max - min;
+            var d = max - min;
             s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
             switch (max) {
@@ -145,40 +157,37 @@ var ColorPaletteModule = (function () {
         return { h: h, s: s * 100, l: l * 100 };
     }
 
-
     function hslToHex(h, s, l) {
         s /= 100;
         l /= 100;
 
-        const k = n => (n + h / 30) % 12;
-        const a = s * Math.min(l, 1 - l);
-        const f = n =>
-            l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        var k = function (n) { return (n + h / 30) % 12; };
+        var a = s * Math.min(l, 1 - l);
+        var f = function (n) {
+            return l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        };
 
-        const rgb = [f(0), f(8), f(4)];
-        return "#" + rgb.map(x => {
-            const hex = Math.round(x * 255).toString(16);
+        var rgb = [f(0), f(8), f(4)];
+        return "#" + rgb.map(function (x) {
+            var hex = Math.round(x * 255).toString(16);
             return hex.length === 1 ? '0' + hex : hex;
         }).join('');
     }
 
-
-
     function createPaletteElement(colors, isSaved) {
-        const row = document.createElement('div');
+        var row = document.createElement('div');
         row.className = 'palette-row';
         row.style.display = 'flex';
         row.style.alignItems = 'center';
-        row.style.gap = '4px';
         row.style.padding = '4px';
         row.style.background = 'rgba(255,255,255,0.03)';
         row.style.border = '1px solid rgba(255,255,255,0.05)';
         row.style.borderRadius = '6px';
         row.style.transition = 'all 0.2s ease';
+        row.style.marginBottom = '6px';
 
-
-        colors.forEach(color => {
-            const swatch = document.createElement('div');
+        colors.forEach(function (color) {
+            var swatch = document.createElement('div');
             swatch.className = 'palette-swatch';
             swatch.style.flex = '1';
             swatch.style.height = '34px';
@@ -187,10 +196,10 @@ var ColorPaletteModule = (function () {
             swatch.style.cursor = 'pointer';
             swatch.style.position = 'relative';
             swatch.style.transition = 'transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            swatch.style.marginRight = '4px';
             swatch.setAttribute('data-tooltip', color.substring(1).toUpperCase());
 
-
-            const copiedText = document.createElement('span');
+            var copiedText = document.createElement('span');
             copiedText.innerText = 'COPIED';
             copiedText.style.position = 'absolute';
             copiedText.style.top = '50%';
@@ -205,34 +214,32 @@ var ColorPaletteModule = (function () {
             copiedText.style.transition = 'opacity 0.2s ease';
             swatch.appendChild(copiedText);
 
-            swatch.addEventListener('mousedown', () => swatch.style.transform = 'scale(0.92)');
-            swatch.addEventListener('mouseup', () => swatch.style.transform = 'scale(1)');
-            swatch.addEventListener('mouseleave', () => swatch.style.transform = 'scale(1)');
+            swatch.addEventListener('mousedown', function () { swatch.style.transform = 'scale(0.92)'; });
+            swatch.addEventListener('mouseup', function () { swatch.style.transform = 'scale(1)'; });
+            swatch.addEventListener('mouseleave', function () { swatch.style.transform = 'scale(1)'; });
 
             swatch.addEventListener('click', function () {
-                const hexCode = color.substring(1).toUpperCase();
+                var hexCode = color.substring(1).toUpperCase();
                 copyToClipboard(hexCode);
-
 
                 if (window.showTooltip) window.showTooltip(swatch, hexCode, 1000);
 
                 copiedText.style.opacity = '1';
-                setTimeout(() => copiedText.style.opacity = '0', 800);
+                setTimeout(function () { copiedText.style.opacity = '0'; }, 800);
             });
 
             row.appendChild(swatch);
         });
 
-
-        const actionBtn = document.createElement('button');
+        var actionBtn = document.createElement('button');
         actionBtn.style.background = 'transparent';
         actionBtn.style.border = 'none';
-        actionBtn.style.color = isSaved ? '#ff4444' : 'var(--accent)';
+        actionBtn.style.color = isSaved ? '#ff4444' : '#ffb400';
         actionBtn.style.cursor = 'pointer';
         actionBtn.style.padding = '0 6px';
         actionBtn.style.display = 'flex';
         actionBtn.style.alignItems = 'center';
-        actionBtn.innerHTML = `<span class="material-icons" style="font-size: 18px;">${isSaved ? 'delete' : 'save_alt'}</span>`;
+        actionBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">' + (isSaved ? 'delete' : 'save_alt') + '</span>';
         actionBtn.setAttribute('data-tooltip', isSaved ? "Delete" : "Save");
 
         actionBtn.addEventListener('click', function () {
@@ -250,7 +257,7 @@ var ColorPaletteModule = (function () {
     }
 
     function copyToClipboard(text) {
-        const textarea = document.createElement('textarea');
+        var textarea = document.createElement('textarea');
         textarea.value = text;
         document.body.appendChild(textarea);
         textarea.select();
@@ -260,8 +267,8 @@ var ColorPaletteModule = (function () {
 
     function savePalette(colors) {
         if (!window.settings) return;
-        const current = window.settings.get('saved_palettes') || [];
-        const exists = current.some(p => JSON.stringify(p) === JSON.stringify(colors));
+        var current = window.settings.get('saved_palettes') || [];
+        var exists = current.some(function (p) { return JSON.stringify(p) === JSON.stringify(colors); });
         if (exists) return;
         current.push(colors);
         window.settings.set('saved_palettes', current);
@@ -270,8 +277,8 @@ var ColorPaletteModule = (function () {
 
     function deletePalette(colors, rowElement) {
         if (!window.settings) return;
-        const current = window.settings.get('saved_palettes') || [];
-        const filtered = current.filter(p => JSON.stringify(p) !== JSON.stringify(colors));
+        var current = window.settings.get('saved_palettes') || [];
+        var filtered = current.filter(function (p) { return JSON.stringify(p) !== JSON.stringify(colors); });
         window.settings.set('saved_palettes', filtered);
         if (rowElement && rowElement.parentNode) rowElement.parentNode.removeChild(rowElement);
     }
@@ -280,12 +287,12 @@ var ColorPaletteModule = (function () {
         if (!savedList) return;
         savedList.innerHTML = '';
         if (!window.settings) return;
-        const current = window.settings.get('saved_palettes') || [];
+        var current = window.settings.get('saved_palettes') || [];
         if (current.length === 0) {
             savedList.innerHTML = '<div style="font-size: 0.65rem; opacity: 0.4; font-style: italic; padding: 10px; text-align: center;">Empty library.</div>';
             return;
         }
-        current.forEach(colors => savedList.appendChild(createPaletteElement(colors, true)));
+        current.forEach(function (colors) { savedList.appendChild(createPaletteElement(colors, true)); });
 
         if (window.setupTooltips) window.setupTooltips();
     }

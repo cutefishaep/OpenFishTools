@@ -1,7 +1,4 @@
-/*
- * FishTools - Host Script
- * Copyright (c) 2024
- */
+
 
 "object" != typeof JSON && (JSON = {}), function () { "use strict"; var rx_one = /^[\],:{}\s]*$/, rx_two = /\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, rx_three = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, rx_four = /(?:^|:|,)(?:\s*\[)+/g, rx_escapable = /[\\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, rx_dangerous = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g, gap, indent, meta, rep; function f(t) { return t < 10 ? "0" + t : t } function this_value() { return this.valueOf() } function quote(t) { return rx_escapable.lastIndex = 0, rx_escapable.test(t) ? '"' + t.replace(rx_escapable, function (t) { var e = meta[t]; return "string" == typeof e ? e : "\\u" + ("0000" + t.charCodeAt(0).toString(16)).slice(-4) }) + '"' : '"' + t + '"' } function str(t, e) { var r, n, o, u, f, a = gap, i = e[t]; switch (i && "object" == typeof i && "function" == typeof i.toJSON && (i = i.toJSON(t)), "function" == typeof rep && (i = rep.call(e, t, i)), typeof i) { case "string": return quote(i); case "number": return isFinite(i) ? String(i) : "null"; case "boolean": case "null": return String(i); case "object": if (!i) return "null"; if (gap += indent, f = [], "[object Array]" === Object.prototype.toString.apply(i)) { for (u = i.length, r = 0; r < u; r += 1)f[r] = str(r, i) || "null"; return o = 0 === f.length ? "[]" : gap ? "[\n" + gap + f.join(",\n" + gap) + "\n" + a + "]" : "[" + f.join(",") + "]", gap = a, o } if (rep && "object" == typeof rep) for (u = rep.length, r = 0; r < u; r += 1)"string" == typeof rep[r] && (o = str(n = rep[r], i)) && f.push(quote(n) + (gap ? ": " : ":") + o); else for (n in i) Object.prototype.hasOwnProperty.call(i, n) && (o = str(n, i)) && f.push(quote(n) + (gap ? ": " : ":") + o); return o = 0 === f.length ? "{}" : gap ? "{\n" + gap + f.join(",\n" + gap) + "\n" + a + "}" : "{" + f.join(",") + "}", gap = a, o } } "function" != typeof Date.prototype.toJSON && (Date.prototype.toJSON = function () { return isFinite(this.valueOf()) ? this.getUTCFullYear() + "-" + f(this.getUTCMonth() + 1) + "-" + f(this.getUTCDate()) + "T" + f(this.getUTCHours()) + ":" + f(this.getUTCMinutes()) + ":" + f(this.getUTCSeconds()) + "Z" : null }, Boolean.prototype.toJSON = this_value, Number.prototype.toJSON = this_value, String.prototype.toJSON = this_value), "function" != typeof JSON.stringify && (meta = { "\b": "\\b", "\t": "\\t", "\n": "\\n", "\f": "\\f", "\r": "\\r", '"': '\\"', "\\": "\\\\" }, JSON.stringify = function (t, e, r) { var n; if (gap = "", indent = "", "number" == typeof r) for (n = 0; n < r; n += 1)indent += " "; else "string" == typeof r && (indent = r); if (rep = e, e && "function" != typeof e && ("object" != typeof e || "number" != typeof e.length)) throw new Error("JSON.stringify"); return str("", { "": t }) }), "function" != typeof JSON.parse && (JSON.parse = function (text, reviver) { var j; function walk(t, e) { var r, n, o = t[e]; if (o && "object" == typeof o) for (r in o) Object.prototype.hasOwnProperty.call(o, r) && (void 0 !== (n = walk(o, r)) ? o[r] = n : delete o[r]); return reviver.call(t, e, o) } if (text = String(text), rx_dangerous.lastIndex = 0, rx_dangerous.test(text) && (text = text.replace(rx_dangerous, function (t) { return "\\u" + ("0000" + t.charCodeAt(0).toString(16)).slice(-4) })), rx_one.test(text.replace(rx_two, "@").replace(rx_three, "]").replace(rx_four, ""))) return j = eval("(" + text + ")"), "function" == typeof reviver ? walk({ "": j }, "") : j; throw new SyntaxError("JSON.parse") }) }();
 
@@ -11,9 +8,10 @@ function generateRandomNumber() {
     return Math.random();
 }
 
-var executeTool = function (toolName, arg1, arg2) {
+var executeTool = function (toolName) {
+    var args = Array.prototype.slice.call(arguments, 1);
     try {
-        var result = tools[toolName](arg1, arg2);
+        var result = tools[toolName].apply(null, args);
         if (typeof result === "string") return result;
         return result ? "true" : "false";
     } catch (error) {
@@ -47,8 +45,187 @@ var tools = {
     LENS: function () { return _LENS(); },
     SHKE: function () { return _SHAKE(); },
     WARP: function () { return _WARP(); },
-    OVERLAP: function () { return _OVERLAP(); }
+    OVERLAP: function () { return _OVERLAP(); },
+    ALIGN_LEFT: function () { return _ALIGN('LEFT') },
+    ALIGN_HCENTER: function () { return _ALIGN('HCENTER') },
+    ALIGN_RIGHT: function () { return _ALIGN('RIGHT') },
+    ALIGN_TOP: function () { return _ALIGN('TOP') },
+    ALIGN_VCENTER: function () { return _ALIGN('VCENTER') },
+    ALIGN_BOTTOM: function () { return _ALIGN('BOTTOM') },
+    PNG: function () { return _PNG(); },
+    CUBE: function (w, h, d, useLayer) { return _CUBE(w, h, d, useLayer); },
+    PURGE: function (target) { return _PURGE(target); },
+    BEATMARK: function () { return _addBeatMark(); },
+    CLEARBEATS: function () { return _clearBeatMarks(); },
+    DUP: function (newName) { return _DUP(newName); },
+    TRANS_FADE_IN: function () { return _applyTransition("ADBE Opacity", "IN"); },
+    TRANS_FADE_OUT: function () { return _applyTransition("ADBE Opacity", "OUT"); },
+    TRANS_SCALE_IN: function () { return _applyTransition("ADBE Scale", "IN"); },
+    TRANS_SCALE_OUT: function () { return _applyTransition("ADBE Scale", "OUT"); }
 };
+
+function _applyTransition(propName, directionType) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+
+    var selectedLayers = comp.selectedLayers;
+    if (selectedLayers.length == 0) return "Please select at least one layer.";
+
+    app.beginUndoGroup("Apply Transition: " + directionType);
+
+    var dur = 15 * comp.frameDuration;
+
+    for (var i = 0; i < selectedLayers.length; i++) {
+        var layer = selectedLayers[i];
+
+        try {
+            var prop;
+            if (propName === "ADBE Opacity") {
+                prop = layer.transform ? layer.transform.opacity : null;
+            } else if (propName === "ADBE Scale") {
+                prop = layer.transform ? layer.transform.scale : null;
+            }
+            if (!prop) continue;
+
+            var inP = layer.inPoint;
+            var outP = layer.outPoint;
+
+            var is1D = (propName === "ADBE Opacity");
+            var outerValue = is1D ? 0 : [0, 0, 0];
+
+            var curDefault;
+            if (prop.numKeys === 0) {
+                curDefault = prop.value;
+            } else {
+                var midTime = inP + (outP - inP) / 2;
+                curDefault = prop.valueAtTime(midTime, true);
+            }
+
+            if (!is1D) {
+                if (curDefault.length === 2) {
+                    outerValue = [0, 0];
+                }
+            }
+
+            var t1, t2;
+            if (directionType === "IN") {
+                t1 = inP;
+                t2 = inP + dur;
+            } else if (directionType === "OUT") {
+                t1 = outP - dur;
+                t2 = outP;
+            }
+
+            var v1 = (directionType === "IN") ? outerValue : curDefault;
+            var v2 = (directionType === "IN") ? curDefault : outerValue;
+
+            prop.setValueAtTime(t1, v1);
+            prop.setValueAtTime(t2, v2);
+
+            var easeInObj = new KeyframeEase(0, 33.33333);
+            var easeOutObj = new KeyframeEase(0, 33.33333);
+
+            var easeArr = [];
+            var easeOutArr = [];
+
+            var easeLen = is1D ? 1 : curDefault.length;
+            for (var d = 0; d < Math.min(easeLen, 3); d++) {
+                easeArr.push(easeInObj);
+                easeOutArr.push(easeOutObj);
+            }
+
+            var k1Idx = prop.nearestKeyIndex(t1);
+            if (prop.keyTime(k1Idx) === t1) {
+                if (is1D) {
+                    prop.setTemporalEaseAtKey(k1Idx, [easeInObj], [easeOutObj]);
+                } else {
+                    prop.setTemporalEaseAtKey(k1Idx, easeArr, easeOutArr);
+                }
+            }
+            var k2Idx = prop.nearestKeyIndex(t2);
+            if (prop.keyTime(k2Idx) === t2) {
+                if (is1D) {
+                    prop.setTemporalEaseAtKey(k2Idx, [easeInObj], [easeOutObj]);
+                } else {
+                    prop.setTemporalEaseAtKey(k2Idx, easeArr, easeOutArr);
+                }
+            }
+        } catch (err) {
+            app.endUndoGroup();
+            return "ERROR:" + err.toString();
+        }
+    }
+    app.endUndoGroup();
+    return true;
+}
+
+function _DUP(newName) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition or a precomp layer.";
+
+    var targetComp = comp;
+    var targetLayer = null;
+
+    if (comp.selectedLayers.length > 0) {
+        if (comp.selectedLayers[0] instanceof AVLayer && comp.selectedLayers[0].source instanceof CompItem) {
+            targetComp = comp.selectedLayers[0].source;
+            targetLayer = comp.selectedLayers[0];
+        } else {
+            return "Please select a precomp layer.";
+        }
+    }
+
+    app.beginUndoGroup("Duplicate Comp");
+
+    var previousComps = [];
+
+    function _checkPreviousComps(sourceId) {
+        for (var i = 0; i < previousComps.length; i++) {
+            if (previousComps[i].source.id === sourceId) return previousComps[i].dest;
+        }
+        return null;
+    }
+
+    function _deepDuplicate(item) {
+        var copy = item.duplicate();
+        previousComps.push({ source: item, dest: copy });
+
+        for (var i = 1; i <= copy.numLayers; i++) {
+            var layer = copy.layer(i);
+            if (layer instanceof AVLayer && layer.source instanceof CompItem) {
+                var existingDest = _checkPreviousComps(layer.source.id);
+                if (existingDest) {
+                    layer.replaceSource(existingDest, false);
+                } else {
+                    var newChild = _deepDuplicate(layer.source);
+                    layer.replaceSource(newChild, false);
+                }
+            }
+        }
+        return copy;
+    }
+
+    try {
+        var newComp = _deepDuplicate(targetComp);
+        newComp.name = newName;
+
+        if (targetLayer) {
+
+            
+            
+            var newLayer = targetLayer.duplicate();
+            newLayer.replaceSource(newComp, false);
+            newLayer.name = newName;
+
+        }
+    } catch (e) {
+        app.endUndoGroup();
+        return "ERROR:" + e.toString();
+    }
+
+    app.endUndoGroup();
+    return true;
+}
 
 function _FRZ() {
     var comp = app.project.activeItem;
@@ -180,8 +357,7 @@ function _NUL(alter) {
     if (hasSelection) {
         nullLayer.inPoint = targetLayer.inPoint;
         nullLayer.outPoint = targetLayer.outPoint;
-        try { nullLayer.moveBefore(targetLayer); } catch (e) { /* Camera/Light layers may block moveBefore */ }
-
+        try { nullLayer.moveBefore(targetLayer); } catch (e) {  }
 
         if (alter) {
             var bounds = _getSelectionBounds(selectedLayers);
@@ -364,6 +540,69 @@ function _CENTERINCOMP() {
                 } else {
                     position.setValue(newPosition);
                 }
+            }
+        }
+        return true;
+    } catch (err) {
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _ALIGN(type) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return false;
+    var selectedLayers = comp.selectedLayers;
+    if (selectedLayers.length === 0) return false;
+
+    app.beginUndoGroup("Align " + type);
+    try {
+        var compWidth = comp.width;
+        var compHeight = comp.height;
+        var curTime = comp.time;
+
+        for (var i = 0; i < selectedLayers.length; i++) {
+            var layer = selectedLayers[i];
+            if (layer instanceof CameraLayer || layer instanceof LightLayer || layer.nullLayer) continue;
+
+            var position = layer.property("ADBE Transform Group").property("ADBE Position");
+            var anchor = layer.property("ADBE Transform Group").property("ADBE Anchor Point");
+            var scale = layer.property("ADBE Transform Group").property("ADBE Scale").value;
+
+            
+            var rect = layer.sourceRectAtTime(curTime, false);
+            var actualWidth = rect.width * (Math.abs(scale[0]) / 100);
+            var actualHeight = rect.height * (Math.abs(scale[1]) / 100);
+
+            
+            var anchorOffsetX = (anchor.value[0] - rect.left) * (scale[0] / 100);
+            var anchorOffsetY = (anchor.value[1] - rect.top) * (scale[1] / 100);
+
+            var curPos = position.value;
+            var newX = curPos[0];
+            var newY = curPos[1];
+
+            if (type === 'LEFT') newX = 0 + anchorOffsetX;
+            if (type === 'HCENTER') newX = (compWidth / 2) - (actualWidth / 2) + anchorOffsetX;
+            if (type === 'RIGHT') newX = compWidth - actualWidth + anchorOffsetX;
+
+            if (type === 'TOP') newY = 0 + anchorOffsetY;
+            if (type === 'VCENTER') newY = (compHeight / 2) - (actualHeight / 2) + anchorOffsetY;
+            if (type === 'BOTTOM') newY = compHeight - actualHeight + anchorOffsetY;
+
+            var newPosition = [newX, newY];
+            if (layer.threeDLayer) newPosition.push(curPos[2]);
+
+            if (position.isTimeVarying) {
+                var numKeys = position.numKeys;
+                if (numKeys > 0) {
+                    position.setValueAtTime(curTime, newPosition);
+                } else {
+                    position.setValue(newPosition);
+                }
+            } else {
+                position.setValue(newPosition);
             }
         }
         return true;
@@ -617,7 +856,6 @@ function _TWIX() {
             return false;
         }
 
-
         for (var i = 1; i <= twix.numProperties; i++) {
             var p = twix.property(i);
             if (p.name === "In FPS is Out FPS") p.setValue(false);
@@ -671,14 +909,13 @@ function _TMRE() {
                 tr.setValueAtTime(t, val);
             }
 
-            // Apply Easing: Fast (at markers) -> Slow (in middle) -> Fast (at markers)
+            
             for (var j = 1; j < tr.numKeys; j++) {
                 var t1 = tr.keyTime(j);
                 var t2 = tr.keyTime(j + 1);
                 var v1 = tr.keyValue(j);
                 var v2 = tr.keyValue(j + 1);
                 var avgSpeed = Math.abs((v2 - v1) / (t2 - t1));
-
 
                 var targetSpeed = avgSpeed * 4;
                 var easeOut = new KeyframeEase(targetSpeed, 20);
@@ -707,24 +944,24 @@ function _GHST() {
     try {
         var curTime = comp.time;
 
+        var duration = 25 * comp.frameDuration;
         var adj = comp.layers.addSolid([0, 0, 0], "Ghost Effect", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.startTime = curTime;
-        adj.outPoint = curTime + 2;
+        adj.outPoint = curTime + duration;
         adj.label = 5;
         if (layer) adj.moveBefore(layer);
-
 
         var transformEffect = adj.Effects.addProperty("ADBE Geometry2");
 
         transformEffect.property(3).setValue(true);
         var scale = transformEffect.property(4);
         scale.setValueAtTime(curTime, 100);
-        scale.setValueAtTime(curTime + 2, 250);
+        scale.setValueAtTime(curTime + duration, 250);
 
         var opacity = adj.property("ADBE Transform Group").property("ADBE Opacity");
         opacity.setValueAtTime(curTime, 100);
-        opacity.setValueAtTime(curTime + 2, 0);
+        opacity.setValueAtTime(curTime + duration, 0);
 
         var easeOutFast = new KeyframeEase(0, 0.1);
         var easeInSlow = new KeyframeEase(0, 95);
@@ -809,7 +1046,6 @@ function _EXPO() {
     }
 }
 
-
 function _LENS() {
     var comp = app.project.activeItem;
     if (!comp || comp.selectedLayers.length === 0) return '{"error":true,"tool":"LENS","type":"warn","message":"Please select a layer with markers."}';
@@ -821,22 +1057,22 @@ function _LENS() {
         adj.inPoint = layer.inPoint;
         adj.outPoint = layer.outPoint;
         adj.moveBefore(layer);
-        adj.label = 5; // Same label color as Expo
+        adj.label = 5; 
 
-        // Effect reference
+        
         var lens = adj.Effects.addProperty("ADBE Camera Lens Blur");
         if (!lens) {
-            // Fallback for older AE versions or if Camera Lens Blur is missing
-            lens = adj.Effects.addProperty("ADBE Fast Blur"); // Fallback
+            
+            lens = adj.Effects.addProperty("ADBE Fast Blur"); 
         }
 
         var blurRadius = null;
         if (lens) {
-            // Try known property names
-            blurRadius = lens.property("ADBE Camera Lens Blur-0001"); // Blur Radius matchname
+            
+            blurRadius = lens.property("ADBE Camera Lens Blur-0001"); 
             if (!blurRadius) blurRadius = lens.property("Blur Radius");
-            if (!blurRadius) blurRadius = lens.property("Blurriness"); // For Fast Blur
-            if (!blurRadius && lens.numProperties >= 1) blurRadius = lens.property(1); // Blind guess
+            if (!blurRadius) blurRadius = lens.property("Blurriness"); 
+            if (!blurRadius && lens.numProperties >= 1) blurRadius = lens.property(1); 
         }
 
         if (!blurRadius) {
@@ -849,7 +1085,7 @@ function _LENS() {
         for (var i = 0; i < markers.length; i++) {
             var t = markers[i];
 
-            // Frame before marker: Value 0 (Low)
+            
             blurRadius.setValueAtTime(t - fd, 0);
 
             var kIdxZero = blurRadius.nearestKeyIndex(t - fd);
@@ -858,7 +1094,7 @@ function _LENS() {
                 blurRadius.setTemporalEaseAtKey(kIdxZero, [easeInSlow], blurRadius.keyOutTemporalEase(kIdxZero));
             }
 
-            // Frame at marker: Value 50 (High)
+            
             blurRadius.setValueAtTime(t, 50);
 
             var kIdxPeak = blurRadius.nearestKeyIndex(t);
@@ -876,24 +1112,22 @@ function _LENS() {
     }
 }
 
-
 function _SHAKE() {
     var comp = app.project.activeItem;
     if (!comp || comp.selectedLayers.length === 0) return false;
     var layer = comp.selectedLayers[0];
     app.beginUndoGroup("Apply S_Shake");
     try {
-        // Create Adjustment Layer
+        
         var adj = comp.layers.addSolid([0, 0, 0], "S_Shake Adjust", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.inPoint = layer.inPoint;
         adj.outPoint = layer.outPoint;
         adj.label = 5;
 
-
         try {
             if (adj.index !== layer.index - 1) adj.moveBefore(layer);
-        } catch (e) { /* ignore move error */ }
+        } catch (e) {  }
 
         var shake = adj.Effects.addProperty("S_Shake");
         if (!shake) {
@@ -901,7 +1135,6 @@ function _SHAKE() {
             adj.remove();
             return false;
         }
-
 
         var mb = shake.property("Motion Blur");
         if (mb) mb.setValue(true);
@@ -918,12 +1151,10 @@ function _SHAKE() {
         for (var i = 0; i < markers.length; i++) {
             var t = markers[i];
 
-
             amp.setValueAtTime(t - fd, 0);
             var kIdxZero = amp.nearestKeyIndex(t - fd);
             var easeInSlow = new KeyframeEase(0, 100);
             amp.setTemporalEaseAtKey(kIdxZero, [easeInSlow], amp.keyOutTemporalEase(kIdxZero));
-
 
             amp.setValueAtTime(t, 1);
             var kIdxPeak = amp.nearestKeyIndex(t);
@@ -946,17 +1177,18 @@ function _WARP() {
     app.beginUndoGroup("Warp Effect");
     try {
         var curTime = comp.time;
+        var duration = 8 * comp.frameDuration;
         var adj = comp.layers.addSolid([0, 0, 0], "Warp Effect", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.startTime = curTime;
-        adj.outPoint = curTime + 1; // 1 second duration
+        adj.outPoint = curTime + duration;
         adj.label = 5;
 
         var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
         if (selectedLayer) {
             try {
                 if (adj.index !== selectedLayer.index - 1) adj.moveBefore(selectedLayer);
-            } catch (e) { /* ignore move error */ }
+            } catch (e) {  }
         }
 
         var warp = adj.Effects.addProperty("ADBE Wave Warp");
@@ -966,7 +1198,7 @@ function _WARP() {
             return false;
         }
 
-        warp.property("ADBE Wave Warp-0001").setValue(9); // Smooth Noise
+        warp.property("ADBE Wave Warp-0001").setValue(9); 
         warp.property("ADBE Wave Warp-0003").setValue(109);
         warp.property("ADBE Wave Warp-0004").setValue(0);
         warp.property("ADBE Wave Warp-0005").setValue(0.2);
@@ -975,7 +1207,7 @@ function _WARP() {
 
         var height = warp.property("ADBE Wave Warp-0002");
         height.setValueAtTime(curTime, 228);
-        height.setValueAtTime(curTime + 1, 0);
+        height.setValueAtTime(curTime + duration, 0);
 
         var easeOutFast = new KeyframeEase(-50000, 0.1);
         var easeInSlow = new KeyframeEase(0, 100);
@@ -999,7 +1231,7 @@ function _OVERLAP() {
     if (selectedLayers.length === 0) return false;
     var layer = selectedLayers[0];
 
-    // Auto-detect 2D or 3D and route to the correct function
+    
     if (layer.threeDLayer) {
         return _OVERLAP_3D(comp, layer);
     } else {
@@ -1013,7 +1245,7 @@ function _OVERLAP_2D(comp, layer) {
 
         var transform = layer.property("ADBE Transform Group");
 
-        // Property groups to check
+        
         var propertyNames = [
             { name: "ADBE Position", matchName: "ADBE Position", dimensions: 2 },
             { name: "ADBE Scale", matchName: "ADBE Scale", dimensions: 2 },
@@ -1021,16 +1253,16 @@ function _OVERLAP_2D(comp, layer) {
         ];
 
         var nullsCreated = [];
-        var firstKfValues = {}; // Store first keyframe value per property for reset
+        var firstKfValues = {}; 
 
-        // Process each property
+        
         for (var p = 0; p < propertyNames.length; p++) {
             var propInfo = propertyNames[p];
             var prop = transform.property(propInfo.matchName);
 
-            if (!prop || prop.numKeys < 2) continue; // Skip if no keyframes or less than 2
+            if (!prop || prop.numKeys < 2) continue; 
 
-            // Get all keyframe times and values
+            
             var keyframes = [];
             for (var k = 1; k <= prop.numKeys; k++) {
                 keyframes.push({
@@ -1040,36 +1272,36 @@ function _OVERLAP_2D(comp, layer) {
                 });
             }
 
-            // Save first keyframe value for reset later
+            
             firstKfValues[propInfo.matchName] = keyframes[0].value;
 
-            // Create nulls for each transition (Leapfrog pattern)
-            // Null 1: K1->K3, Null 2: K2->K4, etc.
+            
+            
             for (var i = 0; i < keyframes.length - 1; i++) {
                 var startKf = keyframes[i];
                 var endKf = keyframes[i + 1];
 
-                // Create null for this transition
+                
                 var nullLayer = comp.layers.addNull();
                 nullLayer.name = "Overlap_" + propInfo.name.replace("ADBE ", "") + "_" + (i + 1);
-                nullLayer.label = 14; // Cyan color
-                nullLayer.shy = true; // Mark as shy
+                nullLayer.label = 14; 
+                nullLayer.shy = true; 
 
-                // Calculate leapfrog timing: Start at K_i, End at K_(i+2) if exists, else extend
+                
                 var nullStartTime = startKf.time;
                 var nullEndTime = (i + 2 < keyframes.length) ? keyframes[i + 2].time : endKf.time + (endKf.time - startKf.time);
 
-                // Set null duration to match its animation range only
+                
                 nullLayer.inPoint = nullStartTime;
                 nullLayer.outPoint = nullEndTime;
 
-                // Get the property on the null
+                
                 var nullProp = nullLayer.property("ADBE Transform Group").property(propInfo.matchName);
 
-                // Use actual property dimension count (Scale is always 3D internally in AE)
+                
                 var actualDims = (propInfo.dimensions === 1) ? 1 : nullProp.value.length;
 
-                // Set actual keyframe values on null (not deltas)
+                
                 if (actualDims === 1) {
                     nullProp.setValueAtTime(nullStartTime, startKf.value);
                     nullProp.setValueAtTime(nullEndTime, endKf.value);
@@ -1078,7 +1310,7 @@ function _OVERLAP_2D(comp, layer) {
                     var endVal = [];
 
                     for (var d = 0; d < actualDims; d++) {
-                        // Determine value for this dimension
+                        
                         var s = (d < propInfo.dimensions) ? startKf.value[d] : ((propInfo.matchName === "ADBE Scale") ? 100 : 0);
                         var e = (d < propInfo.dimensions) ? endKf.value[d] : ((propInfo.matchName === "ADBE Scale") ? 100 : 0);
 
@@ -1090,16 +1322,16 @@ function _OVERLAP_2D(comp, layer) {
                     nullProp.setValueAtTime(nullEndTime, endVal);
                 }
 
-                // Adaptive asymmetric easing: steep point at keyframe position
-                // ratio = where the intermediate keyframe falls within this null's span
+                
+                
                 var transitionDuration = nullEndTime - nullStartTime;
                 var ratio = (transitionDuration > 0) ? (endKf.time - nullStartTime) / transitionDuration : 0.5;
                 var baseInfluence = 85;
                 var influenceOut = Math.max(33, Math.min(100, ratio * 2 * baseInfluence));
                 var influenceIn = Math.max(33, Math.min(100, (1 - ratio) * 2 * baseInfluence));
 
-                // Query AE for exact easing dimension count
-                // Spatial properties (Position) = 1, Scale = 3 (even 2D), Rotation = 1
+                
+                
                 var easeDims = nullProp.keyInTemporalEase(1).length;
 
                 var easeOutSymmetric = [];
@@ -1110,14 +1342,14 @@ function _OVERLAP_2D(comp, layer) {
                     easeInSymmetric.push(new KeyframeEase(0, influenceIn));
                 }
 
-                // Set bezier interpolation with asymmetric ease
+                
                 nullProp.setInterpolationTypeAtKey(1, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
                 nullProp.setInterpolationTypeAtKey(2, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
 
                 nullProp.setTemporalEaseAtKey(1, nullProp.keyInTemporalEase(1), easeOutSymmetric);
                 nullProp.setTemporalEaseAtKey(2, easeInSymmetric, nullProp.keyOutTemporalEase(2));
 
-                // Store reference
+                
                 nullsCreated.push({
                     layer: nullLayer,
                     property: propInfo.matchName
@@ -1125,32 +1357,32 @@ function _OVERLAP_2D(comp, layer) {
             }
         }
 
-        // Chain parenting: Layer -> Last Null -> ... -> First Null
+        
         if (nullsCreated.length > 0) {
-            // Reverse order for proper chain
+            
             nullsCreated.reverse();
 
-            // Parent layer to first null in reversed list (which is the last created)
+            
             layer.parent = nullsCreated[0].layer;
 
-            // Chain the nulls
+            
             for (var n = 0; n < nullsCreated.length - 1; n++) {
                 nullsCreated[n].layer.parent = nullsCreated[n + 1].layer;
             }
 
-            // Clean up original layer: remove all keyframes and reset to default
+            
             for (var p = 0; p < propertyNames.length; p++) {
                 var propInfo = propertyNames[p];
                 var prop = transform.property(propInfo.matchName);
 
                 if (!prop) continue;
 
-                // Remove all keyframes
+                
                 while (prop.numKeys > 0) {
                     prop.removeKey(1);
                 }
 
-                // Reset to default values (nulls carry actual values)
+                
                 if (propInfo.matchName === "ADBE Position") {
                     prop.setValue([0, 0]);
                 } else if (propInfo.matchName === "ADBE Scale") {
@@ -1174,7 +1406,7 @@ function _OVERLAP_3D(comp, layer) {
     try {
         var transform = layer.property("ADBE Transform Group");
 
-        // 3D property definitions
+        
         var propDefs = [
             { matchName: "ADBE Position", dims: 3, defaultVal: [0, 0, 0] },
             { matchName: "ADBE Scale", dims: 3, defaultVal: [100, 100, 100] },
@@ -1184,16 +1416,16 @@ function _OVERLAP_3D(comp, layer) {
         ];
 
         var nullsCreated = [];
-        var firstKfValues = {}; // Store first keyframe value per property for reset
+        var firstKfValues = {}; 
 
-        // Process each property separately (per-property nulls with LEAPFROG pattern)
+        
         for (var p = 0; p < propDefs.length; p++) {
             var def = propDefs[p];
             var prop = transform.property(def.matchName);
 
             if (!prop || prop.numKeys < 2) continue;
 
-            // Collect keyframes for this property
+            
             var keyframes = [];
             for (var k = 1; k <= prop.numKeys; k++) {
                 keyframes.push({
@@ -1202,10 +1434,10 @@ function _OVERLAP_3D(comp, layer) {
                 });
             }
 
-            // Save first keyframe value for reset later
+            
             firstKfValues[def.matchName] = keyframes[0].value;
 
-            // Create nulls with LEAPFROG pattern: Null_i spans K_i -> K_{i+2}
+            
             for (var i = 0; i < keyframes.length - 1; i++) {
                 var startKf = keyframes[i];
                 var endKf = keyframes[i + 1];
@@ -1213,10 +1445,10 @@ function _OVERLAP_3D(comp, layer) {
                 var nullLayer = comp.layers.addNull();
                 nullLayer.name = "3DCam_" + def.matchName.replace("ADBE ", "") + "_" + (i + 1);
                 nullLayer.threeDLayer = true;
-                nullLayer.label = 11; // Purple
+                nullLayer.label = 11; 
                 nullLayer.shy = true;
 
-                // LEAPFROG timing: Start at K_i, End at K_{i+2} if exists, else extend
+                
                 var nullStartTime = startKf.time;
                 var nullEndTime = (i + 2 < keyframes.length) ? keyframes[i + 2].time : endKf.time + (endKf.time - startKf.time);
 
@@ -1225,7 +1457,7 @@ function _OVERLAP_3D(comp, layer) {
 
                 var nullProp = nullLayer.property("ADBE Transform Group").property(def.matchName);
 
-                // Set actual keyframe values on null (not deltas)
+                
                 if (def.dims === 1) {
                     nullProp.setValueAtTime(nullStartTime, startKf.value);
                     nullProp.setValueAtTime(nullEndTime, endKf.value);
@@ -1234,7 +1466,7 @@ function _OVERLAP_3D(comp, layer) {
                     nullProp.setValueAtTime(nullEndTime, endKf.value);
                 }
 
-                // Adaptive asymmetric easing: steep point at keyframe position
+                
                 if (nullProp.numKeys === 2) {
                     var transitionDuration = nullEndTime - nullStartTime;
                     var ratio = (transitionDuration > 0) ? (endKf.time - nullStartTime) / transitionDuration : 0.5;
@@ -1261,7 +1493,7 @@ function _OVERLAP_3D(comp, layer) {
             }
         }
 
-        // Chain parenting: Layer -> Last Null -> ... -> First Null
+        
         if (nullsCreated.length > 0) {
             nullsCreated.reverse();
 
@@ -1271,7 +1503,7 @@ function _OVERLAP_3D(comp, layer) {
                 nullsCreated[n].parent = nullsCreated[n + 1];
             }
 
-            // Cleanup original layer - reset to neutral (nulls carry actual values)
+            
             for (var p = 0; p < propDefs.length; p++) {
                 var def = propDefs[p];
                 var prop = transform.property(def.matchName);
@@ -1293,8 +1525,193 @@ function _OVERLAP_3D(comp, layer) {
     }
 }
 
+function _PNG() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"message":"Please select a composition first!"}';
+
+    var d = new Date();
+    var defaultName = "SS_" + d.getTime() + ".png";
+    var file = File.saveDialog("Save Screenshot PNG", "Portable Network Graphics:*.png");
+
+    if (file) {
+        if (typeof comp.saveFrameToPng === "function") {
+            try {
+                comp.saveFrameToPng(comp.time, file);
+                return '{"error":false, "type":"info", "message":"Screenshot saved successfully!"}';
+            } catch (e) {
+                return '{"error":true, "message":"Failed to save PNG: ' + e.toString() + '"}';
+            }
+        } else {
+            return '{"error":true, "type":"warn", "message":"This AE version does not support automatic PNG saving (Requires v22.0+)."}';
+        }
+    }
+    return "false"; 
+}
+
+function _CUBE(w, h, d, useLayer) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"message":"Please select a composition first!"}';
+
+    app.beginUndoGroup("Create 3D Cube");
+    try {
+        var selLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
+
+        var boxW = parseFloat(w) || 100;
+        var boxH = parseFloat(h) || 100;
+        var boxD = parseFloat(d) || 100;
+
+        if (useLayer && selLayer) {
+            var sz = _getLayerSize(selLayer);
+            boxW = sz[0];
+            boxH = sz[1];
+            
+            boxD = Math.min(boxW, boxH);
+        }
+
+        var sides = [];
+        var sideNames = ["Front", "Back", "Left", "Right", "Top", "Bottom"];
+
+        
+        for (var i = 0; i < 6; i++) {
+            var side;
+            if (selLayer) {
+                side = selLayer.duplicate();
+            } else {
+                side = comp.layers.addSolid([0.5, 0.5, 0.5], sideNames[i], boxW, boxH, 1.0);
+            }
+            side.threeDLayer = true;
+            side.name = "Cube_" + sideNames[i];
+            sides.push(side);
+        }
+
+        
+        var controller = comp.layers.addNull();
+        controller.name = "Cube_Controller";
+        controller.threeDLayer = true;
+        controller.position.setValue([comp.width / 2, comp.height / 2, 0]);
+
+        var halfW = boxW / 2;
+        var halfH = boxH / 2;
+        var halfD = boxD / 2;
+
+        for (var i = 0; i < 6; i++) {
+            
+            var sz = _getLayerSize(sides[i]);
+            sides[i].anchorPoint.setValue([sz[0] / 2, sz[1] / 2, 0]);
+
+            
+            sides[i].position.setValue([0, 0, 0]);
+
+            
+            sides[i].parent = controller;
+
+            
+            var localPos = [0, 0, 0];
+            var localOri = [0, 0, 0];
+            var targetWSide = boxW;
+            var targetHSide = boxH;
+
+            if (i == 0) { 
+                localPos = [0, 0, -halfD];
+                localOri = [0, 0, 0];
+                targetWSide = boxW; targetHSide = boxH;
+            } else if (i == 1) { 
+                localPos = [0, 0, halfD];
+                localOri = [0, 180, 0];
+                targetWSide = boxW; targetHSide = boxH;
+            } else if (i == 2) { 
+                localPos = [-halfW, 0, 0];
+                localOri = [0, 90, 0];
+                targetWSide = boxD; targetHSide = boxH;
+            } else if (i == 3) { 
+                localPos = [halfW, 0, 0];
+                localOri = [0, 270, 0];
+                targetWSide = boxD; targetHSide = boxH;
+            } else if (i == 4) { 
+                localPos = [0, -halfH, 0];
+                localOri = [90, 0, 0];
+                targetWSide = boxW; targetHSide = boxD;
+            } else if (i == 5) { 
+                localPos = [0, halfH, 0];
+                localOri = [270, 0, 0];
+                targetWSide = boxW; targetHSide = boxD;
+            }
+
+            sides[i].position.setValue(localPos);
+            sides[i].orientation.setValue(localOri);
+
+            
+            var currentW = sz[0];
+            var currentH = sz[1];
+            sides[i].scale.setValue([100 * targetWSide / currentW, 100 * targetHSide / currentH, 100]);
+        }
+
+        app.endUndoGroup();
+        return '{"error":false, "message":"Cube generated successfully!"}';
+    } catch (e) {
+        app.endUndoGroup();
+        return '{"error":true, "message":"Cube error: ' + e.toString() + '"}';
+    }
+}
+
+function _PURGE(target) {
+    try {
+        if (target === 'ALL') {
+            app.purge(PurgeTarget.ALL_CACHES);
+            app.purge(PurgeTarget.UNDO_CACHES);
+            app.purge(PurgeTarget.IMAGE_CACHES);
+            app.purge(PurgeTarget.SNAPSHOT_CACHES);
+        } else if (target === 'CACHE') {
+            app.purge(PurgeTarget.ALL_CACHES);
+        } else if (target === 'MEMORY') {
+            app.purge(PurgeTarget.IMAGE_CACHES);
+        } else if (target === 'UNDO') {
+            app.purge(PurgeTarget.UNDO_CACHES);
+        }
+        return '{"error":false, "message":"Purge ' + target + ' complete."}';
+    } catch (e) {
+        return '{"error":true, "message":"Purge error: ' + e.toString() + '"}';
+    }
+}
+
+function _getLayerSize(layer) {
+    if (layer instanceof TextLayer || layer instanceof ShapeLayer) {
+        var rect = layer.sourceRectAtTime(layer.containingComp.time, false);
+        return [rect.width, rect.height];
+    }
+    return [layer.width, layer.height];
+}
+
 $.global.FishTools = {
     executeTool: executeTool,
     readEase: _readEase,
     applyEase: _applyEase
 };
+
+function _addBeatMark() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "NO_COMP";
+    try {
+        app.executeCommand(2157); 
+        return String(comp.markerProperty.numKeys);
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    }
+}
+
+function _clearBeatMarks() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "NO_COMP";
+    try {
+        app.beginUndoGroup("Clear Beat Marks");
+        var markers = comp.markerProperty;
+        while (markers.numKeys > 0) {
+            markers.removeKey(1);
+        }
+        app.endUndoGroup();
+        return "0";
+    } catch (e) {
+        app.endUndoGroup();
+        return "ERROR:" + e.toString();
+    }
+}

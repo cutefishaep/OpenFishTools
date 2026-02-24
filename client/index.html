@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/fonts.css">
     <script src="./js/libs/CSInterface.js"></script>
+    <script src="./js/polyfills.js"></script>
 </head>
 
 <body>
 
-    <!-- Splash Screen -->
     <div id="splash-screen">
         <div class="splash-content">
             <img src="./assets/Logo.svg" alt="Fish Tools Logo" class="splash-logo">
@@ -19,13 +19,9 @@
         </div>
     </div>
 
-
-    <!-- Main Content -->
     <div class="content-container">
 
-        <!-- Tab: Main -->
         <div id="tab-main" class="tab-content active">
-            <!-- Card: System Status -->
             <div class="card status-card">
                 <h3>System Status</h3>
                 <div class="status-grid">
@@ -48,7 +44,6 @@
                 </div>
             </div>
 
-            <!-- Card: Stopwatch -->
             <div class="card stopwatch-card">
                 <h3>Stopwatch</h3>
                 <div class="stopwatch-container">
@@ -68,29 +63,54 @@
                 </div>
             </div>
 
-            <!-- Card: Tips/Log -->
+            <div class="card sticky-card">
+                <h3>Sticky Note</h3>
+                <textarea id="dashboard-sticky-note" placeholder="Write your project notes here..."></textarea>
+            </div>
+
+            <div class="card todo-card">
+                <h3>To Do List</h3>
+                <div class="todo-input-group">
+                    <input type="text" id="todo-input" placeholder="Add a new task...">
+                    <button id="btn-add-todo">+</button>
+                </div>
+                <div id="todo-list-container">
+                    <ul id="todo-list"></ul>
+                </div>
+            </div>
+
+            <div class="card beat-maker-card">
+                <h3>Beat Maker</h3>
+                <div id="beat-tap-btn" title="Tap to add beat marker at current time">
+                    <span class="material-icons" id="beat-icon">music_note</span>
+                </div>
+                <div class="beat-info">
+                    <button id="beat-clear-btn" title="Clear all beat markers">
+                        <span class="material-icons">delete_sweep</span>
+                        CLEAR
+                    </button>
+                </div>
+            </div>
+
             <div class="card tip-card">
                 <h3>Log</h3>
                 <p id="tip-content" style="font-size: 0.75em; opacity: 0.6; margin: 0; line-height: 1.4;">Loading log...
                 </p>
             </div>
+
         </div>
 
-        <!-- Tab: Graph -->
         <div id="tab-graph" class="tab-content">
             <div class="card graph-card" style="padding: 8px;">
                 <h3 style="margin-bottom: 10px;">Graph Editor</h3>
 
-                <!-- Graph Area -->
                 <div class="graph-wrapper"
-                    style="position: relative; width: 100%; background: #151515; border: 1px solid var(--card-border); border-radius: 4px; margin-bottom: 15px; cursor: crosshair; overflow: hidden;">
+                    style="position: relative; width: 100%; background: #151515; border: 1px solid rgba(255, 180, 0, 0.3); border-radius: 4px; margin-bottom: 15px; cursor: crosshair; overflow: hidden;">
                     <canvas id="ease-graph" width="400" height="400"
                         style="width: 100%; height: 100%; display: block;"></canvas>
                 </div>
 
-                <!-- Controls -->
-                <div class="graph-toolbar"
-                    style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                <div class="graph-toolbar" style="display: flex; flex-direction: column; margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; width: 100%;">
                         <div class="toggle-group">
                             <button id="btn-graph-snap" class="icon-toggle" title="Snap to Grid">
@@ -115,7 +135,6 @@
                     </button>
                 </div>
 
-                <!-- Presets -->
                 <div class="presets-section">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">
@@ -123,22 +142,19 @@
                             style="font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; opacity: 0.5; color: #fff; text-transform: uppercase;">Presets
                             Library</span>
                         <button id="btn-save-preset" title="Add Current Curve to Presets"
-                            style="background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; display: flex; align-items: center;">
+                            style="background: none; border: none; color: #ffb400; cursor: pointer; padding: 0; display: flex; align-items: center;">
                             <span class="material-icons" style="font-size: 18px;">add_circle</span>
                         </button>
                     </div>
                     <div id="preset-list"
-                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; border: 1px solid var(--card-border); padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.2);">
-                        <!-- Presets injected by JS -->
+                        style="display: flex; flex-wrap: wrap; border: 1px solid rgba(255, 180, 0, 0.3); padding: 4px; border-radius: 4px; background: rgba(0,0,0,0.2);">
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tab: Tools -->
         <div id="tab-tools" class="tab-content">
 
-            <!-- Card: Anchor Point -->
             <div class="card anchor-card">
                 <h3>Anchor Point</h3>
                 <div class="anchor-grid-wrapper">
@@ -156,11 +172,42 @@
                 </div>
             </div>
 
-            <!-- Card: Toolbox -->
+            <div class="card alight-card">
+                <h3>Alight</h3>
+                <div class="toolbox-grid toolbox-grid-3col">
+                    
+                    <button class="tool-btn" data-tool="ALIGN_LEFT" title="Align Left">
+                        <span class="material-icons">align_horizontal_left</span>
+                        <span class="tool-label">LEFT</span>
+                    </button>
+                    <button class="tool-btn" data-tool="ALIGN_HCENTER" title="Align Horizontal Center">
+                        <span class="material-icons">align_horizontal_center</span>
+                        <span class="tool-label">H-MID</span>
+                    </button>
+                    <button class="tool-btn" data-tool="ALIGN_RIGHT" title="Align Right">
+                        <span class="material-icons">align_horizontal_right</span>
+                        <span class="tool-label">RIGHT</span>
+                    </button>
+
+                    
+                    <button class="tool-btn" data-tool="ALIGN_TOP" title="Align Top">
+                        <span class="material-icons">align_vertical_top</span>
+                        <span class="tool-label">TOP</span>
+                    </button>
+                    <button class="tool-btn" data-tool="ALIGN_VCENTER" title="Align Vertical Center">
+                        <span class="material-icons">align_vertical_center</span>
+                        <span class="tool-label">V-MID</span>
+                    </button>
+                    <button class="tool-btn" data-tool="ALIGN_BOTTOM" title="Align Bottom">
+                        <span class="material-icons">align_vertical_bottom</span>
+                        <span class="tool-label">BOTTOM</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="card toolbox-card">
                 <h3>Toolbox</h3>
 
-                <!-- Row 1: Layer Tools -->
                 <div class="toolbox-section-label">Layer</div>
                 <div class="toolbox-grid">
                     <button class="tool-btn" data-tool="FRZ" title="Freeze Frame">
@@ -183,7 +230,6 @@
                     </button>
                 </div>
 
-                <!-- Row 2: Create -->
                 <div class="toolbox-section-label">Create</div>
                 <div class="toolbox-grid">
                     <button class="tool-btn" data-tool="SHA" title="Shape Layer">
@@ -210,7 +256,6 @@
                     </button>
                 </div>
 
-                <!-- Row 3: Effects -->
                 <div class="toolbox-section-label">Effects</div>
                 <div class="toolbox-grid">
                     <button class="tool-btn" data-tool="FILL" title="Fill Effect">
@@ -241,12 +286,9 @@
                 </div>
             </div>
 
-            <!-- Card: Velocity -->
-            <!-- Card: Velocity -->
-            <!-- Card: Velocity -->
             <div class="card velocity-card">
                 <h3>Velocity</h3>
-                <div class="toolbox-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="toolbox-grid toolbox-grid-2col">
                     <button class="tool-btn" data-tool="TWIX" title="Twixtor Speed Ramp">
                         <span class="material-icons">speed</span>
                         <span class="tool-label">TWIXTOR</span>
@@ -258,10 +300,9 @@
                 </div>
             </div>
 
-            <!-- Card: Beat -->
             <div class="card beat-card">
                 <h3>Beat</h3>
-                <div class="toolbox-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="toolbox-grid toolbox-grid-2col">
                     <button class="tool-btn" data-tool="GHST" title="Ghost Effect">
                         <span class="material-icons">auto_awesome_motion</span>
                         <span class="tool-label">GHOST</span>
@@ -285,89 +326,149 @@
                 </div>
             </div>
 
-            <!-- Card: Actions -->
-            <div class="card actions-card">
-                <h3>Actions</h3>
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <button id="btn-precomp" class="secondary-btn" style="flex: 1; padding: 10px;">
-                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">layers</span>
-                        PRE-COMP
+            <div class="card transition-card">
+                <h3>Transition</h3>
+                <div class="toolbox-grid toolbox-grid-2col">
+                    <button class="tool-btn" data-tool="TRANS_FADE_IN" title="Fade In (Opacity)">
+                        <span class="material-icons">flip_to_front</span>
+                        <span class="tool-label">FADE IN</span>
                     </button>
-                    <button id="btn-center" class="secondary-btn" style="flex: 1; padding: 10px;">
-                        <span class="material-icons"
-                            style="font-size: 16px; vertical-align: middle;">filter_center_focus</span>
-                        CENTER
+                    <button class="tool-btn" data-tool="TRANS_FADE_OUT" title="Fade Out (Opacity)">
+                        <span class="material-icons">flip_to_back</span>
+                        <span class="tool-label">FADE OUT</span>
                     </button>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button id="btn-overlap" class="secondary-btn" style="flex: 1; padding: 10px;">
-                        <span class="material-icons"
-                            style="font-size: 16px; vertical-align: middle;">layers_clear</span>
-                        OVERLAP
+                    <button class="tool-btn" data-tool="TRANS_SCALE_IN" title="Scale In">
+                        <span class="material-icons">zoom_in_map</span>
+                        <span class="tool-label">SCALE IN</span>
+                    </button>
+                    <button class="tool-btn" data-tool="TRANS_SCALE_OUT" title="Scale Out">
+                        <span class="material-icons">zoom_out_map</span>
+                        <span class="tool-label">SCALE OUT</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Card: Color Palette -->
+            <div class="card actions-card">
+                <h3>Actions</h3>
+                <div
+                    style="display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; margin: -3px;">
+                    <button id="btn-precomp" class="secondary-btn"
+                        style="-webkit-flex: 1 1 calc(33.33% - 6px); flex: 1 1 calc(33.33% - 6px); padding: 10px; margin: 3px;"
+                        title="Pre-compose Select Layers">
+                        <span class="material-icons">layers</span>
+                    </button>
+                    <button id="btn-center" class="secondary-btn"
+                        style="-webkit-flex: 1 1 calc(33.33% - 6px); flex: 1 1 calc(33.33% - 6px); padding: 10px; margin: 3px;"
+                        title="Center Layer in Comp">
+                        <span class="material-icons">filter_center_focus</span>
+                    </button>
+                    <button id="btn-overlap" class="secondary-btn"
+                        style="-webkit-flex: 1 1 calc(33.33% - 6px); flex: 1 1 calc(33.33% - 6px); padding: 10px; margin: 3px;"
+                        title="Clear Layers Overlap">
+                        <span class="material-icons">auto_awesome_motion</span>
+                    </button>
+                    <button id="btn-screenshot" class="secondary-btn"
+                        style="-webkit-flex: 1 1 calc(33.33% - 6px); flex: 1 1 calc(33.33% - 6px); padding: 10px; margin: 3px;"
+                        title="Save Screenshot as PNG">
+                        <span class="material-icons">camera_alt</span>
+                    </button>
+                    <button id="btn-dup-comp" class="secondary-btn"
+                        style="-webkit-flex: 1 1 calc(33.33% - 6px); flex: 1 1 calc(33.33% - 6px); padding: 10px; margin: 3px;"
+                        title="Duplicate Comp">
+                        <span class="material-icons">file_copy</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="card palette-card">
                 <h3>Color Palette</h3>
                 <div class="palette-controls"
-                    style="display: flex; gap: 6px; margin-bottom: 12px; align-items: center; flex-wrap: nowrap;">
-                    <!-- Base Color Picker -->
+                    style="display: flex; margin-bottom: 12px; align-items: center; flex-wrap: nowrap;">
                     <div id="palette-base-trigger" class="secondary-btn" title="Pick Base Color"
-                        style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; border-radius: 4px; background: #FFD700; border: 1px solid rgba(255,255,255,0.1);">
+                        style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 4px; background: #FFD700; border: 1px solid rgba(255,255,255,0.1); margin-right: 6px; cursor: pointer;">
                         <span class="material-icons"
                             style="font-size: 16px; color: #000; text-shadow: 0 0 2px rgba(255,255,255,0.5);">colorize</span>
                         <input type="hidden" id="palette-base-color" value="#FFD700">
                     </div>
 
-                    <!-- Scheme Selector -->
                     <select id="palette-scheme"
-                        style="background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 4px; font-size: 0.75rem; flex: 1; min-width: 0; cursor: pointer;">
-                        <option value="random">Random Mode</option>
-                        <option value="analogous">Analogous</option>
+                        style="background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 4px; font-size: 0.75rem; flex: 1; min-width: 0; cursor: pointer; margin-right: 6px;">
+                        <option value="analogous" selected>Analogous</option>
                         <option value="complementary">Complementary</option>
                         <option value="triadic">Triadic</option>
+                        <option value="hue">Hue Mode</option>
                     </select>
 
-                    <!-- Count Input -->
                     <input type="number" id="palette-count" value="1" min="1" max="10"
-                        style="width: 35px; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 4px; text-align: center; font-size: 0.75rem;">
+                        style="width: 35px; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 4px; text-align: center; font-size: 0.75rem; margin-right: 6px;">
 
-                    <!-- Icon-Only Randomize Button -->
                     <button id="btn-generate-palette" class="secondary-btn" title="Randomize Palette"
                         style="padding: 6px 10px; display: flex; align-items: center; justify-content: center; min-width: 32px;">
                         <span class="material-icons" style="font-size: 18px;">shuffle</span>
                     </button>
                 </div>
 
-                <div id="palette-container"
-                    style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
-                    <!-- Generated palettes go here -->
+                <div id="palette-container" style="display: flex; flex-direction: column; margin-bottom: 15px;">
                 </div>
 
                 <div class="saved-palettes-section">
                     <span class="status-label"
-                        style="font-size: 0.55rem; color: var(--accent); opacity: 0.5; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px;">Saved
+                        style="font-size: 0.55rem; color: #ffb400; opacity: 0.5; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px;">Saved
                         Palettes</span>
                     <div id="saved-palettes-list"
-                        style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto;">
-                        <!-- Saved palettes go here -->
+                        style="display: flex; flex-direction: column; max-height: 150px; overflow-y: auto;">
                     </div>
                 </div>
             </div>
+
+            <div class="card cube-card">
+                <h3>Cube Generator</h3>
+                <div class="palette-controls" style="display: -webkit-flex; display: flex; margin-bottom: 10px;">
+                    <div style="-webkit-flex: 1; flex: 1; margin-right: 8px;">
+                        <label
+                            style="font-size: 0.65rem; opacity: 0.6; display: block; margin-bottom: 4px;">WIDTH</label>
+                        <input type="number" id="cube-width" value="100"
+                            style="width: 100%; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 6px; font-size: 0.8rem;">
+                    </div>
+                    <div style="-webkit-flex: 1; flex: 1; margin-right: 8px;">
+                        <label
+                            style="font-size: 0.65rem; opacity: 0.6; display: block; margin-bottom: 4px;">HEIGHT</label>
+                        <input type="number" id="cube-height" value="100"
+                            style="width: 100%; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 6px; font-size: 0.8rem;">
+                    </div>
+                    <div style="-webkit-flex: 1; flex: 1;">
+                        <label
+                            style="font-size: 0.65rem; opacity: 0.6; display: block; margin-bottom: 4px;">DEPTH</label>
+                        <input type="number" id="cube-depth" value="100"
+                            style="width: 100%; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 6px; font-size: 0.8rem;">
+                    </div>
+                </div>
+                
+                <label class="switch-container" style="margin-bottom: 12px;">
+                    <span class="switch">
+                        <input type="checkbox" id="cube-use-layer">
+                        <span class="slider"></span>
+                    </span>
+                    <span class="switch-label">Use Layer Dimension</span>
+                </label>
+                <button id="btn-create-cube" class="secondary-btn" title="Create a 3D Box from current layer or solids"
+                    style="width: 100%; padding: 10px;">
+                    <span class="material-icons"
+                        style="font-size: 16px; margin-right: 8px; vertical-align: middle;">view_in_ar</span>
+                    CREATE CUBE
+                </button>
+            </div>
         </div>
 
-        <!-- Tab: Settings -->
         <div id="tab-settings" class="tab-content">
-            <!-- Card: Donation -->
             <div class="card donation-card">
-                <h3>Support Mission</h3>
-                <p style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 15px; line-height: 1.4;">
+                <h3>Donation</h3>
+                <p style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 15px; margin-top: 2px; line-height: 1.4;">
                     Fuel our development. Your support keeps this project alive and evolving.
                 </p>
-                <div style="display: flex; gap: 8px;">
-                    <button id="btn-paypal" class="secondary-btn" style="flex: 1; padding: 12px 5px;">
+                <div style="display: flex;">
+                    <button id="btn-paypal" class="secondary-btn"
+                        style="flex: 1; padding: 12px 5px; margin-right: 8px;">
                         <span class="material-icons" style="font-size: 16px; vertical-align: middle;">payment</span>
                         PAYPAL
                     </button>
@@ -378,125 +479,88 @@
                 </div>
             </div>
 
-            <!-- Card: Theme -->
-            <div class="card settings-card" id="advanced-theme-card">
-                <h3>Theme</h3>
-                <p style="font-size: 0.8em; opacity: 0.7; margin-bottom: 15px;">Customize your dashboard colors.</p>
-
-                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
-                    <label style="font-size: 0.75rem;">Accent Color</label>
-                    <div style="display:flex; gap:8px; align-items: center;">
-                        <div class="color-swatch" data-id="color-accent" aria-label="Accent Color"
-                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
-                        </div>
-                        <input type="hidden" id="color-accent" value="#ffb400">
-                    </div>
-                </div>
-
-                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
-                    <label style="font-size: 0.75rem;">Background</label>
-                    <div style="display:flex; gap:8px; align-items: center;">
-                        <div class="color-swatch" data-id="color-bg" aria-label="Background Color"
-                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
-                        </div>
-                        <input type="hidden" id="color-bg" value="#0b0b0b">
-                    </div>
-                </div>
-
-                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
-                    <label style="font-size: 0.75rem;">Card Background</label>
-                    <div style="display:flex; gap:8px; align-items: center;">
-                        <div class="color-swatch" data-id="color-card" aria-label="Card Background"
-                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
-                        </div>
-                        <input type="hidden" id="color-card" value="#111111">
-                    </div>
-                </div>
-
-                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
-                    <label style="font-size: 0.75rem;">Text Color</label>
-                    <div style="display:flex; gap:8px; align-items: center;">
-                        <div class="color-swatch" data-id="color-text" aria-label="Text Color"
-                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
-                        </div>
-                        <input type="hidden" id="color-text" value="#ffffff">
-                    </div>
-                </div>
-
-                <div class="color-setting" style="margin-bottom: 12px; justify-content: space-between;">
-                    <label style="font-size: 0.75rem;">Border Color</label>
-                    <div style="display:flex; gap:8px; align-items: center;">
-                        <div class="color-swatch" data-id="color-border" aria-label="Border Color"
-                            style="width:24px; height:24px; border-radius:4px; border:1px solid var(--card-border); cursor:pointer;">
-                        </div>
-                        <input type="hidden" id="color-border" value="#333333">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card: Update System -->
-            <div class="card update-card">
-                <h3>Updater</h3>
-                <div class="update-status">
-                    <div class="update-info-grid"
-                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
-                        <div class="update-item">
-                            <span class="status-label"
-                                style="font-size: 0.6rem; color: var(--accent); opacity: 0.6; display: block; margin-bottom: 5px;">LOCAL
-                                VERSION</span>
-                            <span id="update-ver"
-                                style="font-size: 1.1rem; font-weight: bold; font-family: monospace; letter-spacing: 1px;">v...</span>
-                        </div>
-                        <div class="update-item" style="text-align: right;">
-                            <span class="status-label"
-                                style="font-size: 0.6rem; color: var(--accent); opacity: 0.6; display: block; margin-bottom: 5px;">LATEST
-                                RELEASE</span>
-                            <span id="update-latest-ver"
-                                style="font-size: 1.1rem; font-weight: bold; font-family: monospace; letter-spacing: 1px; color: var(--accent);">---</span>
-                        </div>
-                    </div>
-
-                    <div id="releasenotes-container"
-                        style="display:none; margin-bottom: 20px; border: 1px solid rgba(255,180,0,0.1); background: rgba(0,0,0,0.3); border-radius: 4px; padding: 10px;">
-                        <span class="status-label"
-                            style="font-size: 0.5rem; color: var(--accent); opacity: 0.6; margin-bottom: 8px; display: block;">RELEASE
-                            NOTES</span>
-                        <div id="releasenotes-content"
-                            style="font-size: 0.65rem; color: #ccc; line-height: 1.5; font-family: monospace; overflow-wrap: break-word; word-break: break-word;">
-                            No data.</div>
-                    </div>
-
-                    <div id="update-label"
-                        style="font-size: 0.65rem; color: var(--accent); font-weight: bold; text-transform: uppercase; text-align: center; margin-bottom: 15px; letter-spacing: 1px;">
-                        SYSTEM STANDBY</div>
-
-                    <div class="progress-container" style="display: none; margin-bottom: 15px;">
-                        <div class="progress-bar-bg"
-                            style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
-                            <div id="update-progress"
-                                style="width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 10px var(--accent); transition: width 0.3s ease;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="btn-check-update" class="secondary-btn" style="width: 100%;">
-                        <span class="material-icons" style="font-size: 18px; vertical-align: middle;">sync</span> CHECK
-                        REPOSITORY
+            <div class="card credit-card">
+                <h3>Credit</h3>
+                <div class="credit-grid">
+                    <button class="credit-btn" id="btn-yt" title="YouTube">
+                        <svg class="credit-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.8 15.5V8.5l6.3 3.5-6.3 3.5z" />
+                        </svg>
+                        <span class="credit-label">YouTube</span>
+                        <span class="credit-handle">@cutefishYT</span>
+                    </button>
+                    <button class="credit-btn" id="btn-tt-aep" title="TikTok AEP">
+                        <svg class="credit-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M19.6 2.7h-3.3v12.4a3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3c.28 0 .55.04.8.1V8.8a6.4 6.4 0 0 0-.8-.05 6.3 6.3 0 0 0-6.3 6.3 6.3 6.3 0 0 0 6.3 6.3 6.3 6.3 0 0 0 6.3-6.3V8.6a9.8 9.8 0 0 0 5.7 1.8V7.1a6.6 6.6 0 0 1-6.7-4.4z" />
+                        </svg>
+                        <span class="credit-label">TikTok</span>
+                        <span class="credit-handle">@cutefishaep</span>
+                    </button>
+                    <button class="credit-btn" id="btn-tt-rbx" title="TikTok RBX">
+                        <svg class="credit-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M19.6 2.7h-3.3v12.4a3 3 0 0 1-3 3 3 3 0 0 1-3-3 3 3 0 0 1 3-3c.28 0 .55.04.8.1V8.8a6.4 6.4 0 0 0-.8-.05 6.3 6.3 0 0 0-6.3 6.3 6.3 6.3 0 0 0 6.3 6.3 6.3 6.3 0 0 0 6.3-6.3V8.6a9.8 9.8 0 0 0 5.7 1.8V7.1a6.6 6.6 0 0 1-6.7-4.4z" />
+                        </svg>
+                        <span class="credit-label">TikTok</span>
+                        <span class="credit-handle">@cutefishrbx</span>
+                    </button>
+                    <button class="credit-btn" id="btn-ig" title="Instagram">
+                        <svg class="credit-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2.2c2.67 0 2.99.01 4.04.06.98.04 1.5.2 1.86.34.47.18.8.4 1.15.74.35.35.57.68.74 1.15.14.36.3.88.34 1.86.05 1.05.06 1.37.06 4.04s-.01 2.99-.06 4.04c-.04.98-.2 1.5-.34 1.86a3.1 3.1 0 0 1-.74 1.15 3.1 3.1 0 0 1-1.15.74c-.36.14-.88.3-1.86.34-1.05.05-1.37.06-4.04.06s-2.99-.01-4.04-.06c-.98-.04-1.5-.2-1.86-.34a3.1 3.1 0 0 1-1.15-.74 3.1 3.1 0 0 1-.74-1.15c-.14-.36-.3-.88-.34-1.86C2.21 15.19 2.2 14.87 2.2 12.2s.01-2.99.06-4.04c.04-.98.2-1.5.34-1.86.18-.47.4-.8.74-1.15a3.1 3.1 0 0 1 1.15-.74c.36-.14.88-.3 1.86-.34 1.05-.05 1.37-.06 4.04-.06zm0 3.7a5.7 5.7 0 1 0 0 11.4 5.7 5.7 0 0 0 0-11.4zm0 9.4a3.7 3.7 0 1 1 0-7.4 3.7 3.7 0 0 1 0 7.4zm6.8-9.6a1.34 1.34 0 1 0 0 2.68 1.34 1.34 0 0 0 0-2.68z" />
+                        </svg>
+                        <span class="credit-label">Instagram</span>
+                        <span class="credit-handle">@cutefishae</span>
+                    </button>
+                    <button class="credit-btn" id="btn-gh" title="GitHub">
+                        <svg class="credit-icon" viewBox="0 0 24 24">
+                            <path
+                                d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z" />
+                        </svg>
+                        <span class="credit-label">GitHub</span>
+                        <span class="credit-handle">cutefishaep</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Card: General -->
-            <div class="card settings-card">
-                <h3>General</h3>
-                <button id="btn-reset-settings" class="danger-btn">
+            <div class="card cleanup-card">
+                <h3>Cleanup</h3>
+                <p style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 10px; margin-top: 2px; line-height: 1.3;">
+                    Clear After Effects system data to improve performance.
+                </p>
+                <div style="display: -webkit-flex; display: flex;">
+                    <button id="btn-purge-all" class="secondary-btn" title="Purge All (Cache, Memory, Undo)"
+                        style="flex: 1; -webkit-flex: 1; padding: 8px; margin-right: 6px;">
+                        <span class="material-icons">auto_delete</span>
+                    </button>
+                    <button id="btn-purge-cache" class="secondary-btn" title="Purge Disk Cache"
+                        style="flex: 1; -webkit-flex: 1; padding: 8px; margin-right: 6px;">
+                        <span class="material-icons">storage</span>
+                    </button>
+                    <button id="btn-purge-memory" class="secondary-btn" title="Purge Memory (RAM)"
+                        style="flex: 1; -webkit-flex: 1; padding: 8px; margin-right: 6px;">
+                        <span class="material-icons">memory</span>
+                    </button>
+                    <button id="btn-purge-undo" class="secondary-btn" title="Purge Undo History"
+                        style="flex: 1; -webkit-flex: 1; padding: 8px;">
+                        <span class="material-icons">history</span>
+                    </button>
+                </div>
+                <button id="btn-reset-settings" class="reset-btn" style="margin-top: 10px;">
                     <span class="material-icons">restart_alt</span> Reset to Default
                 </button>
+            </div>
+
+            <div
+                style="text-align: center; font-size: 0.65rem; color: rgba(255,255,255,0.3); padding: 15px 0 35px 0; letter-spacing: 0.5px; font-weight: 500; display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; align-items: center;">
+                Made in Indonesia&nbsp;<span class="material-icons"
+                    style="font-size: 11px; color: #ffb400; margin-left: 3px;">favorite</span>
             </div>
         </div>
     </div>
 
-    <!-- Floating Navigation (Bottom) -->
     <div class="nav-hover-zone">
         <nav class="floating-nav">
             <button class="tab-btn active" data-tab="main" title="Dashboard">
@@ -508,45 +572,43 @@
             <button class="tab-btn" data-tab="graph" title="Graph Editor">
                 <span class="material-icons">show_chart</span>
             </button>
-            <button class="tab-btn" data-tab="settings" title="Settings">
-                <span class="material-icons">settings</span>
+            <button class="tab-btn" data-tab="settings" title="Info">
+                <span class="material-icons">info</span>
             </button>
         </nav>
     </div>
 
-    <!-- QRIS Modal (Placed outside for safety) -->
     <div id="qris-modal" class="modal">
         <div class="modal-content"
-            style="max-width: 250px; padding: 25px; border-radius: 8px; background: #0d0d0d; border: 1px solid var(--accent); text-align: center; box-shadow: 0 0 30px rgba(255,180,0,0.15);">
+            style="max-width: 85%; width: 250px; padding: 25px; border-radius: 8px; background: #0d0d0d; border: 1px solid #ffb400; text-align: center; box-shadow: 0 0 30px rgba(255,180,0,0.15); box-sizing: border-box;">
             <span class="status-label"
-                style="color: var(--accent); font-size: 0.6rem; opacity: 0.8; margin-bottom: 12px; display: block; font-weight: 900; letter-spacing: 2px;">SECURE
+                style="color: #ffb400; font-size: 0.6rem; opacity: 0.8; margin-bottom: 12px; display: block; font-weight: 900; letter-spacing: 2px;">SECURE
                 PAYMENT QRIS</span>
 
             <div
-                style="background: #fff; padding: 12px; border-radius: 8px; display: inline-block; margin-bottom: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);">
+                style="background: #fff; padding: 12px; border-radius: 8px; display: inline-block; margin-bottom: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); max-width: 100%; box-sizing: border-box;">
                 <div id="qrcode" style="display: flex; justify-content: center;"></div>
             </div>
 
             <p
-                style="color: var(--text-color); font-family: monospace; font-size: 0.65rem; font-weight: bold; margin-bottom: 20px; opacity: 0.7;">
+                style="color: #ffffff; font-family: monospace; font-size: 0.65rem; font-weight: bold; margin-bottom: 20px; opacity: 0.7;">
                 SCAN TO SUPPORT DEV</p>
             <button id="close-qris" class="danger-btn" style="width: 100%; padding: 10px; font-size: 0.65rem;">
                 <span class="material-icons" style="font-size: 14px;">close</span> CLOSE</button>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="./js/modules/colorpicker.js"></script>
     <script src="./js/modules/settings.js"></script>
     <script src="./js/modules/tips.js"></script>
     <script src="./js/modules/stopwatch.js"></script>
-    <script src="./js/modules/updater.js"></script>
     <script src="./js/modules/modal.js"></script>
     <script src="./js/modules/tools.js"></script>
     <script src="./js/modules/graph.js"></script>
     <script src="./js/modules/colorpalette.js"></script>
+    <script src="./js/modules/dashboard.js"></script>
+    <script src="./js/modules/beatmaker.js"></script>
     <script src="./js/main.js"></script>
-    <!-- Custom Tooltip -->
     <div id="custom-tooltip"></div>
 </body>
 

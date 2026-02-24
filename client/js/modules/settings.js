@@ -1,205 +1,106 @@
-window.SettingsModule = class SettingsModule {
-    constructor() {
-        this.defaults = {
-            version: window.EXTENSION_VERSION,
+'use strict';
 
+window.SettingsModule = function SettingsModule() {
+    this.defaults = {
+        version: window.EXTENSION_VERSION,
 
-            lastTab: "main",
-            navAutoHide: false,
-            tipsEnabled: true,
+        navAutoHide: false,
+        tipsEnabled: true
+    };
 
+    this.settings = JSON.parse(JSON.stringify(this.defaults));
+};
 
-            customColors: {
-                enabled: true,
-                accent: "#FFD700",
-                bg: "#121212",
-                card: "#1E1E1E",
-                text: "#FFFFFF",
-                border: "#333333"
-            }
-        };
-
-        this.settings = JSON.parse(JSON.stringify(this.defaults));
-        // Removed file system logic to avoid permission issues
+SettingsModule.prototype.init = function () {
+    try {
+        this.loadSettings();
+        this.applySettings();
+        this.setupListeners();
+    } catch (e) {
+        console.error("Settings init failure:", e);
     }
+};
 
-    init() {
-        try {
-            this.loadSettings();
-            this.applySettings();
-            this.setupListeners();
-        } catch (e) {
-            console.error("Settings init failure:", e);
+SettingsModule.prototype.setupListeners = function () {
+    var self = this;
+
+    var safeAddListener = function (id, event, callback) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.addEventListener(event, callback);
         }
-    }
+    };
 
-    setupListeners() {
-        const safeAddListener = (id, event, callback) => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener(event, callback);
-            }
-        };
+    safeAddListener('btn-reset-settings', 'click', function () { self.resetSettings(); });
+};
 
-        safeAddListener('btn-reset-settings', 'click', () => { this.resetSettings(); });
+SettingsModule.prototype.loadSettings = function () {
+    try {
+        var saved = localStorage.getItem('fishToolsConfig');
+        if (saved) {
+            try {
+                var loaded = JSON.parse(saved);
 
-        const colorIds = ['color-accent', 'color-bg', 'color-card', 'color-text', 'color-border'];
-        colorIds.forEach((id) => {
-            safeAddListener(id, 'input', () => {
-                const getVal = (id) => {
-                    const el = document.getElementById(id);
-                    return el ? el.value : this.settings.customColors[id.replace('color-', '')];
-                };
-
-                this.settings.customColors.accent = getVal('color-accent');
-                this.settings.customColors.bg = getVal('color-bg');
-                this.settings.customColors.card = getVal('color-card');
-                this.settings.customColors.text = getVal('color-text');
-                this.settings.customColors.border = getVal('color-border');
-
-                this.saveSettings();
-                this.applyCustomColors();
-                this.updateSwatches();
-            });
-        });
-
-        const swatches = document.querySelectorAll('.color-swatch');
-        swatches.forEach(swatch => {
-            swatch.onclick = function () {
-                const targetId = this.getAttribute('data-id');
-                const input = document.getElementById(targetId);
-                if (input && window.ColorPicker) {
-                    window.ColorPicker.open(input);
-                }
-            };
-        });
-    }
-
-    updateSwatches() {
-        const colorIds = ['color-accent', 'color-bg', 'color-card', 'color-text', 'color-border'];
-        colorIds.forEach((id) => {
-            const input = document.getElementById(id);
-            const swatch = document.querySelector('.color-swatch[data-id="' + id + '"]');
-            if (input && swatch) {
-                swatch.style.backgroundColor = input.value;
-            }
-        });
-    }
-
-    loadSettings() {
-        try {
-            const saved = localStorage.getItem('fishToolsConfig');
-            if (saved) {
-                try {
-                    const loaded = JSON.parse(saved);
-
-                    for (const key in loaded) {
-                        if (loaded.hasOwnProperty(key)) {
-                            if (key === 'customColors' && typeof loaded[key] === 'object') {
-                                for (const subKey in loaded[key]) {
-                                    if (loaded[key].hasOwnProperty(subKey)) {
-                                        this.settings.customColors[subKey] = loaded[key][subKey];
-                                    }
-                                }
-                            } else {
-                                this.settings[key] = loaded[key];
-                            }
+                for (var key in loaded) {
+                    if (loaded.hasOwnProperty(key)) {
+                        if (key !== 'customColors') {
+                            this.settings[key] = loaded[key];
                         }
                     }
-                } catch (parseError) {
-                    console.error("Settings: JSON parse error", parseError);
                 }
+            } catch (parseError) {
+                console.error("Settings: JSON parse error", parseError);
             }
-        } catch (e) {
-            console.error("Settings load error:", e);
         }
+    } catch (e) {
+        console.error("Settings load error:", e);
     }
+};
 
-    saveSettings() {
-        try {
-            const data = JSON.stringify(this.settings, null, 4);
-            localStorage.setItem('fishToolsConfig', data);
-        } catch (e) {
-            console.error("Settings save error:", e);
+SettingsModule.prototype.saveSettings = function () {
+    try {
+        var data = JSON.stringify(this.settings, null, 4);
+        localStorage.setItem('fishToolsConfig', data);
+    } catch (e) {
+        console.error("Settings save error:", e);
+    }
+};
+
+SettingsModule.prototype.applySettings = function () {
+
+    this.restoreLastTab();
+};
+
+SettingsModule.prototype.restoreLastTab = function () {
+    var lastTab = this.settings.lastTab || 'main';
+    var tabBtn = document.querySelector('.tab-btn[data-tab="' + lastTab + '"]');
+    if (tabBtn) {
+        tabBtn.click();
+    }
+};
+
+SettingsModule.prototype.get = function (key) {
+    return this.settings[key];
+};
+
+SettingsModule.prototype.set = function (key, value) {
+    this.settings[key] = value;
+    this.saveSettings();
+};
+
+SettingsModule.prototype.saveLastTab = function (tabName) {
+    if (this.settings.lastTab === tabName) return;
+    this.settings.lastTab = tabName;
+    this.saveSettings();
+};
+
+SettingsModule.prototype.resetSettings = function () {
+    var self = this;
+    window.ModalModule.confirm("Are you sure you want to reset all settings to factory default?", "Factory Reset", function (confirmed) {
+        if (confirmed) {
+            self.settings = JSON.parse(JSON.stringify(self.defaults));
+            self.saveSettings();
+            setTimeout(function () { location.reload(); }, 150);
         }
-    }
-
-    applySettings() {
-        this.applyCustomColors();
-
-        const setVal = (id, val) => {
-            const el = document.getElementById(id);
-            if (el) el.value = val;
-        };
-
-        if (this.settings.customColors) {
-            setVal('color-accent', this.settings.customColors.accent);
-            setVal('color-bg', this.settings.customColors.bg);
-            setVal('color-card', this.settings.customColors.card);
-            setVal('color-text', this.settings.customColors.text);
-            setVal('color-border', this.settings.customColors.border);
-        }
-        this.updateSwatches();
-
-        this.restoreLastTab();
-    }
-
-    restoreLastTab() {
-        const lastTab = this.settings.lastTab || 'main';
-        const tabBtn = document.querySelector('.tab-btn[data-tab="' + lastTab + '"]');
-        if (tabBtn) {
-            tabBtn.click();
-        }
-    }
-
-    get(key) {
-        return this.settings[key];
-    }
-
-    set(key, value) {
-        this.settings[key] = value;
-        this.saveSettings();
-    }
-
-    saveLastTab(tabName) {
-        if (this.settings.lastTab === tabName) return;
-        this.settings.lastTab = tabName;
-        this.saveSettings();
-    }
-
-    applyCustomColors(isPreview) {
-        const root = document.documentElement;
-        if (!root) return;
-
-        let colors;
-        if (isPreview) {
-            colors = {
-                accent: document.getElementById('color-accent').value,
-                bg: document.getElementById('color-bg').value,
-                card: document.getElementById('color-card').value,
-                text: document.getElementById('color-text').value,
-                border: document.getElementById('color-border').value
-            };
-        } else {
-            colors = this.settings.customColors;
-        }
-
-        if (!colors) return;
-
-        if (colors.accent) root.style.setProperty('--accent', colors.accent);
-        if (colors.bg) root.style.setProperty('--bg-color', colors.bg);
-        if (colors.card) root.style.setProperty('--card-bg', colors.card);
-        if (colors.text) root.style.setProperty('--text-color', colors.text);
-        if (colors.border) root.style.setProperty('--card-border', colors.border);
-    }
-
-    resetSettings() {
-        window.ModalModule.confirm("Are you sure you want to reset all settings to factory default?", "Factory Reset", (confirmed) => {
-            if (confirmed) {
-                this.settings = JSON.parse(JSON.stringify(this.defaults));
-                this.saveSettings();
-                setTimeout(() => { location.reload(); }, 150);
-            }
-        });
-    }
-}
+    });
+};
