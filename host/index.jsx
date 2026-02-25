@@ -61,7 +61,12 @@ var tools = {
     TRANS_FADE_IN: function () { return _applyTransition("ADBE Opacity", "IN"); },
     TRANS_FADE_OUT: function () { return _applyTransition("ADBE Opacity", "OUT"); },
     TRANS_SCALE_IN: function () { return _applyTransition("ADBE Scale", "IN"); },
-    TRANS_SCALE_OUT: function () { return _applyTransition("ADBE Scale", "OUT"); }
+    TRANS_SCALE_OUT: function () { return _applyTransition("ADBE Scale", "OUT"); },
+    DEBUG_ALL: function () { return _DEBUG_ALL(); },
+    MIDWAVE: function () { return _MIDWAVE(); },
+    HUESPIN: function () { return _HUESPIN(); },
+    OSCILLATE: function () { return _OSCILLATE(); },
+    SWING: function () { return _SWING(); }
 };
 
 function _applyTransition(propName, directionType) {
@@ -211,8 +216,8 @@ function _DUP(newName) {
 
         if (targetLayer) {
 
-            
-            
+
+
             var newLayer = targetLayer.duplicate();
             newLayer.replaceSource(newComp, false);
             newLayer.name = newName;
@@ -357,7 +362,7 @@ function _NUL(alter) {
     if (hasSelection) {
         nullLayer.inPoint = targetLayer.inPoint;
         nullLayer.outPoint = targetLayer.outPoint;
-        try { nullLayer.moveBefore(targetLayer); } catch (e) {  }
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
 
         if (alter) {
             var bounds = _getSelectionBounds(selectedLayers);
@@ -570,12 +575,12 @@ function _ALIGN(type) {
             var anchor = layer.property("ADBE Transform Group").property("ADBE Anchor Point");
             var scale = layer.property("ADBE Transform Group").property("ADBE Scale").value;
 
-            
+
             var rect = layer.sourceRectAtTime(curTime, false);
             var actualWidth = rect.width * (Math.abs(scale[0]) / 100);
             var actualHeight = rect.height * (Math.abs(scale[1]) / 100);
 
-            
+
             var anchorOffsetX = (anchor.value[0] - rect.left) * (scale[0] / 100);
             var anchorOffsetY = (anchor.value[1] - rect.top) * (scale[1] / 100);
 
@@ -909,7 +914,7 @@ function _TMRE() {
                 tr.setValueAtTime(t, val);
             }
 
-            
+
             for (var j = 1; j < tr.numKeys; j++) {
                 var t1 = tr.keyTime(j);
                 var t2 = tr.keyTime(j + 1);
@@ -1024,16 +1029,16 @@ function _EXPO() {
 
             var kIdxZero = masterExpo.nearestKeyIndex(t - fd);
             if (kIdxZero > 0) {
-                var easeInSlow = new KeyframeEase(0, 100);
-                masterExpo.setTemporalEaseAtKey(kIdxZero, [easeInSlow], masterExpo.keyOutTemporalEase(kIdxZero));
+                var easeStd = new KeyframeEase(0, 33.33);
+                masterExpo.setTemporalEaseAtKey(kIdxZero, [easeStd], [easeStd]);
             }
 
             masterExpo.setValueAtTime(t, 1);
 
             var kIdxPeak = masterExpo.nearestKeyIndex(t);
             if (kIdxPeak > 0) {
-                var easeOutFast = new KeyframeEase(0, 0.1);
-                masterExpo.setTemporalEaseAtKey(kIdxPeak, masterExpo.keyInTemporalEase(kIdxPeak), [easeOutFast]);
+                var easeStd2 = new KeyframeEase(0, 33.33);
+                masterExpo.setTemporalEaseAtKey(kIdxPeak, [easeStd2], [easeStd2]);
             }
         }
 
@@ -1057,22 +1062,22 @@ function _LENS() {
         adj.inPoint = layer.inPoint;
         adj.outPoint = layer.outPoint;
         adj.moveBefore(layer);
-        adj.label = 5; 
+        adj.label = 5;
 
-        
+
         var lens = adj.Effects.addProperty("ADBE Camera Lens Blur");
         if (!lens) {
-            
-            lens = adj.Effects.addProperty("ADBE Fast Blur"); 
+
+            lens = adj.Effects.addProperty("ADBE Fast Blur");
         }
 
         var blurRadius = null;
         if (lens) {
-            
-            blurRadius = lens.property("ADBE Camera Lens Blur-0001"); 
+
+            blurRadius = lens.property("ADBE Camera Lens Blur-0001");
             if (!blurRadius) blurRadius = lens.property("Blur Radius");
-            if (!blurRadius) blurRadius = lens.property("Blurriness"); 
-            if (!blurRadius && lens.numProperties >= 1) blurRadius = lens.property(1); 
+            if (!blurRadius) blurRadius = lens.property("Blurriness");
+            if (!blurRadius && lens.numProperties >= 1) blurRadius = lens.property(1);
         }
 
         if (!blurRadius) {
@@ -1085,7 +1090,7 @@ function _LENS() {
         for (var i = 0; i < markers.length; i++) {
             var t = markers[i];
 
-            
+
             blurRadius.setValueAtTime(t - fd, 0);
 
             var kIdxZero = blurRadius.nearestKeyIndex(t - fd);
@@ -1094,7 +1099,7 @@ function _LENS() {
                 blurRadius.setTemporalEaseAtKey(kIdxZero, [easeInSlow], blurRadius.keyOutTemporalEase(kIdxZero));
             }
 
-            
+
             blurRadius.setValueAtTime(t, 50);
 
             var kIdxPeak = blurRadius.nearestKeyIndex(t);
@@ -1118,7 +1123,7 @@ function _SHAKE() {
     var layer = comp.selectedLayers[0];
     app.beginUndoGroup("Apply S_Shake");
     try {
-        
+
         var adj = comp.layers.addSolid([0, 0, 0], "S_Shake Adjust", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.inPoint = layer.inPoint;
@@ -1127,7 +1132,7 @@ function _SHAKE() {
 
         try {
             if (adj.index !== layer.index - 1) adj.moveBefore(layer);
-        } catch (e) {  }
+        } catch (e) { }
 
         var shake = adj.Effects.addProperty("S_Shake");
         if (!shake) {
@@ -1188,7 +1193,7 @@ function _WARP() {
         if (selectedLayer) {
             try {
                 if (adj.index !== selectedLayer.index - 1) adj.moveBefore(selectedLayer);
-            } catch (e) {  }
+            } catch (e) { }
         }
 
         var warp = adj.Effects.addProperty("ADBE Wave Warp");
@@ -1198,7 +1203,7 @@ function _WARP() {
             return false;
         }
 
-        warp.property("ADBE Wave Warp-0001").setValue(9); 
+        warp.property("ADBE Wave Warp-0001").setValue(9);
         warp.property("ADBE Wave Warp-0003").setValue(109);
         warp.property("ADBE Wave Warp-0004").setValue(0);
         warp.property("ADBE Wave Warp-0005").setValue(0.2);
@@ -1231,7 +1236,7 @@ function _OVERLAP() {
     if (selectedLayers.length === 0) return false;
     var layer = selectedLayers[0];
 
-    
+
     if (layer.threeDLayer) {
         return _OVERLAP_3D(comp, layer);
     } else {
@@ -1245,7 +1250,7 @@ function _OVERLAP_2D(comp, layer) {
 
         var transform = layer.property("ADBE Transform Group");
 
-        
+
         var propertyNames = [
             { name: "ADBE Position", matchName: "ADBE Position", dimensions: 2 },
             { name: "ADBE Scale", matchName: "ADBE Scale", dimensions: 2 },
@@ -1253,16 +1258,16 @@ function _OVERLAP_2D(comp, layer) {
         ];
 
         var nullsCreated = [];
-        var firstKfValues = {}; 
+        var firstKfValues = {};
 
-        
+
         for (var p = 0; p < propertyNames.length; p++) {
             var propInfo = propertyNames[p];
             var prop = transform.property(propInfo.matchName);
 
-            if (!prop || prop.numKeys < 2) continue; 
+            if (!prop || prop.numKeys < 2) continue;
 
-            
+
             var keyframes = [];
             for (var k = 1; k <= prop.numKeys; k++) {
                 keyframes.push({
@@ -1272,36 +1277,36 @@ function _OVERLAP_2D(comp, layer) {
                 });
             }
 
-            
+
             firstKfValues[propInfo.matchName] = keyframes[0].value;
 
-            
-            
+
+
             for (var i = 0; i < keyframes.length - 1; i++) {
                 var startKf = keyframes[i];
                 var endKf = keyframes[i + 1];
 
-                
+
                 var nullLayer = comp.layers.addNull();
                 nullLayer.name = "Overlap_" + propInfo.name.replace("ADBE ", "") + "_" + (i + 1);
-                nullLayer.label = 14; 
-                nullLayer.shy = true; 
+                nullLayer.label = 14;
+                nullLayer.shy = true;
 
-                
+
                 var nullStartTime = startKf.time;
                 var nullEndTime = (i + 2 < keyframes.length) ? keyframes[i + 2].time : endKf.time + (endKf.time - startKf.time);
 
-                
+
                 nullLayer.inPoint = nullStartTime;
                 nullLayer.outPoint = nullEndTime;
 
-                
+
                 var nullProp = nullLayer.property("ADBE Transform Group").property(propInfo.matchName);
 
-                
+
                 var actualDims = (propInfo.dimensions === 1) ? 1 : nullProp.value.length;
 
-                
+
                 if (actualDims === 1) {
                     nullProp.setValueAtTime(nullStartTime, startKf.value);
                     nullProp.setValueAtTime(nullEndTime, endKf.value);
@@ -1310,7 +1315,7 @@ function _OVERLAP_2D(comp, layer) {
                     var endVal = [];
 
                     for (var d = 0; d < actualDims; d++) {
-                        
+
                         var s = (d < propInfo.dimensions) ? startKf.value[d] : ((propInfo.matchName === "ADBE Scale") ? 100 : 0);
                         var e = (d < propInfo.dimensions) ? endKf.value[d] : ((propInfo.matchName === "ADBE Scale") ? 100 : 0);
 
@@ -1322,16 +1327,16 @@ function _OVERLAP_2D(comp, layer) {
                     nullProp.setValueAtTime(nullEndTime, endVal);
                 }
 
-                
-                
+
+
                 var transitionDuration = nullEndTime - nullStartTime;
                 var ratio = (transitionDuration > 0) ? (endKf.time - nullStartTime) / transitionDuration : 0.5;
                 var baseInfluence = 85;
                 var influenceOut = Math.max(33, Math.min(100, ratio * 2 * baseInfluence));
                 var influenceIn = Math.max(33, Math.min(100, (1 - ratio) * 2 * baseInfluence));
 
-                
-                
+
+
                 var easeDims = nullProp.keyInTemporalEase(1).length;
 
                 var easeOutSymmetric = [];
@@ -1342,14 +1347,14 @@ function _OVERLAP_2D(comp, layer) {
                     easeInSymmetric.push(new KeyframeEase(0, influenceIn));
                 }
 
-                
+
                 nullProp.setInterpolationTypeAtKey(1, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
                 nullProp.setInterpolationTypeAtKey(2, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
 
                 nullProp.setTemporalEaseAtKey(1, nullProp.keyInTemporalEase(1), easeOutSymmetric);
                 nullProp.setTemporalEaseAtKey(2, easeInSymmetric, nullProp.keyOutTemporalEase(2));
 
-                
+
                 nullsCreated.push({
                     layer: nullLayer,
                     property: propInfo.matchName
@@ -1357,32 +1362,32 @@ function _OVERLAP_2D(comp, layer) {
             }
         }
 
-        
+
         if (nullsCreated.length > 0) {
-            
+
             nullsCreated.reverse();
 
-            
+
             layer.parent = nullsCreated[0].layer;
 
-            
+
             for (var n = 0; n < nullsCreated.length - 1; n++) {
                 nullsCreated[n].layer.parent = nullsCreated[n + 1].layer;
             }
 
-            
+
             for (var p = 0; p < propertyNames.length; p++) {
                 var propInfo = propertyNames[p];
                 var prop = transform.property(propInfo.matchName);
 
                 if (!prop) continue;
 
-                
+
                 while (prop.numKeys > 0) {
                     prop.removeKey(1);
                 }
 
-                
+
                 if (propInfo.matchName === "ADBE Position") {
                     prop.setValue([0, 0]);
                 } else if (propInfo.matchName === "ADBE Scale") {
@@ -1406,7 +1411,7 @@ function _OVERLAP_3D(comp, layer) {
     try {
         var transform = layer.property("ADBE Transform Group");
 
-        
+
         var propDefs = [
             { matchName: "ADBE Position", dims: 3, defaultVal: [0, 0, 0] },
             { matchName: "ADBE Scale", dims: 3, defaultVal: [100, 100, 100] },
@@ -1416,16 +1421,16 @@ function _OVERLAP_3D(comp, layer) {
         ];
 
         var nullsCreated = [];
-        var firstKfValues = {}; 
+        var firstKfValues = {};
 
-        
+
         for (var p = 0; p < propDefs.length; p++) {
             var def = propDefs[p];
             var prop = transform.property(def.matchName);
 
             if (!prop || prop.numKeys < 2) continue;
 
-            
+
             var keyframes = [];
             for (var k = 1; k <= prop.numKeys; k++) {
                 keyframes.push({
@@ -1434,10 +1439,10 @@ function _OVERLAP_3D(comp, layer) {
                 });
             }
 
-            
+
             firstKfValues[def.matchName] = keyframes[0].value;
 
-            
+
             for (var i = 0; i < keyframes.length - 1; i++) {
                 var startKf = keyframes[i];
                 var endKf = keyframes[i + 1];
@@ -1445,10 +1450,10 @@ function _OVERLAP_3D(comp, layer) {
                 var nullLayer = comp.layers.addNull();
                 nullLayer.name = "3DCam_" + def.matchName.replace("ADBE ", "") + "_" + (i + 1);
                 nullLayer.threeDLayer = true;
-                nullLayer.label = 11; 
+                nullLayer.label = 11;
                 nullLayer.shy = true;
 
-                
+
                 var nullStartTime = startKf.time;
                 var nullEndTime = (i + 2 < keyframes.length) ? keyframes[i + 2].time : endKf.time + (endKf.time - startKf.time);
 
@@ -1457,7 +1462,7 @@ function _OVERLAP_3D(comp, layer) {
 
                 var nullProp = nullLayer.property("ADBE Transform Group").property(def.matchName);
 
-                
+
                 if (def.dims === 1) {
                     nullProp.setValueAtTime(nullStartTime, startKf.value);
                     nullProp.setValueAtTime(nullEndTime, endKf.value);
@@ -1466,7 +1471,7 @@ function _OVERLAP_3D(comp, layer) {
                     nullProp.setValueAtTime(nullEndTime, endKf.value);
                 }
 
-                
+
                 if (nullProp.numKeys === 2) {
                     var transitionDuration = nullEndTime - nullStartTime;
                     var ratio = (transitionDuration > 0) ? (endKf.time - nullStartTime) / transitionDuration : 0.5;
@@ -1493,7 +1498,7 @@ function _OVERLAP_3D(comp, layer) {
             }
         }
 
-        
+
         if (nullsCreated.length > 0) {
             nullsCreated.reverse();
 
@@ -1503,7 +1508,7 @@ function _OVERLAP_3D(comp, layer) {
                 nullsCreated[n].parent = nullsCreated[n + 1];
             }
 
-            
+
             for (var p = 0; p < propDefs.length; p++) {
                 var def = propDefs[p];
                 var prop = transform.property(def.matchName);
@@ -1545,7 +1550,7 @@ function _PNG() {
             return '{"error":true, "type":"warn", "message":"This AE version does not support automatic PNG saving (Requires v22.0+)."}';
         }
     }
-    return "false"; 
+    return "false";
 }
 
 function _CUBE(w, h, d, useLayer) {
@@ -1564,14 +1569,14 @@ function _CUBE(w, h, d, useLayer) {
             var sz = _getLayerSize(selLayer);
             boxW = sz[0];
             boxH = sz[1];
-            
+
             boxD = Math.min(boxW, boxH);
         }
 
         var sides = [];
         var sideNames = ["Front", "Back", "Left", "Right", "Top", "Bottom"];
 
-        
+
         for (var i = 0; i < 6; i++) {
             var side;
             if (selLayer) {
@@ -1584,7 +1589,7 @@ function _CUBE(w, h, d, useLayer) {
             sides.push(side);
         }
 
-        
+
         var controller = comp.layers.addNull();
         controller.name = "Cube_Controller";
         controller.threeDLayer = true;
@@ -1595,43 +1600,43 @@ function _CUBE(w, h, d, useLayer) {
         var halfD = boxD / 2;
 
         for (var i = 0; i < 6; i++) {
-            
+
             var sz = _getLayerSize(sides[i]);
             sides[i].anchorPoint.setValue([sz[0] / 2, sz[1] / 2, 0]);
 
-            
+
             sides[i].position.setValue([0, 0, 0]);
 
-            
+
             sides[i].parent = controller;
 
-            
+
             var localPos = [0, 0, 0];
             var localOri = [0, 0, 0];
             var targetWSide = boxW;
             var targetHSide = boxH;
 
-            if (i == 0) { 
+            if (i == 0) {
                 localPos = [0, 0, -halfD];
                 localOri = [0, 0, 0];
                 targetWSide = boxW; targetHSide = boxH;
-            } else if (i == 1) { 
+            } else if (i == 1) {
                 localPos = [0, 0, halfD];
                 localOri = [0, 180, 0];
                 targetWSide = boxW; targetHSide = boxH;
-            } else if (i == 2) { 
+            } else if (i == 2) {
                 localPos = [-halfW, 0, 0];
                 localOri = [0, 90, 0];
                 targetWSide = boxD; targetHSide = boxH;
-            } else if (i == 3) { 
+            } else if (i == 3) {
                 localPos = [halfW, 0, 0];
                 localOri = [0, 270, 0];
                 targetWSide = boxD; targetHSide = boxH;
-            } else if (i == 4) { 
+            } else if (i == 4) {
                 localPos = [0, -halfH, 0];
                 localOri = [90, 0, 0];
                 targetWSide = boxW; targetHSide = boxD;
-            } else if (i == 5) { 
+            } else if (i == 5) {
                 localPos = [0, halfH, 0];
                 localOri = [270, 0, 0];
                 targetWSide = boxW; targetHSide = boxD;
@@ -1640,7 +1645,7 @@ function _CUBE(w, h, d, useLayer) {
             sides[i].position.setValue(localPos);
             sides[i].orientation.setValue(localOri);
 
-            
+
             var currentW = sz[0];
             var currentH = sz[1];
             sides[i].scale.setValue([100 * targetWSide / currentW, 100 * targetHSide / currentH, 100]);
@@ -1692,7 +1697,7 @@ function _addBeatMark() {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return "NO_COMP";
     try {
-        app.executeCommand(2157); 
+        app.executeCommand(2157);
         return String(comp.markerProperty.numKeys);
     } catch (e) {
         return "ERROR:" + e.toString();
@@ -1713,5 +1718,414 @@ function _clearBeatMarks() {
     } catch (e) {
         app.endUndoGroup();
         return "ERROR:" + e.toString();
+    }
+}
+
+function _DEBUG_ALL() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    var layer = comp.selectedLayers[0];
+    if (!layer) return "Please select a layer.";
+
+    var frameRate = 1 / comp.frameDuration;
+    var output = "FULL DEBUG: " + layer.name + "\r";
+    output += "--------------------------------\r";
+
+    var effects = layer.effect;
+    if (!effects || effects.numProperties === 0) effects = layer.property("ADBE Effect Group");
+    if (!effects || effects.numProperties === 0) effects = layer.property("Effects");
+
+    if (!effects || effects.numProperties === 0) return output + "No effects found.";
+
+    for (var i = 1; i <= effects.numProperties; i++) {
+        var effect = effects.property(i);
+        output += "\r[" + i + "] " + effect.name + " (" + effect.matchName + ")\r";
+
+        for (var j = 1; j <= effect.numProperties; j++) {
+            try {
+                var prop = effect.property(j);
+                if (prop.propertyType === PropertyType.PROPERTY) {
+                    var valStr = "[Value Error]";
+                    try {
+                        var v = prop.value;
+                        if (v instanceof Array) valStr = "[" + v.join(", ") + "]";
+                        else valStr = v.toString();
+                    } catch (e) { }
+
+                    output += "  - " + prop.name + " (" + prop.matchName + ") val: " + valStr + "\r";
+                    output += "    Path: layer" + _getSimplePath(prop) + "\r";
+
+                    if (prop.numKeys > 0) {
+                        for (var k = 1; k <= prop.numKeys; k++) {
+                            var kv = prop.keyValue(k);
+                            if (kv instanceof Array) kv = "[" + kv.join(", ") + "]";
+                            var kt = prop.keyTime(k);
+                            var kf = Math.round(kt * frameRate);
+
+                            var easeStr = "";
+                            try {
+                                if (prop.keyInTemporalEase(k).length > 0) {
+                                    var inE = prop.keyInTemporalEase(k)[0];
+                                    var outE = prop.keyOutTemporalEase(k)[0];
+                                    easeStr = " [Ease: " + Math.round(inE.influence) + "% / " + Math.round(outE.influence) + "%]";
+                                }
+                            } catch (e) { }
+
+                            output += "    Key " + k + ": Frame " + kf + " (" + kt.toFixed(2) + "s) val: " + kv + easeStr + "\r";
+                        }
+                    }
+                }
+            } catch (err) { }
+        }
+    }
+    return output;
+}
+
+function _getSimplePath(prop) {
+    var path = "";
+    var curr = prop;
+    while (curr && curr.matchName !== "ADBE Layer Built In Props" && curr.parentProperty) {
+        path = '("' + curr.matchName + '")' + path;
+        curr = curr.parentProperty;
+    }
+    return path;
+}
+
+function _MIDWAVE() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+
+    app.beginUndoGroup("Mid-Wave Effect");
+    try {
+        var curTime = comp.time;
+        var fd = comp.frameDuration;
+
+        var t1 = curTime - (15 * fd);
+        var t2 = curTime;
+        var t3 = curTime + (20 * fd);
+
+        // Add Adjustment Layer
+        var adj = comp.layers.addSolid([1, 1, 1], "Mid-Wave", comp.width, comp.height, 1);
+        adj.adjustmentLayer = true;
+        adj.label = 5;
+
+        // Move above selected layer if any
+        if (comp.selectedLayers.length > 0 && comp.selectedLayers[0].index !== adj.index) {
+            adj.moveBefore(comp.selectedLayers[0]);
+        }
+
+        adj.inPoint = t1;
+        adj.outPoint = t3 + fd;
+
+        // Add Marker at exact center
+        var markerVal = new MarkerValue("Mid-Wave Center");
+        adj.property("ADBE Marker").setValueAtTime(curTime, markerVal);
+
+        // Motion Tile
+        var mt = adj.property("ADBE Effect Parade").addProperty("ADBE Tile");
+        mt.property("ADBE Tile-0001").setValue([comp.width / 2, comp.height / 2]);
+        mt.property("ADBE Tile-0002").setValue(100);
+        mt.property("ADBE Tile-0003").setValue(100);
+        mt.property("ADBE Tile-0004").setValue(300);
+        mt.property("ADBE Tile-0005").setValue(300);
+        mt.property("ADBE Tile-0006").setValue(1);
+        mt.property("ADBE Tile-0007").setValue(0);
+        mt.property("ADBE Tile-0008").setValue(0);
+
+        // Wave Warp 1
+        var ww1 = adj.property("ADBE Effect Parade").addProperty("ADBE Wave Warp");
+        ww1.property("ADBE Wave Warp-0001").setValue(1);
+        ww1.property("ADBE Wave Warp-0003").setValue(800);
+        ww1.property("ADBE Wave Warp-0004").setValue(45);
+        ww1.property("ADBE Wave Warp-0005").setValue(2);
+        ww1.property("ADBE Wave Warp-0006").setValue(1);
+        ww1.property("ADBE Wave Warp-0008").setValue(1);
+
+        var wh1 = ww1.property("ADBE Wave Warp-0002");
+        wh1.setValueAtTime(t1, 0);
+        wh1.setValueAtTime(t2, 100);
+        wh1.setValueAtTime(t3, 0);
+        _applyMidWaveEase(wh1);
+
+        // Wave Warp 2
+        var ww2 = adj.property("ADBE Effect Parade").addProperty("ADBE Wave Warp");
+        ww2.property("ADBE Wave Warp-0001").setValue(1);
+        ww2.property("ADBE Wave Warp-0003").setValue(800);
+        ww2.property("ADBE Wave Warp-0004").setValue(-45);
+        ww2.property("ADBE Wave Warp-0005").setValue(2);
+        ww2.property("ADBE Wave Warp-0006").setValue(1);
+        ww2.property("ADBE Wave Warp-0008").setValue(1);
+
+        var wh2 = ww2.property("ADBE Wave Warp-0002");
+        wh2.setValueAtTime(t1, 0);
+        wh2.setValueAtTime(t2, 100);
+        wh2.setValueAtTime(t3, 0);
+        _applyMidWaveEase(wh2);
+
+        // Deselect others, select adjustment layer
+        for (var i = 1; i <= comp.numLayers; i++) {
+            comp.layer(i).selected = false;
+        }
+        adj.selected = true;
+
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _applyMidWaveEase(prop) {
+    if (prop.numKeys < 3) return;
+    for (var i = 1; i <= 3; i++) {
+        prop.setInterpolationTypeAtKey(i, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
+    }
+
+    // Convert easing percentages from debug output to KeyframeEase objects
+    prop.setTemporalEaseAtKey(1, [new KeyframeEase(0, 17)], [new KeyframeEase(0, 75)]);
+    prop.setTemporalEaseAtKey(2, [new KeyframeEase(0, 0.1)], [new KeyframeEase(0, 0.1)]); // 0.1 avoids invalid arg errors
+    prop.setTemporalEaseAtKey(3, [new KeyframeEase(0, 75)], [new KeyframeEase(0, 17)]);
+}
+
+function _HUESPIN() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+
+    app.beginUndoGroup("Hue Spin Effect");
+    try {
+        var curTime = comp.time;
+        var fd = comp.frameDuration;
+        var duration = 25 * fd;
+
+        var selectedLayer = null;
+        if (comp.selectedLayers.length > 0) selectedLayer = comp.selectedLayers[0];
+
+        // Create Adjustment Layer
+        var adj = comp.layers.addSolid([1, 1, 1], "Hue Spin", comp.width, comp.height, 1);
+        adj.adjustmentLayer = true;
+        adj.label = 5;
+        adj.startTime = curTime;
+        adj.outPoint = curTime + duration;
+
+        if (selectedLayer && selectedLayer.index !== adj.index) {
+            adj.moveBefore(selectedLayer);
+        }
+
+        // Add Hue/Saturation effect
+        var hue = adj.property("ADBE Effect Parade").addProperty("ADBE HUE SATURATION");
+
+        var channelRange = hue.property("ADBE HUE SATURATION-0003");
+        var masterHue = hue.property("ADBE HUE SATURATION-0004");
+
+        // 1. Move to start time
+        comp.time = curTime;
+        masterHue.setValue(0);
+        channelRange.addKey(curTime);
+
+        // 2. Move playhead to end time
+        comp.time = curTime + duration;
+
+        // 3. Set Master Hue to 360 while playhead is at the end time
+        // Because Channel Range is now keyframed, setting Master Hue will auto-generate a keyframe cleanly in AE
+        masterHue.setValue(360);
+
+        // Optional: restore comp time
+        comp.time = curTime;
+
+        // Set linear interpolation for smooth spin
+        if (channelRange.numKeys >= 2) {
+            channelRange.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR, KeyframeInterpolationType.LINEAR);
+            channelRange.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR, KeyframeInterpolationType.LINEAR);
+        }
+
+        // Deselect all, select the new layer
+        for (var i = 1; i <= comp.numLayers; i++) {
+            comp.layer(i).selected = false;
+        }
+        adj.selected = true;
+
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _OSCILLATE() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+
+    app.beginUndoGroup("Oscillate");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "Oscillate_Null";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+
+        targetLayer.parent = nullLayer;
+
+        // Add Slider Controls for easy parameter adjustment
+        var fx = nullLayer.property("ADBE Effect Parade");
+
+        var freqCtrl = fx.addProperty("ADBE Slider Control");
+        freqCtrl.name = "Freq";
+        freqCtrl.property("ADBE Slider Control-0001").setValue(3);
+
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(30);
+
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(2.7);
+
+        var posExpr = [
+            "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+            "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+            "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "",
+            "m = thisComp.marker;",
+            "",
+            "if (time < inPoint || time > outPoint){",
+            "    value;",
+            "}else{",
+            "",
+            "    n = 0;",
+            "",
+            "    if (m.numKeys > 0){",
+            "        n = m.nearestKey(time).index;",
+            "        if (m.key(n).time > time) n--;",
+            "    }",
+            "",
+            "    if (n > 0){",
+            "",
+            "        markerTime = m.key(n).time;",
+            "",
+            "        if (markerTime >= inPoint && markerTime <= outPoint){",
+            "",
+            "            t = time - markerTime;",
+            "",
+            "            currAmp = amp / Math.exp(t * decay);",
+            "",
+            "            x = Math.cos(t * freq * Math.PI * 2) * currAmp;",
+            "            y = Math.sin(t * freq * Math.PI * 2) * currAmp;",
+            "",
+            "            value + [x, y];",
+            "",
+            "        }else{",
+            "            value;",
+            "        }",
+            "",
+            "    }else{",
+            "        value;",
+            "    }",
+            "}"
+        ].join("\n");
+
+        var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
+        positionProp.expression = posExpr;
+
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _SWING() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+
+    app.beginUndoGroup("Swing");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "Swing_Null";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+
+        targetLayer.parent = nullLayer;
+
+        // Add Slider Controls for easy parameter adjustment
+        var fx = nullLayer.property("ADBE Effect Parade");
+
+        var freqCtrl = fx.addProperty("ADBE Slider Control");
+        freqCtrl.name = "Freq";
+        freqCtrl.property("ADBE Slider Control-0001").setValue(1);
+
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(4);
+
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(1.5);
+
+        var rotExpr = [
+            "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+            "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+            "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "",
+            "m = thisComp.marker;",
+            "",
+            "if (time < inPoint || time > outPoint){",
+            "    value;",
+            "}else{",
+            "",
+            "    n = 0;",
+            "",
+            "    if (m.numKeys > 0){",
+            "        n = m.nearestKey(time).index;",
+            "        if (m.key(n).time > time) n--;",
+            "    }",
+            "",
+            "    if (n > 0){",
+            "",
+            "        markerTime = m.key(n).time;",
+            "",
+            "        if (markerTime >= inPoint && markerTime <= outPoint){",
+            "",
+            "            t = time - markerTime;",
+            "",
+            "            r = amp * Math.sin(t * freq * Math.PI * 2) / Math.exp(t * decay);",
+            "",
+            "            value + r;",
+            "",
+            "        }else{",
+            "            value;",
+            "        }",
+            "",
+            "    }else{",
+            "        value;",
+            "    }",
+            "}"
+        ].join("\n");
+
+        var rotationProp = nullLayer.property("ADBE Transform Group").property("ADBE Rotate Z");
+        rotationProp.expression = rotExpr;
+
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
     }
 }

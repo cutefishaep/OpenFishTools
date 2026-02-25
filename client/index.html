@@ -175,7 +175,7 @@
             <div class="card alight-card">
                 <h3>Alight</h3>
                 <div class="toolbox-grid toolbox-grid-3col">
-                    
+
                     <button class="tool-btn" data-tool="ALIGN_LEFT" title="Align Left">
                         <span class="material-icons">align_horizontal_left</span>
                         <span class="tool-label">LEFT</span>
@@ -189,7 +189,7 @@
                         <span class="tool-label">RIGHT</span>
                     </button>
 
-                    
+
                     <button class="tool-btn" data-tool="ALIGN_TOP" title="Align Top">
                         <span class="material-icons">align_vertical_top</span>
                         <span class="tool-label">TOP</span>
@@ -302,11 +302,29 @@
 
             <div class="card beat-card">
                 <h3>Beat</h3>
+
+                <div class="toolbox-section-label">Current</div>
                 <div class="toolbox-grid toolbox-grid-2col">
                     <button class="tool-btn" data-tool="GHST" title="Ghost Effect">
                         <span class="material-icons">auto_awesome_motion</span>
                         <span class="tool-label">GHOST</span>
                     </button>
+                    <button class="tool-btn" data-tool="WARP" title="Wave Warp">
+                        <span class="material-icons">waves</span>
+                        <span class="tool-label">WARP</span>
+                    </button>
+                    <button class="tool-btn" data-tool="MIDWAVE" title="Mid-Wave Effect">
+                        <span class="material-icons">water_drop</span>
+                        <span class="tool-label">MID-WAVE</span>
+                    </button>
+                    <button class="tool-btn" data-tool="HUESPIN" title="Hue Spin Effect">
+                        <span class="material-icons">palette</span>
+                        <span class="tool-label">HUE SPIN</span>
+                    </button>
+                </div>
+
+                <div class="toolbox-section-label" style="margin-top: 10px;">Continuous</div>
+                <div class="toolbox-grid toolbox-grid-2col">
                     <button class="tool-btn" data-tool="EXPO" title="Exposure Flash">
                         <span class="material-icons">flash_on</span>
                         <span class="tool-label">FLASH</span>
@@ -319,9 +337,13 @@
                         <span class="material-icons">blur_circular</span>
                         <span class="tool-label">LENS</span>
                     </button>
-                    <button class="tool-btn" data-tool="WARP" title="Wave Warp">
-                        <span class="material-icons">waves</span>
-                        <span class="tool-label">WARP</span>
+                    <button class="tool-btn" data-tool="OSCILLATE" title="Oscillate - Position bounce from markers">
+                        <span class="material-icons">wifi</span>
+                        <span class="tool-label">OSCILLATE</span>
+                    </button>
+                    <button class="tool-btn" data-tool="SWING" title="Swing - Rotation swing from markers">
+                        <span class="material-icons">360</span>
+                        <span class="tool-label">SWING</span>
                     </button>
                 </div>
             </div>
@@ -443,7 +465,7 @@
                             style="width: 100%; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 6px; font-size: 0.8rem;">
                     </div>
                 </div>
-                
+
                 <label class="switch-container" style="margin-bottom: 12px;">
                     <span class="switch">
                         <input type="checkbox" id="cube-use-layer">
@@ -553,6 +575,25 @@
                 </button>
             </div>
 
+            <div class="card debug-card">
+                <h3>Debug Card</h3>
+                <div style="display: flex; margin: -2px; margin-bottom: 6px; flex-wrap: wrap;">
+                    <button id="btn-debug-all" class="secondary-btn"
+                        style="flex: 3; min-width: 100px; padding: 6px 2px; font-size: 0.65rem; margin: 2px;"
+                        title="Get all debug info for selected layer">
+                        EFFECTS
+                    </button>
+                    <button id="btn-debug-clear" class="secondary-btn"
+                        style="flex: 1; min-width: 40px; padding: 6px 2px; font-size: 0.65rem; border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.4); margin: 2px;"
+                        title="Clear output">
+                        CLEAR
+                    </button>
+                </div>
+                <textarea id="debug-output"
+                    style="width: 100%; height: 120px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,180,0,0.2); border-radius: 4px; color: #aaa; font-family: 'Consolas', monospace; font-size: 0.65rem; padding: 8px; resize: vertical; box-sizing: border-box;"
+                    placeholder="Debug output..."></textarea>
+            </div>
+
             <div
                 style="text-align: center; font-size: 0.65rem; color: rgba(255,255,255,0.3); padding: 15px 0 35px 0; letter-spacing: 0.5px; font-weight: 500; display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; align-items: center;">
                 Made in Indonesia&nbsp;<span class="material-icons"
@@ -608,6 +649,7 @@
     <script src="./js/modules/colorpalette.js"></script>
     <script src="./js/modules/dashboard.js"></script>
     <script src="./js/modules/beatmaker.js"></script>
+    <script src="./js/modules/debug.js"></script>
     <script src="./js/main.js"></script>
     <div id="custom-tooltip"></div>
 </body>

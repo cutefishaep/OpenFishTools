@@ -145,7 +145,7 @@ function setupDonation() {
         });
     }
 
-    
+
     var socialLinks = {
         'btn-yt': 'https://www.youtube.com/@cutefishYT',
         'btn-tt-aep': 'https://www.tiktok.com/@cutefishaep',
@@ -261,7 +261,7 @@ window.setupTooltips = function () {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-    
+
     var splash = document.getElementById('splash-screen');
     if (splash) {
         setTimeout(function () {
@@ -272,22 +272,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 800);
     }
 
-    
+
     detectExtensionVersion();
     setupFlyoutMenu();
     setupTabs();
     setupDonation();
 
-    
+
     csInterface.evalScript("app.version", function (res) {
         var majorVersion = parseInt(res, 10);
-        
+
         if (majorVersion && majorVersion <= 14) {
             window.addEventListener('wheel', function (e) {
                 e.preventDefault();
                 var container = document.querySelector('.content-container');
                 if (container) {
-                    var scrollMultiplier = 0.2; 
+                    var scrollMultiplier = 0.2;
                     container.scrollTop += (e.deltaY * scrollMultiplier);
                 }
             }, { passive: false });
@@ -354,6 +354,12 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 window.GraphModule.init();
             } catch (e) { console.error("GraphModule init error", e); }
+        }
+
+        if (window.DebugModule) {
+            try {
+                window.DebugModule.init();
+            } catch (e) { console.error("DebugModule init error", e); }
         }
 
         setupTooltips();
