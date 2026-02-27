@@ -171,16 +171,9 @@ function loadHostScript(callback) {
     try {
         var extPath = csInterface.getSystemPath(SystemPath.EXTENSION);
         var jsxPath = extPath + "/host/index.jsx";
-        var result = window.cep && window.cep.fs ? window.cep.fs.readFile(jsxPath) : null;
-        if (result && result.err === 0) {
-            csInterface.evalScript(result.data, function () {
-                if (callback) callback();
-            });
-        } else {
-            csInterface.evalScript('$.evalFile("' + jsxPath.replace(/\\/g, '/') + '")', function () {
-                if (callback) callback();
-            });
-        }
+        csInterface.evalScript('$.evalFile("' + jsxPath.replace(/\\/g, '/') + '")', function () {
+            if (callback) callback();
+        });
     } catch (e) {
         console.error("FishTools: Host script load failed", e);
         if (callback) callback();
