@@ -1,6 +1,14 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+:: Check admin
+net session >nul 2>&1
+if !errorLevel! NEQ 0 (
+    echo [!] Requesting administrator privileges...
+    powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~s0\"\"' -Verb RunAs"
+    exit /B
+)
+
 :: --- Configuration ---
 SET "EXT_NAME=OpenFishTools"
 SET "INTERNAL_NAME=OpenFishTools"
@@ -33,13 +41,7 @@ echo             Installing !EXT_NAME!
 echo ======================================================
 echo.
 
-:: Check admin
-net session >nul 2>&1
-if !errorLevel! NEQ 0 (
-    echo [!] Requesting administrator privileges...
-    powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~s0\"\" 1' -Verb RunAs"
-    exit /B
-)
+:: No local UAC check needed, handled at start
 
 :: Check existing
 if exist "!TARGET_DIR!" (
@@ -79,7 +81,7 @@ if not defined SRC SET "SRC=!TEMP_DIR!\ext"
 :: Copy files
 echo [*] Copying extension files...
 if not exist "!TARGET_DIR!" mkdir "!TARGET_DIR!"
-robocopy "!SRC!" "!TARGET_DIR!" /E /XD .git node_modules /XF *.bat .gitignore *.log /R:1 /W:1 /NFL /NDL /NJH /NJS
+robocopy "!SRC!" "!TARGET_DIR!" /E /XD .git node_modules .* /XF *.bat .gitignore *.log *.sh .* /R:1 /W:1 /NFL /NDL /NJH /NJS
 
 :: Enable debug
 echo [*] Enabling Adobe PlayerDebugMode...
@@ -104,13 +106,7 @@ echo             Uninstalling !EXT_NAME!
 echo ======================================================
 echo.
 
-:: Check admin
-net session >nul 2>&1
-if !errorLevel! NEQ 0 (
-    echo [!] Requesting administrator privileges...
-    powershell -Command "Start-Process cmd -ArgumentList '/c \"\"%~s0\"\" 2' -Verb RunAs"
-    exit /B
-)
+:: No local UAC check needed, handled at start
 
 if not exist "!TARGET_DIR!" (
     echo [!] !EXT_NAME! is not currently installed.
