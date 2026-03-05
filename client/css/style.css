@@ -4,6 +4,21 @@
     user-select: none;
 }
 
+button,
+input,
+textarea,
+select {
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+}
+
 body {
     background-color: #0b0b0b;
     color: #ffffff;

@@ -150,10 +150,18 @@ function _BUBBLETEXT(text, radius, isSender) {
                         pcCenterX + hW,
                         pcCenterY + hH
                     ]);
+                    cl.property("ADBE Transform Group").property("ADBE Position").setValue([
+                        centerX + hW,
+                        centerY + hH
+                    ]);
                 } else {
                     cl.property("ADBE Transform Group").property("ADBE Anchor Point").setValue([
                         pcCenterX - hW,
                         pcCenterY + hH
+                    ]);
+                    cl.property("ADBE Transform Group").property("ADBE Position").setValue([
+                        centerX - hW,
+                        centerY + hH
                     ]);
                 }
                 cl.collapseTransformation = true;
