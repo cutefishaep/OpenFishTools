@@ -82,14 +82,14 @@ body {
     transform: translateX(-50%);
     width: 90px;
     height: 25px;
-    
+
     display: flex;
     justify-content: center;
     align-items: flex-end;
     padding-bottom: 6px;
     z-index: 2000;
     transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-    
+
 }
 
 .nav-hover-zone:hover {
@@ -100,13 +100,13 @@ body {
 }
 
 .floating-nav {
-    
+
     position: relative;
     bottom: 0;
     left: auto;
     transform: none;
 
-    
+
     width: 60px;
     height: 5px;
     background: rgba(255, 255, 255, 0.4);
@@ -141,7 +141,7 @@ body {
 .nav-hover-zone:hover .floating-nav {
     width: 135px;
     max-width: 90vw;
-    
+
     height: 38px;
     bottom: 0;
 
@@ -206,7 +206,7 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     padding: 20px 10px 90px 10px;
-    
+
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -985,7 +985,7 @@ body {
 }
 
 .tool-btn[data-tool] {
-    
+
     height: auto;
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.02);
@@ -1219,7 +1219,7 @@ body {
 #custom-tooltip.visible {
     opacity: 1;
     transform: translate(-50%, -10px);
-    
+
 }
 
 #custom-tooltip::after {

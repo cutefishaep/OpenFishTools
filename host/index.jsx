@@ -9,4 +9,5 @@
 #include "modules/animation.jsx"
 #include "modules/graph.jsx"
 #include "modules/misc.jsx"
+#include "modules/bubbletext.jsx"
 #include "modules/api.jsx"

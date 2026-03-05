@@ -38,7 +38,7 @@
                         <span class="status-value" id="info-ae-ver">Loading...</span>
                     </div>
                     <div class="status-box">
-                        <span class="status-label">OS System</span>
+                        <span class="status-label">Operating System</span>
                         <span class="status-value" id="info-os">Loading...</span>
                     </div>
                 </div>
@@ -110,8 +110,10 @@
                         style="width: 100%; height: 100%; display: block;"></canvas>
                 </div>
 
-                <div class="graph-toolbar" style="display: flex; flex-direction: column; margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                <div class="graph-toolbar"
+                    style="display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; margin-bottom: 15px;">
+                    <div
+                        style="display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; width: 100%;">
                         <div class="toggle-group">
                             <button id="btn-graph-snap" class="icon-toggle" title="Snap to Grid">
                                 <span class="material-icons" style="font-size: 16px;">grid_4x4</span>
@@ -137,17 +139,17 @@
 
                 <div class="presets-section">
                     <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">
+                        style="display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; align-items: center; margin-bottom: 12px; padding: 0 4px;">
                         <span
                             style="font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; opacity: 0.5; color: #fff; text-transform: uppercase;">Presets
                             Library</span>
                         <button id="btn-save-preset" title="Add Current Curve to Presets"
-                            style="background: none; border: none; color: #ffb400; cursor: pointer; padding: 0; display: flex; align-items: center;">
+                            style="background: none; border: none; color: #ffb400; cursor: pointer; padding: 0; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center;">
                             <span class="material-icons" style="font-size: 18px;">add_circle</span>
                         </button>
                     </div>
                     <div id="preset-list"
-                        style="display: flex; flex-wrap: wrap; border: 1px solid rgba(255, 180, 0, 0.3); padding: 4px; border-radius: 4px; background: rgba(0,0,0,0.2);">
+                        style="display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; border: 1px solid rgba(255, 180, 0, 0.3); padding: 4px; border-radius: 4px; background: rgba(0,0,0,0.2);">
                     </div>
                 </div>
             </div>
@@ -172,8 +174,8 @@
                 </div>
             </div>
 
-            <div class="card alight-card">
-                <h3>Alight</h3>
+            <div class="card align-card">
+                <h3>Align</h3>
                 <div class="toolbox-grid toolbox-grid-3col">
 
                     <button class="tool-btn" data-tool="ALIGN_LEFT" title="Align Left">
@@ -405,9 +407,9 @@
             <div class="card palette-card">
                 <h3>Color Palette</h3>
                 <div class="palette-controls"
-                    style="display: flex; margin-bottom: 12px; align-items: center; flex-wrap: nowrap;">
+                    style="display: -webkit-flex; display: flex; margin-bottom: 12px; -webkit-align-items: center; align-items: center; -webkit-flex-wrap: nowrap; flex-wrap: nowrap;">
                     <div id="palette-base-trigger" class="secondary-btn" title="Pick Base Color"
-                        style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 4px; background: #FFD700; border: 1px solid rgba(255,255,255,0.1); margin-right: 6px; cursor: pointer;">
+                        style="width: 32px; height: 32px; padding: 0; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; position: relative; border-radius: 4px; background: #FFD700; border: 1px solid rgba(255,255,255,0.1); margin-right: 6px; cursor: pointer;">
                         <span class="material-icons"
                             style="font-size: 16px; color: #000; text-shadow: 0 0 2px rgba(255,255,255,0.5);">colorize</span>
                         <input type="hidden" id="palette-base-color" value="#FFD700">
@@ -425,12 +427,13 @@
                         style="width: 35px; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 4px; text-align: center; font-size: 0.75rem; margin-right: 6px;">
 
                     <button id="btn-generate-palette" class="secondary-btn" title="Randomize Palette"
-                        style="padding: 6px 10px; display: flex; align-items: center; justify-content: center; min-width: 32px;">
+                        style="padding: 6px 10px; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; min-width: 32px;">
                         <span class="material-icons" style="font-size: 18px;">shuffle</span>
                     </button>
                 </div>
 
-                <div id="palette-container" style="display: flex; flex-direction: column; margin-bottom: 15px;">
+                <div id="palette-container"
+                    style="display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; margin-bottom: 15px;">
                 </div>
 
                 <div class="saved-palettes-section">
@@ -438,7 +441,7 @@
                         style="font-size: 0.55rem; color: #ffb400; opacity: 0.5; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px;">Saved
                         Palettes</span>
                     <div id="saved-palettes-list"
-                        style="display: flex; flex-direction: column; max-height: 150px; overflow-y: auto;">
+                        style="display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; max-height: 150px; overflow-y: auto;">
                     </div>
                 </div>
             </div>
@@ -471,13 +474,54 @@
                         <input type="checkbox" id="cube-use-layer">
                         <span class="slider"></span>
                     </span>
-                    <span class="switch-label">Use Layer Dimension</span>
+                    <span class="switch-label">Use Layer Dimensions</span>
                 </label>
                 <button id="btn-create-cube" class="secondary-btn" title="Create a 3D Box from current layer or solids"
                     style="width: 100%; padding: 10px;">
                     <span class="material-icons"
                         style="font-size: 16px; margin-right: 8px; vertical-align: middle;">view_in_ar</span>
                     CREATE CUBE
+                </button>
+            </div>
+
+            <div class="card bubble-text-card">
+                <h3>Bubble Text</h3>
+                <textarea id="bubble-text-input" placeholder="Type your message here..."
+                    style="width: 100%; height: 60px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,180,0,0.2); border-radius: 4px; color: #fff; font-family: 'Arial', sans-serif; font-size: 0.8rem; padding: 10px; resize: vertical; box-sizing: border-box; margin-bottom: 10px;"></textarea>
+
+                <div
+                    style="display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-bottom: 12px;">
+                    <div style="-webkit-flex: 1; flex: 1; margin-right: 8px;">
+                        <label style="font-size: 0.65rem; opacity: 0.6; display: block; margin-bottom: 4px;">CORNER
+                            RADIUS</label>
+                        <input type="number" id="bubble-radius" value="18" min="0" max="100"
+                            style="width: 100%; background: #111; border: 1px solid #333; color: #fff; border-radius: 4px; padding: 6px; font-size: 0.8rem; box-sizing: border-box;">
+                    </div>
+                    <div style="-webkit-flex: 1; flex: 1;">
+                        <label class="switch-container" style="margin: 0; padding-top: 14px;">
+                            <span class="switch">
+                                <input type="checkbox" id="bubble-is-sender">
+                                <span class="slider"></span>
+                            </span>
+                            <span class="switch-label" id="bubble-mode-label">Receiver</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bubble-preview"
+                    style="display: -webkit-flex; display: flex; -webkit-justify-content: flex-start; justify-content: flex-start; margin-bottom: 12px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; min-height: 36px; -webkit-align-items: center; align-items: center; transition: justify-content 0.2s ease;"
+                    id="bubble-preview-container">
+                    <div id="bubble-preview-bubble"
+                        style="background: #3B3B3D; color: #fff; padding: 8px 14px; border-radius: 18px; font-size: 0.75rem; max-width: 80%; word-wrap: break-word; transition: background 0.2s ease;">
+                        Preview
+                    </div>
+                </div>
+
+                <button id="btn-generate-bubble" class="secondary-btn"
+                    title="Generate iMessage-style bubble text in composition" style="width: 100%; padding: 10px;">
+                    <span class="material-icons"
+                        style="font-size: 16px; margin-right: 8px; vertical-align: middle;">chat_bubble</span>
+                    GENERATE
                 </button>
             </div>
         </div>
@@ -488,7 +532,7 @@
                 <p style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 15px; margin-top: 2px; line-height: 1.4;">
                     Fuel our development. Your support keeps this project alive and evolving.
                 </p>
-                <div style="display: flex;">
+                <div style="display: -webkit-flex; display: flex;">
                     <button id="btn-paypal" class="secondary-btn"
                         style="flex: 1; padding: 12px 5px; margin-right: 8px;">
                         <span class="material-icons" style="font-size: 16px; vertical-align: middle;">payment</span>
@@ -577,7 +621,8 @@
 
             <div class="card debug-card">
                 <h3>Debug Card</h3>
-                <div style="display: flex; margin: -2px; margin-bottom: 6px; flex-wrap: wrap;">
+                <div
+                    style="display: -webkit-flex; display: flex; margin: -2px; margin-bottom: 6px; -webkit-flex-wrap: wrap; flex-wrap: wrap;">
                     <button id="btn-debug-all" class="secondary-btn"
                         style="flex: 3; min-width: 100px; padding: 6px 2px; font-size: 0.65rem; margin: 2px;"
                         title="Get all debug info for selected layer">
@@ -628,7 +673,9 @@
 
             <div
                 style="background: #fff; padding: 12px; border-radius: 8px; display: inline-block; margin-bottom: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); max-width: 100%; box-sizing: border-box;">
-                <div id="qrcode" style="display: flex; justify-content: center;"></div>
+                <div id="qrcode"
+                    style="display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center;">
+                </div>
             </div>
 
             <p
@@ -650,6 +697,7 @@
     <script src="./js/modules/dashboard.js"></script>
     <script src="./js/modules/beatmaker.js"></script>
     <script src="./js/modules/debug.js"></script>
+    <script src="./js/modules/bubbletext.js"></script>
     <script src="./js/main.js"></script>
     <div id="custom-tooltip"></div>
 </body>

@@ -355,6 +355,12 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("DebugModule init error", e); }
         }
 
+        if (window.BubbleTextModule) {
+            try {
+                window.BubbleTextModule.init();
+            } catch (e) { console.error("BubbleTextModule init error", e); }
+        }
+
         setupTooltips();
         loadSystemInfo();
     });
