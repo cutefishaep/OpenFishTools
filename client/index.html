@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>Fish Tools</title>
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/release_notes.css">
     <link rel="stylesheet" href="./css/fonts.css">
     <script src="./js/libs/CSInterface.js"></script>
     <script src="./js/polyfills.js"></script>
@@ -96,6 +97,28 @@
                 <h3>Log</h3>
                 <p id="tip-content" style="font-size: 0.75em; opacity: 0.6; margin: 0; line-height: 1.4;">Loading log...
                 </p>
+            </div>
+
+            <div class="card updater-card">
+                <h3>Updater</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 5px 0;">
+                    <div style="font-size: 0.7rem; color: #aaa; line-height: 1.4;">
+                        <span class="status-label" style="display: inline; margin: 0;">Current:</span> <span
+                            id="update-current-ver" style="color: #ffb400; font-weight: bold;">...</span><br>
+                        <span class="status-label" style="display: inline; margin: 0;">Latest:</span> <span
+                            id="update-latest-ver" style="color: #888;">Checking...</span>
+                    </div>
+                    <button id="btn-check-update" class="secondary-btn"
+                        style="padding: 8px 10px; font-size: 0.6rem; min-width: 90px; height: 32px; flex-shrink: 0; margin-left:10px;">
+                        CHECK UPDATE
+                    </button>
+                </div>
+                <div id="release-notes-container" class="release-notes-container">
+                    <div class="release-notes-title">Release Notes</div>
+                    <div id="release-notes-content" class="release-notes-content">
+                        No update info fetched yet.
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -687,6 +710,7 @@
     </div>
 
     <script src="./js/modules/colorpicker.js"></script>
+    <script src="./js/modules/update.js"></script>
     <script src="./js/modules/settings.js"></script>
     <script src="./js/modules/tips.js"></script>
     <script src="./js/modules/stopwatch.js"></script>

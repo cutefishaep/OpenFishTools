@@ -2,6 +2,20 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [0.0.8] - 2026-03-06
+### Added
+- **Bubble Text Tool**: Create speech bubbles with text that automatically positions and sizes itself.
+- **Smart Anchor Point**: Bubble text anchor point is automatically set to the bottom-right or bottom-left corner depending on the bubble's position.
+- **Sender/Receiver Modes**: Toggle between sender and receiver bubble styles.
+- **Client-Side Styling**: Added comprehensive CSS for a modern, glassmorphism-based UI.
+- **Touch-Friendly Design**: Added `outline: none` and `-webkit-tap-highlight-color: transparent` to all interactive elements for better mobile/touch support.
+
+### Changed
+- **UI Polish**: Improved card header styling to prevent style bleeding into content.
+- **Performance**: Optimized script execution by removing redundant guide text and unused CSS.
+
+---
+
 ## [0.0.7] - 2026-02-24
 ### Added
 - **Duplicate Comp (DUP)**: True deep comp duplicator that smart-renames and replaces selected pre-comp layers automatically.

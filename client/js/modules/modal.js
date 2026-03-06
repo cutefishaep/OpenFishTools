@@ -139,15 +139,18 @@ var ModalModule = (function () {
         open();
     }
 
-    function confirm(msg, title, callback) {
+    function confirm(msg, title, callback, options) {
         resetModal();
         modal.classList.add('modal-type-info');
         modal.classList.add('is-required');
-        titleEl.innerHTML = '<span class="material-icons" style="font-size: 16px;">help_outline</span> Confirm';
+        titleEl.innerHTML = '<span class="material-icons" style="font-size: 16px;">help_outline</span> ' + (title || 'Confirm');
         contentEl.innerText = msg;
 
-        var btnCancel = createBtn('Cancel', 'secondary-btn', close);
-        var btnConfirm = createBtn('Continue', 'primary-btn', function () {
+        var cancelText = (options && options.cancelText) || 'Cancel';
+        var confirmText = (options && options.confirmText) || 'Continue';
+
+        var btnCancel = createBtn(cancelText, 'secondary-btn', close);
+        var btnConfirm = createBtn(confirmText, 'primary-btn', function () {
             if (callback) callback(true);
             close();
         });

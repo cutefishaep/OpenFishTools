@@ -642,16 +642,6 @@ body {
     }
 }
 
-@-webkit-keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
 @keyframes fadeUp {
     from {
         opacity: 0;
@@ -1657,44 +1647,4 @@ input:checked~.switch-label {
     display: flex;
     align-items: center;
     color: #666;
-    transition: color 0.2s;
-}
-
-.todo-item.completed .btn-done {
-    color: #ffb400;
-}
-
-.todo-item .btn-done:hover {
-    color: #ffb400;
-}
-
-.todo-item .btn-delete {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    color: #444;
-    transition: all 0.2s;
-}
-
-.todo-item .btn-delete:hover {
-    color: #f44336;
-    background: rgba(244, 67, 54, 0.1);
-    border-radius: 4px;
-}
-
-.todo-item .material-icons {
-    font-size: 18px;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
 }

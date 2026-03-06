@@ -1,0 +1,177 @@
+'use strict';
+
+/**
+ * UpdateModule
+ * Handles checking for updates from GitHub API.
+ * 
+ * Note: CC 2017 (Major Version 14) has issues with fetch/network requests in CEP 7.x.
+ * CC 2018+ (Major Version 15+, CEP 8.0+) supports modern fetch API.
+ */
+var UpdateModule = (function () {
+    var GITHUB_API = "https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest";
+    var GITHUB_URL = "https://github.com/cutefishaep/OpenFishTools/releases/latest";
+
+    function init() {
+        var btn = document.getElementById('btn-check-update');
+        if (btn) {
+            btn.addEventListener('click', checkUpdate);
+        }
+
+        var curVerEl = document.getElementById('update-current-ver');
+        if (curVerEl) {
+            curVerEl.textContent = "v" + (window.EXTENSION_VERSION || "0.0.8");
+        }
+    }
+
+    /**
+     * Checks for updates.
+     * Branches logic based on After Effects version.
+     */
+    function checkUpdate() {
+        if (!window.csInterface) return;
+
+        window.csInterface.evalScript("app.version", function (res) {
+            var majorVersion = parseInt(res, 10);
+
+            // CC 2017 is version 14.x
+            if (majorVersion && majorVersion <= 14) {
+                if (window.ModalModule) {
+                    window.ModalModule.confirm(
+                        "After Effects CC 2017 cannot use the internal update checker due to technical limitations in its engine. \n\nWould you like to visit GitHub manually to check for the latest version?",
+                        "Manual Check Required",
+                        function (confirmed) {
+                            if (confirmed) {
+                                window.csInterface.openURLInDefaultBrowser("https://github.com/cutefishaep/OpenFishTools/releases");
+                            }
+                        }
+                    );
+                }
+                return;
+            }
+
+            // CC 2018+ (Version 15+)
+            performFetchCheck();
+        });
+    }
+
+    /**
+     * Performs a fetch request to GitHub API to check for the latest release.
+     */
+    function performFetchCheck() {
+        var btn = document.getElementById('btn-check-update');
+        var latestVerEl = document.getElementById('update-latest-ver');
+        var releaseNotesContainer = document.getElementById('release-notes-container');
+        var releaseNotesContent = document.getElementById('release-notes-content');
+
+        if (btn) {
+            btn.innerHTML = '<span class="material-icons rotating" style="font-size: 14px;">sync</span>';
+            btn.disabled = true;
+        }
+
+        if (latestVerEl) {
+            latestVerEl.textContent = "Checking...";
+        }
+
+        fetch(GITHUB_API)
+            .then(function (response) {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(function (data) {
+                if (!data || !data.tag_name) throw new Error('Invalid API response');
+
+                var latestVersion = data.tag_name.replace(/^v/, '');
+                var currentVersion = (window.EXTENSION_VERSION || "0.0.8").replace(/^v/, '');
+
+                if (latestVerEl) latestVerEl.textContent = "v" + latestVersion;
+
+                // Render release notes even if up to date, to show what's new
+                if (releaseNotesContainer && releaseNotesContent && data.body) {
+                    releaseNotesContent.innerHTML = formatMarkdown(data.body);
+                    releaseNotesContainer.classList.add('active');
+                }
+
+                if (isNewer(latestVersion, currentVersion)) {
+                    if (window.ModalModule) {
+                        window.ModalModule.confirm(
+                            "A new version (v" + latestVersion + ") is available!\n\nWould you like to visit GitHub to download it?",
+                            "Update Available",
+                            function (confirmed) {
+                                if (confirmed) {
+                                    window.csInterface.openURLInDefaultBrowser(GITHUB_URL);
+                                }
+                            },
+                            { confirmText: "Update" }
+                        );
+                    }
+                } else {
+                    if (window.ModalModule) {
+                        window.ModalModule.info("You are already using the latest version (v" + currentVersion + ").", "Up to Date");
+                    }
+                }
+            })
+            .catch(function (error) {
+                console.error('Update check failed:', error);
+                if (latestVerEl) latestVerEl.textContent = "Failed";
+                if (window.ModalModule) {
+                    window.ModalModule.error("Failed to connect to GitHub. Please check your internet connection.", "Connection Error");
+                }
+            })
+            .finally(function () {
+                if (btn) {
+                    btn.innerHTML = 'CHECK UPDATE';
+                    btn.disabled = false;
+                }
+            });
+    }
+
+    /**
+     * Simple markdown-to-html formatter for release notes
+     */
+    function formatMarkdown(text) {
+        if (!text) return "";
+
+        var html = text
+            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>') // Bold
+            .replace(/__(.*?)__/gim, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/gim, '<em>$1</em>') // Italic
+            .replace(/_(.*?)_/gim, '<em>$1</em>')
+            .replace(/`(.*?)`/gim, '<code>$1</code>') // Inline Code
+            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+            .replace(/^\s*[\*|-]\s+(.*$)/gim, '<ul><li>$1</li></ul>')
+            .replace(/<\/ul>\s*<ul>/gim, '') // Join consecutive lists
+            .replace(/\n/gim, '<br>');
+
+        // Cleanup: remove redundant <br> after block elements
+        html = html.replace(/<\/h3><br>/gim, '</h3>')
+            .replace(/<\/h2><br>/gim, '</h2>')
+            .replace(/<\/h1><br>/gim, '</h1>')
+            .replace(/<\/ul><br>/gim, '</ul>');
+
+        return html;
+    }
+
+    /**
+     * Semantic version comparison (simple)
+     */
+    function isNewer(latest, current) {
+        var l = latest.split('.').map(Number);
+        var c = current.split('.').map(Number);
+        for (var i = 0; i < Math.max(l.length, c.length); i++) {
+            var lv = l[i] || 0;
+            var cv = c[i] || 0;
+            if (lv > cv) return true;
+            if (lv < cv) return false;
+        }
+        return false;
+    }
+
+    return {
+        init: init,
+        checkUpdate: checkUpdate
+    };
+})();
+
+window.UpdateModule = UpdateModule;

@@ -329,6 +329,12 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("ModalModule init error", e); }
         }
 
+        if (window.UpdateModule) {
+            try {
+                window.UpdateModule.init();
+            } catch (e) { console.error("UpdateModule init error", e); }
+        }
+
         if (window.DashboardModule) {
             try {
                 var dashboard = new window.DashboardModule();
