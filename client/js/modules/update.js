@@ -60,8 +60,6 @@ var UpdateModule = (function () {
     function performFetchCheck() {
         var btn = document.getElementById('btn-check-update');
         var latestVerEl = document.getElementById('update-latest-ver');
-        var releaseNotesContainer = document.getElementById('release-notes-container');
-        var releaseNotesContent = document.getElementById('release-notes-content');
 
         if (btn) {
             btn.innerHTML = '<span class="material-icons rotating" style="font-size: 14px;">sync</span>';
@@ -85,16 +83,10 @@ var UpdateModule = (function () {
 
                 if (latestVerEl) latestVerEl.textContent = "v" + latestVersion;
 
-                // Render release notes even if up to date, to show what's new
-                if (releaseNotesContainer && releaseNotesContent && data.body) {
-                    releaseNotesContent.innerHTML = formatMarkdown(data.body);
-                    releaseNotesContainer.classList.add('active');
-                }
-
                 if (isNewer(latestVersion, currentVersion)) {
                     if (window.ModalModule) {
                         window.ModalModule.confirm(
-                            "A new version (v" + latestVersion + ") is available!\n\nWould you like to visit GitHub to download it?",
+                            "A new version (v" + latestVersion + ") is available!\n\nUpdate includes:\n" + (data.name || "Improvements & fixes"),
                             "Update Available",
                             function (confirmed) {
                                 if (confirmed) {
@@ -123,34 +115,6 @@ var UpdateModule = (function () {
                     btn.disabled = false;
                 }
             });
-    }
-
-    /**
-     * Simple markdown-to-html formatter for release notes
-     */
-    function formatMarkdown(text) {
-        if (!text) return "";
-
-        var html = text
-            .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>') // Bold
-            .replace(/__(.*?)__/gim, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/gim, '<em>$1</em>') // Italic
-            .replace(/_(.*?)_/gim, '<em>$1</em>')
-            .replace(/`(.*?)`/gim, '<code>$1</code>') // Inline Code
-            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-            .replace(/^\s*[\*|-]\s+(.*$)/gim, '<ul><li>$1</li></ul>')
-            .replace(/<\/ul>\s*<ul>/gim, '') // Join consecutive lists
-            .replace(/\n/gim, '<br>');
-
-        // Cleanup: remove redundant <br> after block elements
-        html = html.replace(/<\/h3><br>/gim, '</h3>')
-            .replace(/<\/h2><br>/gim, '</h2>')
-            .replace(/<\/h1><br>/gim, '</h1>')
-            .replace(/<\/ul><br>/gim, '</ul>');
-
-        return html;
     }
 
     /**
