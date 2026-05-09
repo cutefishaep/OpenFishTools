@@ -177,26 +177,11 @@ var ColorPaletteModule = (function () {
     function createPaletteElement(colors, isSaved) {
         var row = document.createElement('div');
         row.className = 'palette-row';
-        row.style.display = 'flex';
-        row.style.alignItems = 'center';
-        row.style.padding = '4px';
-        row.style.background = 'rgba(255,255,255,0.03)';
-        row.style.border = '1px solid rgba(255,255,255,0.05)';
-        row.style.borderRadius = '6px';
-        row.style.transition = 'all 0.2s ease';
-        row.style.marginBottom = '6px';
 
         colors.forEach(function (color) {
             var swatch = document.createElement('div');
             swatch.className = 'palette-swatch';
-            swatch.style.flex = '1';
-            swatch.style.height = '34px';
             swatch.style.background = color;
-            swatch.style.borderRadius = '4px';
-            swatch.style.cursor = 'pointer';
-            swatch.style.position = 'relative';
-            swatch.style.transition = 'transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            swatch.style.marginRight = '4px';
             swatch.setAttribute('data-tooltip', color.substring(1).toUpperCase());
 
             var copiedText = document.createElement('span');
@@ -214,10 +199,6 @@ var ColorPaletteModule = (function () {
             copiedText.style.transition = 'opacity 0.2s ease';
             swatch.appendChild(copiedText);
 
-            swatch.addEventListener('mousedown', function () { swatch.style.transform = 'scale(0.92)'; });
-            swatch.addEventListener('mouseup', function () { swatch.style.transform = 'scale(1)'; });
-            swatch.addEventListener('mouseleave', function () { swatch.style.transform = 'scale(1)'; });
-
             swatch.addEventListener('click', function () {
                 var hexCode = color.substring(1).toUpperCase();
                 copyToClipboard(hexCode);
@@ -232,9 +213,10 @@ var ColorPaletteModule = (function () {
         });
 
         var actionBtn = document.createElement('button');
+        actionBtn.className = 'palette-action-btn';
         actionBtn.style.background = 'transparent';
         actionBtn.style.border = 'none';
-        actionBtn.style.color = isSaved ? '#ff4444' : '#ffb400';
+        actionBtn.style.color = isSaved ? 'var(--danger)' : 'var(--accent-color)';
         actionBtn.style.cursor = 'pointer';
         actionBtn.style.padding = '0 6px';
         actionBtn.style.display = 'flex';
@@ -247,7 +229,7 @@ var ColorPaletteModule = (function () {
                 deletePalette(colors, row);
             } else {
                 savePalette(colors);
-                actionBtn.style.color = '#44ff44';
+                actionBtn.style.color = 'var(--success)';
                 actionBtn.innerHTML = '<span class="material-icons" style="font-size: 18px;">done</span>';
             }
         });

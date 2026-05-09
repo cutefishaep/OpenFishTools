@@ -113,3 +113,57 @@ function _applyMidWaveEase(prop) {
     prop.setTemporalEaseAtKey(2, [new KeyframeEase(0, 0.1)], [new KeyframeEase(0, 0.1)]); // 0.1 avoids invalid arg errors
     prop.setTemporalEaseAtKey(3, [new KeyframeEase(0, 75)], [new KeyframeEase(0, 17)]);
 }
+
+function _readVelocity() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return JSON.stringify({ error: "No Comp" });
+    var props = comp.selectedProperties;
+    for (var i = 0; i < props.length; i++) {
+        var prop = props[i];
+        if (prop.selectedKeys.length > 0) {
+            var kIdx = prop.selectedKeys[0];
+            var inEase = prop.keyInTemporalEase(kIdx)[0];
+            var outEase = prop.keyOutTemporalEase(kIdx)[0];
+            return JSON.stringify({
+                inSpeed: inEase.speed,
+                inInflu: inEase.influence,
+                outSpeed: outEase.speed,
+                outInflu: outEase.influence
+            });
+        }
+    }
+    return JSON.stringify({ error: "No Key selected" });
+}
+
+function _applyVelocity(dataStr) {
+    var data = JSON.parse(dataStr);
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return false;
+    var props = comp.selectedProperties;
+    app.beginUndoGroup("Apply Velocity");
+    try {
+        for (var i = 0; i < props.length; i++) {
+            var prop = props[i];
+            if (!prop.canVaryOverTime) continue;
+            var keys = prop.selectedKeys;
+            for (var k = 0; k < keys.length; k++) {
+                var idx = keys[k];
+                var inE = new KeyframeEase(parseFloat(data.inSpeed), parseFloat(data.inInflu));
+                var outE = new KeyframeEase(parseFloat(data.outSpeed), parseFloat(data.outInflu));
+                
+                var dim = 1;
+                try { if(prop.value.length !== undefined) dim = prop.value.length; } catch(e){}
+                
+                var inArray = [], outArray = [];
+                for(var d=0; d<dim; d++) { inArray.push(inE); outArray.push(outE); }
+
+                prop.setTemporalEaseAtKey(idx, inArray, outArray);
+            }
+        }
+        app.endUndoGroup();
+        return "true";
+    } catch(e) {
+        app.endUndoGroup();
+        return "false";
+    }
+}

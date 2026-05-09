@@ -33,12 +33,10 @@
             if (isSender) {
                 previewBubble.style.background = '#1888FE';
                 previewBubble.style.borderRadius = R + 'px ' + R + 'px 0px ' + R + 'px';
-                previewContainer.style.webkitJustifyContent = 'flex-end';
                 previewContainer.style.justifyContent = 'flex-end';
             } else {
                 previewBubble.style.background = '#3B3B3D';
                 previewBubble.style.borderRadius = R + 'px ' + R + 'px ' + R + 'px 0px';
-                previewContainer.style.webkitJustifyContent = 'flex-start';
                 previewContainer.style.justifyContent = 'flex-start';
             }
 

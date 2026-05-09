@@ -14,20 +14,23 @@ var UpdateModule = (function () {
     function init() {
         var btn = document.getElementById('btn-check-update');
         if (btn) {
-            btn.addEventListener('click', checkUpdate);
+            btn.addEventListener('click', function() { checkUpdate(false); });
         }
 
         var curVerEl = document.getElementById('update-current-ver');
         if (curVerEl) {
             curVerEl.textContent = "v" + (window.EXTENSION_VERSION || "0.0.8");
         }
+        
+        // Auto check on load silently
+        setTimeout(function() { checkUpdate(true); }, 1000);
     }
 
     /**
      * Checks for updates.
      * Branches logic based on After Effects version.
      */
-    function checkUpdate() {
+    function checkUpdate(silent) {
         if (!window.csInterface) return;
 
         window.csInterface.evalScript("app.version", function (res) {
@@ -35,9 +38,9 @@ var UpdateModule = (function () {
 
             // CC 2017 is version 14.x
             if (majorVersion && majorVersion <= 14) {
-                if (window.ModalModule) {
+                if (!silent && window.ModalModule) {
                     window.ModalModule.confirm(
-                        "After Effects CC 2017 cannot use the internal update checker due to technical limitations in its engine. \n\nWould you like to visit GitHub manually to check for the latest version?",
+                        "After Effects CC 2017 cannot use the internal update checker due to technical limitations. \n\nWould you like to visit GitHub manually to check for the latest version?",
                         "Manual Check Required",
                         function (confirmed) {
                             if (confirmed) {
@@ -46,18 +49,20 @@ var UpdateModule = (function () {
                         }
                     );
                 }
+                var latestVerEl = document.getElementById('update-latest-ver');
+                if (latestVerEl) latestVerEl.textContent = "Manual Check Req.";
                 return;
             }
 
             // CC 2018+ (Version 15+)
-            performFetchCheck();
+            performFetchCheck(silent);
         });
     }
 
     /**
      * Performs a fetch request to GitHub API to check for the latest release.
      */
-    function performFetchCheck() {
+    function performFetchCheck(silent) {
         var btn = document.getElementById('btn-check-update');
         var latestVerEl = document.getElementById('update-latest-ver');
 
@@ -97,7 +102,7 @@ var UpdateModule = (function () {
                         );
                     }
                 } else {
-                    if (window.ModalModule) {
+                    if (!silent && window.ModalModule) {
                         window.ModalModule.info("You are already using the latest version (v" + currentVersion + ").", "Up to Date");
                     }
                 }
@@ -105,13 +110,13 @@ var UpdateModule = (function () {
             .catch(function (error) {
                 console.error('Update check failed:', error);
                 if (latestVerEl) latestVerEl.textContent = "Failed";
-                if (window.ModalModule) {
+                if (!silent && window.ModalModule) {
                     window.ModalModule.error("Failed to connect to GitHub. Please check your internet connection.", "Connection Error");
                 }
             })
             .finally(function () {
                 if (btn) {
-                    btn.innerHTML = 'CHECK UPDATE';
+                    btn.innerHTML = '<span class="material-icons">sync</span>';
                     btn.disabled = false;
                 }
             });

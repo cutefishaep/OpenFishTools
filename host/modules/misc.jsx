@@ -536,11 +536,87 @@ function _OVERLAP_3D(comp, layer) {
     }
 }
 
+function _autoBeatDetect() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "ERROR:Please select a composition!";
+    
+    var selLayers = comp.selectedLayers;
+    if (selLayers.length === 0) return "ERROR:Please select an audio layer!";
+    
+    var audioLayer = selLayers[0];
+    if (!audioLayer.hasAudio) return "ERROR:Selected layer has no audio!";
+
+    app.beginUndoGroup("Auto Beat Detection");
+    try {
+        // 1. Dynamic lookup for "Convert Audio to Keyframes" command ID
+        var commandId = app.findMenuCommandId("Convert Audio to Keyframes");
+        if (commandId === 0) {
+            // Fallback for some localized versions
+            commandId = 2507; 
+        }
+        
+        app.executeCommand(commandId); 
+        
+        // Find the newly created "Audio Amplitude" layer
+        var ampLayer = null;
+        for (var i = 1; i <= comp.numLayers; i++) {
+            var l = comp.layer(i);
+            if (l.name === "Audio Amplitude" && l.selected) {
+                ampLayer = l;
+                break;
+            }
+        }
+
+        if (!ampLayer) {
+            // Fallback: take the top layer if it matches
+            if (comp.layer(1).name === "Audio Amplitude") ampLayer = comp.layer(1);
+        }
+
+        if (!ampLayer) throw new Error("Could not find generated 'Audio Amplitude' layer.");
+
+        // More robust property access
+        var bothEffect = null;
+        try {
+            // Try by match name or index
+            bothEffect = ampLayer.effect("Both Channels") || ampLayer.effect(3) || ampLayer.effect(1);
+        } catch(e) {}
+
+        if (!bothEffect) throw new Error("Could not find Audio Amplitude effects.");
+        
+        var slider = bothEffect.property("Slider") || bothEffect.property(1);
+
+        if (!slider) throw new Error("Could not find Slider property inside Audio Amplitude.");
+
+        var threshold = 15; // Peak threshold
+        var markers = comp.markerProperty;
+        var lastMarkTime = -1;
+        var minInterval = 0.25; // Min distance between beats
+
+        for (var i = 1; i <= slider.numKeys; i++) {
+            var val = slider.keyValue(i);
+            var time = slider.keyTime(i);
+
+            if (val > threshold && (time - lastMarkTime) > minInterval) {
+                markers.setValueAtTime(time, new MarkerValue(""));
+                lastMarkTime = time;
+            }
+        }
+
+        ampLayer.remove();
+        app.endUndoGroup();
+        return "SUCCESS";
+    } catch (e) {
+        app.endUndoGroup();
+        return "ERROR:" + e.toString();
+    }
+}
+
 // Tool registration
 tools.PNG = function () { return _PNG(); };
 tools.CUBE = function (w, h, d, useLayer) { return _CUBE(w, h, d, useLayer); };
 tools.PURGE = function (target) { return _PURGE(target); };
 tools.BEATMARK = function () { return _addBeatMark(); };
 tools.CLEARBEATS = function () { return _clearBeatMarks(); };
+tools.BEAT_AUTO = function () { return _autoBeatDetect(); };
 tools.DEBUG_ALL = function () { return _DEBUG_ALL(); };
 tools.OVERLAP = function () { return _OVERLAP(); };

@@ -4,9 +4,17 @@ var QRIS_DATA = "00020101021126610014COM.GO-JEK.WWW01189360091437879754150210G78
 
 try {
     window.csInterface = new CSInterface();
+    // Init FileStore FIRST — all modules depend on it
+    if (window.FileStore) {
+        var _extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
+        window.FileStore.init(_extPath);
+    }
     window.settings = new window.SettingsModule();
     window.tips = new window.TipsModule();
     window.stopwatch = new window.StopwatchModule();
+    
+    // Custom UI Components
+    setupCustomSelects();
 } catch (e) {
     console.error("FishTools: Module instantiation failed", e);
 }
@@ -133,7 +141,7 @@ function setupDonation() {
             var qrcodeDiv = document.getElementById('qrcode');
             if (modal) {
                 modal.style.display = "flex";
-                qrcodeDiv.innerHTML = '<img src="./assets/qris.png" alt="QRIS Code" style="width: 100%; max-width: 180px; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">';
+                qrcodeDiv.innerHTML = '<img src="./assets/qris.png" alt="QRIS Code" style="width: 100%; max-width: 320px; height: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">';
             }
         });
     }
@@ -255,6 +263,72 @@ window.setupTooltips = function () {
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    // ── Theme & Animation Setup ──
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme || 'dark');
+        if (window.FileStore) window.FileStore.set('theme', theme);
+        var sel = document.getElementById('theme-select');
+        if (sel) sel.value = theme;
+        
+        // Refresh graph if it exists to sync colors
+        if (window.GraphModule && typeof window.GraphModule.refresh === 'function') {
+            requestAnimationFrame(function() {
+                window.GraphModule.refresh();
+            });
+        }
+    }
+
+    function applyAnim(enabled) {
+        document.documentElement.setAttribute('data-anim', enabled ? 'on' : 'off');
+        if (window.FileStore) window.FileStore.set('animEnabled', enabled);
+        var tog = document.getElementById('anim-toggle');
+        if (tog) tog.checked = enabled;
+    }
+
+    function applyStyle(style) {
+        document.body.classList.remove('style-material-you', 'style-simple');
+        if (style === 'material') document.body.classList.add('style-material-you');
+        if (style === 'simple') document.body.classList.add('style-simple');
+        if (window.FileStore) window.FileStore.set('uiStyle', style);
+        var sel = document.getElementById('style-select');
+        if (sel) sel.value = style;
+    }
+
+    var savedTheme = (window.FileStore && window.FileStore.get('theme')) || 'dark';
+    var savedAnim  = window.FileStore ? window.FileStore.get('animEnabled') : true;
+    var savedStyle = (window.FileStore && window.FileStore.get('uiStyle')) || 'capsule';
+    
+    if (savedAnim === undefined) savedAnim = true;
+    
+    applyTheme(savedTheme);
+    applyAnim(savedAnim);
+    applyStyle(savedStyle);
+
+    var themeSelect = document.getElementById('theme-select');
+    if (themeSelect) {
+        themeSelect.value = savedTheme;
+        themeSelect.addEventListener('change', function () {
+            applyTheme(this.value);
+        });
+    }
+
+    var styleSelect = document.getElementById('style-select');
+    if (styleSelect) {
+        styleSelect.value = savedStyle;
+        styleSelect.addEventListener('change', function () {
+            applyStyle(this.value);
+        });
+    }
+
+    var animToggle = document.getElementById('anim-toggle');
+    if (animToggle) {
+        animToggle.checked = savedAnim;
+        animToggle.addEventListener('change', function () {
+            applyAnim(this.checked);
+        });
+    }
+    // ──────────────────────────────
+
     var splash = document.getElementById('splash-screen');
     if (splash) {
         setTimeout(function () {
@@ -369,8 +443,95 @@ document.addEventListener('DOMContentLoaded', function () {
 
         setupTooltips();
         loadSystemInfo();
+        setupCustomSelects(); // Transform native selects to themed ones
     });
 });
+
+// ── Custom Select Implementation ──
+function setupCustomSelects() {
+    var selects = document.querySelectorAll('select');
+    selects.forEach(function (select) {
+        if (select.parentElement.classList.contains('custom-select-container')) return;
+
+        var container = document.createElement('div');
+        container.className = 'custom-select-container';
+        if (select.id) container.id = 'container-' + select.id;
+        
+        select.parentNode.insertBefore(container, select);
+        container.appendChild(select);
+        select.style.display = 'none';
+
+        var trigger = document.createElement('div');
+        trigger.className = 'custom-select-trigger';
+        trigger.innerHTML = '<span>' + (select.options[select.selectedIndex]?.text || 'Select...') + '</span><span class="material-icons chevron">expand_more</span>';
+        container.appendChild(trigger);
+
+        var optionsContainer = document.createElement('div');
+        optionsContainer.className = 'custom-select-options';
+        container.appendChild(optionsContainer);
+
+        function refreshOptions() {
+            optionsContainer.innerHTML = '';
+            Array.from(select.children).forEach(function (child) {
+                if (child.tagName === 'OPTGROUP') {
+                    var groupHeader = document.createElement('div');
+                    groupHeader.className = 'custom-select-optgroup';
+                    groupHeader.textContent = child.label;
+                    optionsContainer.appendChild(groupHeader);
+
+                    Array.from(child.children).forEach(function (option) {
+                        addOption(option);
+                    });
+                } else {
+                    addOption(child);
+                }
+            });
+        }
+
+        function addOption(option) {
+            var opt = document.createElement('div');
+            opt.className = 'custom-select-option';
+            if (option.selected) opt.classList.add('selected');
+            opt.textContent = option.text;
+
+            opt.addEventListener('click', function (e) {
+                e.stopPropagation();
+                select.value = option.value;
+                trigger.querySelector('span').textContent = option.text;
+                
+                var allOpts = optionsContainer.querySelectorAll('.custom-select-option');
+                allOpts.forEach(function (o) { o.classList.remove('selected'); });
+                opt.classList.add('selected');
+                
+                container.classList.remove('open');
+                
+                var event = new Event('change', { bubbles: true });
+                select.dispatchEvent(event);
+            });
+            optionsContainer.appendChild(opt);
+        }
+
+        refreshOptions();
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var isOpen = container.classList.contains('open');
+            document.querySelectorAll('.custom-select-container.open').forEach(function (c) {
+                c.classList.remove('open');
+            });
+            if (!isOpen) container.classList.add('open');
+        });
+        
+        // Listen for external changes to the select
+        select.addEventListener('refresh', refreshOptions);
+    });
+
+    document.addEventListener('click', function () {
+        document.querySelectorAll('.custom-select-container.open').forEach(function (c) {
+            c.classList.remove('open');
+        });
+    });
+}
 
 window.onerror = function (msg, url, line, col, error) {
     console.error("Global Error: " + msg + "\nLine: " + line + "\nSource: " + url);

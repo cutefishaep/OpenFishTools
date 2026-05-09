@@ -1,0 +1,71 @@
+{
+  "theme": "forest",
+  "animEnabled": true,
+  "config": {
+    "tipsEnabled": true,
+    "lastTab": "main",
+    "theme": "dark",
+    "animEnabled": true,
+    "presets": [
+      {
+        "name": "Linear",
+        "x1": 0,
+        "y1": 0,
+        "x2": 1,
+        "y2": 1
+      },
+      {
+        "name": "Ease",
+        "x1": 0.8,
+        "y1": 0,
+        "x2": 0.2,
+        "y2": 1
+      },
+      {
+        "name": "Ease In",
+        "x1": 0.75,
+        "y1": 0,
+        "x2": 1,
+        "y2": 1
+      },
+      {
+        "name": "Ease Out",
+        "x1": 0,
+        "y1": 0,
+        "x2": 0.25,
+        "y2": 1
+      }
+    ],
+    "saved_palettes": []
+  },
+  "dashboard": {
+    "sticky": "",
+    "todos": []
+  },
+  "vel_presets": {
+    "presets": [
+      {
+        "name": "Ease",
+        "inSpd": 0,
+        "inInf": 46,
+        "outSpd": 0,
+        "outInf": 47
+      },
+      {
+        "name": "Ease Out",
+        "inSpd": 0,
+        "inInf": 90,
+        "outSpd": 0,
+        "outInf": 2
+      },
+      {
+        "name": "Ease in",
+        "inSpd": 0,
+        "inInf": 1,
+        "outSpd": 0,
+        "outInf": 93
+      }
+    ]
+  },
+  "uiStyle": "simple"
+}

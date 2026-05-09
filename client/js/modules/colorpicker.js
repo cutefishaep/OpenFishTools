@@ -169,6 +169,16 @@ window.ColorPicker = {
 
         document.getElementById('cp-preview').style.backgroundColor = hex;
         document.getElementById('cp-hex-input').value = hex.toUpperCase();
+
+        if (this.activeTrigger) {
+            this.activeTrigger.style.backgroundColor = hex;
+        }
+        if (this.activeTarget) {
+            this.activeTarget.value = hex.toUpperCase();
+            var event = document.createEvent('Event');
+            event.initEvent('input', true, true);
+            this.activeTarget.dispatchEvent(event);
+        }
     },
 
     hexToRgb: function (hex) {

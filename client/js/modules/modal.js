@@ -11,73 +11,7 @@ var ModalModule = (function () {
     }
 
     function injectStyles() {
-        if (document.getElementById('modal-styles')) return;
-        var css =
-            '.custom-modal-overlay {' +
-            'position: fixed; top: 0; left: 0; right: 0; bottom: 0;' +
-            'background: rgba(0,0,0,0.85);' +
-            'backdrop-filter: blur(4px);' +
-            'display: none; align-items: center; justify-content: center;' +
-            'z-index: 20000;' +
-            'opacity: 0; transition: opacity 0.2s ease;' +
-            '}' +
-            '.custom-modal {' +
-            'background: #0d0d0d;' +
-            'border: 1px solid #333;' +
-            'border-radius: 8px;' +
-            'width: 280px;' +
-            'padding: 20px;' +
-            'box-shadow: 0 20px 50px rgba(0,0,0,0.8);' +
-            'transform: scale(0.8); transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);' +
-            'display: flex; flex-direction: column;' +
-            '}' +
-            '.custom-modal.active { transform: scale(1); }' +
-            '.custom-modal-overlay.active { opacity: 1; display: flex; }' +
-            '.custom-modal h3 {' +
-            'color: #fff;' +
-            'font-size: 0.7rem;' +
-            'text-transform: uppercase;' +
-            'margin: 0;' +
-            'letter-spacing: 2px;' +
-            'font-weight: 900;' +
-            'display: flex; align-items: center;' +
-            '}' +
-            '.custom-modal h3 .material-icons { margin-right: 8px; }' +
-            '.custom-modal .modal-body {' +
-            'color: #aaa;' +
-            'font-size: 0.75rem;' +
-            'line-height: 1.4;' +
-            'margin: 5px 0 10px 0;' +
-            '}' +
-            '.custom-modal input {' +
-            'width: 100%;' +
-            'background: #1a1a1a;' +
-            'border: 1px solid #333;' +
-            'border-radius: 4px;' +
-            'color: #fff;' +
-            'padding: 10px;' +
-            'font-size: 0.75rem;' +
-            'outline: none;' +
-            'transition: border-color 0.2s;' +
-            '}' +
-            '.custom-modal input:focus { border-color: #ffb400; }' +
-            '.custom-modal-footer {' +
-            'display: flex; justify-content: flex-end;' +
-            'margin-top: 10px;' +
-            '}' +
-            '.custom-modal-footer button + button { margin-left: 8px; }' +
-            '.modal-type-error { border-color: #ff4444 !important; }' +
-            '.modal-type-error h3 { color: #ff4444; }' +
-            '.modal-type-warning { border-color: #ffbb33 !important; }' +
-            '.modal-type-warning h3 { color: #ffbb33; }' +
-            '.modal-type-info { border-color: #ffb400 !important; }' +
-            '.modal-type-info h3 { color: #ffb400; }';
-
-        var style = document.createElement('style');
-        style.id = 'modal-styles';
-        style.type = 'text/css';
-        style.appendChild(document.createTextNode(css));
-        document.head.appendChild(style);
+        // Styles moved to main style.css for theme consistency
     }
 
     function createDOM() {
@@ -133,7 +67,7 @@ var ModalModule = (function () {
 
         var btn = createBtn('OK', 'primary-btn', close);
         btn.style.background = getThemeColor(type);
-        btn.style.color = (type === 'error' || type === 'warning') ? '#fff' : '#000';
+        btn.style.color = (type === 'error' || type === 'warning') ? '#fff' : 'var(--bg)';
         footerEl.appendChild(btn);
 
         open();
@@ -154,8 +88,8 @@ var ModalModule = (function () {
             if (callback) callback(true);
             close();
         });
-        btnConfirm.style.background = '#ffb400';
-        btnConfirm.style.color = '#000';
+        btnConfirm.style.background = 'var(--accent)';
+        btnConfirm.style.color = 'var(--bg)';
 
         footerEl.appendChild(btnCancel);
         footerEl.appendChild(btnConfirm);
@@ -182,8 +116,8 @@ var ModalModule = (function () {
             if (callback) callback(input.value);
             close();
         });
-        btnSave.style.background = '#ffb400';
-        btnSave.style.color = '#000';
+        btnSave.style.background = 'var(--accent)';
+        btnSave.style.color = 'var(--bg)';
 
         footerEl.appendChild(btnCancel);
         footerEl.appendChild(btnSave);
@@ -199,25 +133,15 @@ var ModalModule = (function () {
     }
 
     function getThemeColor(type) {
-        if (type === 'error') return '#ff4444';
-        if (type === 'warning') return '#ffbb33';
-        return '#ffb400';
+        if (type === 'error') return 'var(--danger)';
+        if (type === 'warning') return '#ffbb33'; // Warnings often stay orange for visibility
+        return 'var(--accent)';
     }
 
     function createBtn(text, cls, onClick) {
         var btn = document.createElement('button');
         btn.innerText = text;
-        btn.className = cls || '';
-        btn.style.padding = '8px 16px';
-        btn.style.fontSize = '0.7rem';
-        btn.style.fontWeight = 'bold';
-        btn.style.borderRadius = '4px';
-        btn.style.border = 'none';
-        btn.style.cursor = 'pointer';
-        if (cls === 'secondary-btn') {
-            btn.style.background = '#222';
-            btn.style.color = '#888';
-        }
+        btn.className = 'btn-modal ' + (cls || '');
         btn.addEventListener('click', onClick);
         return btn;
     }

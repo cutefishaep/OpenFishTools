@@ -490,3 +490,37 @@ tools.ALIGN_RIGHT = function () { return _ALIGN('RIGHT') };
 tools.ALIGN_TOP = function () { return _ALIGN('TOP') };
 tools.ALIGN_VCENTER = function () { return _ALIGN('VCENTER') };
 tools.ALIGN_BOTTOM = function () { return _ALIGN('BOTTOM') };
+
+function _CUT(type) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return false;
+    var selectedLayers = comp.selectedLayers;
+    if (selectedLayers.length === 0) return false;
+
+    app.beginUndoGroup("Cut " + type);
+    try {
+        var curTime = comp.time;
+        for (var i = 0; i < selectedLayers.length; i++) {
+            var layer = selectedLayers[i];
+            if (type === 'FRONT') {
+                layer.inPoint = curTime;
+            } else if (type === 'BACK') {
+                layer.outPoint = curTime;
+            } else if (type === 'MID') {
+                var newLayer = layer.duplicate();
+                layer.outPoint = curTime;
+                newLayer.inPoint = curTime;
+                newLayer.moveBefore(layer);
+            }
+        }
+        return true;
+    } catch (err) {
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+tools.CUT_FRONT = function () { return _CUT('FRONT') };
+tools.CUT_MID = function () { return _CUT('MID') };
+tools.CUT_BACK = function () { return _CUT('BACK') };

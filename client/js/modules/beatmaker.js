@@ -2,10 +2,13 @@
 
 window.BeatMakerModule = function BeatMakerModule() {
     this.cs = null;
-    this.markerCount = 0;
     this.tapBtnId = 'beat-tap-btn';
-    this.countId = 'beat-count';
     this.clearBtnId = 'beat-clear-btn';
+    this.manualBtnId = 'btn-beat-manual';
+    this.autoBtnId = 'btn-beat-auto';
+    this.autoDetectBtnId = 'btn-beat-auto-detect';
+    this.manualControlsId = 'beat-manual-controls';
+    this.autoControlsId = 'beat-auto-controls';
 };
 
 BeatMakerModule.prototype.init = function (csInterface) {
@@ -16,6 +19,29 @@ BeatMakerModule.prototype.init = function (csInterface) {
 BeatMakerModule.prototype.setupListeners = function () {
     var self = this;
 
+    // Mode Switching
+    var btnManual = document.getElementById(this.manualBtnId);
+    var btnAuto = document.getElementById(this.autoBtnId);
+    var panelManual = document.getElementById(this.manualControlsId);
+    var panelAuto = document.getElementById(this.autoControlsId);
+
+    if (btnManual && btnAuto) {
+        btnManual.addEventListener('click', function () {
+            btnManual.classList.add('active');
+            btnAuto.classList.remove('active');
+            panelManual.style.display = 'block';
+            panelAuto.style.display = 'none';
+        });
+
+        btnAuto.addEventListener('click', function () {
+            btnAuto.classList.add('active');
+            btnManual.classList.remove('active');
+            panelAuto.style.display = 'block';
+            panelManual.style.display = 'none';
+        });
+    }
+
+    // Manual Tap
     var tapBtn = document.getElementById(this.tapBtnId);
     if (tapBtn) {
         tapBtn.addEventListener('click', function (e) {
@@ -23,6 +49,15 @@ BeatMakerModule.prototype.setupListeners = function () {
         });
     }
 
+    // Auto Detect
+    var autoDetectBtn = document.getElementById(this.autoDetectBtnId);
+    if (autoDetectBtn) {
+        autoDetectBtn.addEventListener('click', function () {
+            self.autoDetect();
+        });
+    }
+
+    // Clear All
     var clearBtn = document.getElementById(this.clearBtnId);
     if (clearBtn) {
         clearBtn.addEventListener('click', function () {
@@ -35,31 +70,37 @@ BeatMakerModule.prototype.tap = function (e) {
     var self = this;
     var tapBtn = document.getElementById(this.tapBtnId);
 
-    
-    var ripple = document.createElement('div');
-    ripple.className = 'beat-ripple';
-    var btnW = tapBtn.offsetWidth;
-    var btnH = tapBtn.offsetHeight;
-    var size = Math.max(btnW, btnH);
-    var x = (e.offsetX !== undefined ? e.offsetX : btnW / 2) - size / 2;
-    var y = (e.offsetY !== undefined ? e.offsetY : btnH / 2) - size / 2;
-    ripple.style.width = size + 'px';
-    ripple.style.height = size + 'px';
-    ripple.style.left = x + 'px';
-    ripple.style.top = y + 'px';
-    tapBtn.appendChild(ripple);
-    setTimeout(function () {
-        if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
-    }, 650);
+    // Anim feedback
+    tapBtn.classList.add('pulse');
+    setTimeout(function () { 
+        tapBtn.classList.remove('pulse');
+    }, 300);
 
-    
-    tapBtn.classList.add('tapped');
-    setTimeout(function () { tapBtn.classList.remove('tapped'); }, 220);
-
-    
     if (self.cs) {
         self.cs.evalScript('executeTool("BEATMARK")', function () { });
     }
+};
+
+BeatMakerModule.prototype.autoDetect = function () {
+    var self = this;
+    if (!self.cs) return;
+
+    // Check if layer is selected first (Simple check via evalScript)
+    self.cs.evalScript('app.project.activeItem && app.project.activeItem.selectedLayers.length > 0', function (res) {
+        if (res === "false" || res === "0") {
+            if (window.ModalModule) {
+                window.ModalModule.error("Please select an audio layer first!", "Auto Beat");
+            }
+            return;
+        }
+
+        // Run the auto beat script
+        self.cs.evalScript('executeTool("BEAT_AUTO")', function (res) {
+            if (res && res.indexOf("ERROR") !== -1) {
+                if (window.ModalModule) window.ModalModule.error(res.replace("ERROR:", ""), "Auto Beat");
+            }
+        });
+    });
 };
 
 BeatMakerModule.prototype.clearAll = function () {
@@ -68,6 +109,3 @@ BeatMakerModule.prototype.clearAll = function () {
         self.cs.evalScript('executeTool("CLEARBEATS")', function () { });
     }
 };
-
-BeatMakerModule.prototype.updateCount = function () { };
-
