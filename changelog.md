@@ -2,6 +2,32 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.0.1] - 2026-05-10
+### Added
+- **Cutefish Style Toolkit**: A dedicated signature effects card featuring:
+    - **Background**: `Colorize` (Random Tint), `Scanline` (S_TVDamage), and `Mono` (B&W).
+    - **Object**: `Starburst`, `Grid`, and `Radio` styles for solid layers.
+    - **Aura Effects**: `Glow Aura` (S_GlowAura) and `Solid Aura` for advanced highlighting.
+    - **Shatter Tools**: `Simple` and `Slow (0 Gravity)` shatter presets.
+- **Velocity Management**: 
+    - Added **Velocity Preview** canvas for real-time easing curve visualization.
+    - Implemented **Speed Preset Library** to save, load, and manage custom animation curves.
+- **Dual Design System**: Seamlessly switch between **Material You** (Modern/Rounded/Pill) and **Simple Flat** (Minimalist/Classic/Square) aesthetics.
+- **Intelligent Grid Architecture**: Toolbox and Credit sections now use a fluid `auto-fit` system that wraps perfectly based on window width.
+- **Themed Form Components**: Complete overhaul of Inputs, Toggle Switches, and Custom Select dropdowns to match active themes.
+- **Social Credits Restoration**: Re-implemented the full social presence section (YouTube, TikTok AEP/RBX, Instagram, GitHub) with technical handles.
+- **Beat Maker Animations**: Added themed glow effects and rhythmic pulse animations to the manual tap button.
+- **Enhanced Anchor Point**: Redesigned the 3x3 grid with tactile feedback, themed glows, and optimized click areas (32px).
+
+### Changed
+- **Typography & Visibility**: Brightened muted text and section labels across all dark modes (Matcha, Slate, Dracula, Ocean, Forest) for superior readability.
+- **Color Picker Fix**: Implemented real-time color previews on trigger buttons and a modernized popup action bar.
+- **Fixed Align Logic**: Locked the 'Align' toolset to a strict 3x2 grid to preserve professional muscle memory.
+- **Symmetry & Alignment**: Refined the To-Do list layout for perfect vertical symmetry between inputs and action buttons.
+- **Shadows & Depth**: Implemented sophisticated shadow systems and glassmorphism-lite overlays for a premium feel.
+
+---
+
 ## [0.0.8] - 2026-03-06
 ### Added
 - **Bubble Text Tool**: Create speech bubbles with text that automatically positions and sizes itself.
