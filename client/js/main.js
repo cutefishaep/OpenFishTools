@@ -1,7 +1,5 @@
 'use strict';
 
-var QRIS_DATA = "00020101021126610014COM.GO-JEK.WWW01189360091437879754150210G7879754150303UMI51440014ID.CO.QRIS.WWW0215ID10254474210390303UMI5204581653033605802ID5919CUTEFISHRBX, Gaming6009SUKOHARJO61055751362070703A0163041D6B";
-
 try {
     window.csInterface = new CSInterface();
     if (window.FileStore) {
@@ -323,6 +321,12 @@ document.addEventListener('DOMContentLoaded', function () {
     loadHostScript(function () {
         if (window.ColorPicker) {
             window.ColorPicker.init();
+        }
+
+        if (window.tips) {
+            try {
+                window.tips.init();
+            } catch (e) { console.error("Tips init error", e); }
         }
 
         if (stopwatch) {

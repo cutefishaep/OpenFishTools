@@ -6,7 +6,7 @@
     "tipsEnabled": true,
     "lastTab": "main",
     "theme": "amoled",
-    "uiStyle": "capsule",
+    "uiStyle": "material",
     "animEnabled": true,
     "beatMaker": {
       "threshold": "50",
