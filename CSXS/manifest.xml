@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ExtensionManifest Version="7.0" ExtensionBundleId="com.cutefish.tools" ExtensionBundleVersion="1.0.1"
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.cutefish.tools" ExtensionBundleVersion="1.0.2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ExtensionList>
-        <Extension Id="com.cutefish.tools.panel" Version="1.0.1" />
+        <Extension Id="com.cutefish.tools.panel" Version="1.0.2" />
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>
-            <Host Name="AEFT" Version="[14.0,99.9]" />
+            <Host Name="AEFT" Version="[12.0,99.9]" />
         </HostList>
         <LocaleList>
             <Locale Code="All" />
         </LocaleList>
         <RequiredRuntimeList>
-            <RequiredRuntime Name="CSXS" Version="7.0" />
+            <RequiredRuntime Name="CSXS" Version="8.0" />
         </RequiredRuntimeList>
     </ExecutionEnvironment>
     <DispatchInfoList>

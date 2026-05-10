@@ -6,6 +6,7 @@ window.SettingsModule = function SettingsModule() {
         tipsEnabled: true,
         lastTab: 'main',
         theme: 'dark',
+        uiStyle: 'capsule',
         animEnabled: true
     };
     this.settings = JSON.parse(JSON.stringify(this.defaults));
@@ -33,7 +34,7 @@ SettingsModule.prototype.setupListeners = function () {
 };
 
 SettingsModule.prototype.loadSettings = function () {
-    // Load from FileStore (file-backed JSON)
+    
     var store = window.FileStore;
     if (!store) return;
     var saved = store.get('config');
@@ -84,9 +85,8 @@ SettingsModule.prototype.resetSettings = function () {
         function (confirmed) {
             if (confirmed) {
                 var store = window.FileStore;
-                if (store) store.remove('config');
+                if (store) store.clear();
                 self.settings = JSON.parse(JSON.stringify(self.defaults));
-                self.saveSettings();
                 setTimeout(function () { location.reload(); }, 150);
             }
         }

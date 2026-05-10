@@ -1,9 +1,6 @@
 'use strict';
 
-/**
- * FileStore — persists data to a JSON file via CEP's cep.fs API.
- * Falls back to localStorage if cep.fs is unavailable.
- */
+
 var FileStore = (function () {
 
     var _filePath = null;
@@ -28,7 +25,7 @@ var FileStore = (function () {
 
     function load() {
         if (!_filePath || !_hasCepFs()) {
-            // Fallback: localStorage
+            
             try {
                 var raw = localStorage.getItem('fishToolsFileStore');
                 if (raw) _cache = JSON.parse(raw);
@@ -68,13 +65,22 @@ var FileStore = (function () {
         return JSON.parse(JSON.stringify(_cache));
     }
 
+    function clear() {
+        _cache = {};
+        if (_hasCepFs() && _filePath) {
+            window.cep.fs.deleteFile(_filePath);
+        }
+        try { localStorage.removeItem('fishToolsFileStore'); } catch (e) {}
+    }
+
     return {
         init: init,
         load: load,
         get: get,
         set: set,
         remove: remove,
-        getAll: getAll
+        getAll: getAll,
+        clear: clear
     };
 
 })();

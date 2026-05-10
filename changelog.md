@@ -2,6 +2,23 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.0.2] - 2026-05-10
+### Added
+- **CC2018 Legacy Support**: Full refactor for Chromium 57 compatibility (Adobe CC 2018).
+    - Replaced `inset` shorthand with explicit `top/right/bottom/left`.
+    - Replaced flexbox `gap` with smart margin-based spacing (`> * + *`).
+    - Added fallback for `backdrop-filter` and `clamp()`.
+    - Fixed `scale` shorthand and added `-webkit-` prefixes for stable rendering.
+- **Pastel Design System**: Reworked all Light Mode themes (Vanilla, Pandan, Ube, Peach, Blue) with soft pastel backgrounds for better eye comfort.
+- **Enhanced Capsule Nav**: Widened the pill bar and added a circular "block" active indicator behind icons.
+- **Factory Reset**: Improved "Reset to Default" logic to physically delete the save file from disk.
+
+### Changed
+- **QRIS Modal Polish**: Optimized layout and image sizing to fit perfectly within small CEP panels.
+- **Clean Code Architecture**: Stripped all instructional comments, placeholders, and developer notes from the production codebase for maximum performance.
+
+---
+
 ## [1.0.1] - 2026-05-10
 ### Added
 - **Cutefish Style Toolkit**: A dedicated signature effects card featuring:
@@ -18,6 +35,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 - **Social Credits Restoration**: Re-implemented the full social presence section (YouTube, TikTok AEP/RBX, Instagram, GitHub) with technical handles.
 - **Beat Maker Animations**: Added themed glow effects and rhythmic pulse animations to the manual tap button.
 - **Enhanced Anchor Point**: Redesigned the 3x3 grid with tactile feedback, themed glows, and optimized click areas (32px).
+
 
 ### Changed
 - **Typography & Visibility**: Brightened muted text and section labels across all dark modes (Matcha, Slate, Dracula, Ocean, Forest) for superior readability.

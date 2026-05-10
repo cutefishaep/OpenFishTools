@@ -4,7 +4,7 @@ var QRIS_DATA = "00020101021126610014COM.GO-JEK.WWW01189360091437879754150210G78
 
 try {
     window.csInterface = new CSInterface();
-    // Init FileStore FIRST — all modules depend on it
+    
     if (window.FileStore) {
         var _extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
         window.FileStore.init(_extPath);
@@ -13,7 +13,7 @@ try {
     window.tips = new window.TipsModule();
     window.stopwatch = new window.StopwatchModule();
     
-    // Custom UI Components
+    
     setupCustomSelects();
 } catch (e) {
     console.error("FishTools: Module instantiation failed", e);
@@ -130,7 +130,7 @@ function setupDonation() {
     var btnPaypal = document.getElementById('btn-paypal');
     if (btnPaypal) {
         btnPaypal.addEventListener('click', function () {
-            csInterface.openURLInDefaultBrowser("https://www.paypal.com/paypalme/cutefishae");
+            csInterface.openURLInDefaultBrowser("https:
         });
     }
 
@@ -155,11 +155,11 @@ function setupDonation() {
 
 
     var socialLinks = {
-        'btn-yt': 'https://www.youtube.com/@cutefishYT',
-        'btn-tt-aep': 'https://www.tiktok.com/@cutefishaep',
-        'btn-tt-rbx': 'https://www.tiktok.com/@cutefishrbx',
-        'btn-ig': 'https://www.instagram.com/cutefishae',
-        'btn-gh': 'https://www.github.com/cutefishaep'
+        'btn-yt': 'https:
+        'btn-tt-aep': 'https:
+        'btn-tt-rbx': 'https:
+        'btn-ig': 'https:
+        'btn-gh': 'https:
     };
 
     for (var id in socialLinks) {
@@ -263,14 +263,15 @@ window.setupTooltips = function () {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── Theme & Animation Setup ──
+    
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme || 'dark');
         if (window.FileStore) window.FileStore.set('theme', theme);
+        if (window.settings) window.settings.settings.theme = theme;
         var sel = document.getElementById('theme-select');
         if (sel) sel.value = theme;
         
-        // Refresh graph if it exists to sync colors
+        
         if (window.GraphModule && typeof window.GraphModule.refresh === 'function') {
             requestAnimationFrame(function() {
                 window.GraphModule.refresh();
@@ -281,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyAnim(enabled) {
         document.documentElement.setAttribute('data-anim', enabled ? 'on' : 'off');
         if (window.FileStore) window.FileStore.set('animEnabled', enabled);
+        if (window.settings) window.settings.settings.animEnabled = enabled;
         var tog = document.getElementById('anim-toggle');
         if (tog) tog.checked = enabled;
     }
@@ -290,15 +292,17 @@ document.addEventListener('DOMContentLoaded', function () {
         if (style === 'material') document.body.classList.add('style-material-you');
         if (style === 'simple') document.body.classList.add('style-simple');
         if (window.FileStore) window.FileStore.set('uiStyle', style);
+        if (window.settings) window.settings.settings.uiStyle = style;
         var sel = document.getElementById('style-select');
         if (sel) sel.value = style;
     }
 
+    
     var savedTheme = (window.FileStore && window.FileStore.get('theme')) || 'dark';
     var savedAnim  = window.FileStore ? window.FileStore.get('animEnabled') : true;
     var savedStyle = (window.FileStore && window.FileStore.get('uiStyle')) || 'capsule';
     
-    if (savedAnim === undefined) savedAnim = true;
+    if (savedAnim === undefined || savedAnim === null) savedAnim = true;
     
     applyTheme(savedTheme);
     applyAnim(savedAnim);
@@ -327,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
             applyAnim(this.checked);
         });
     }
-    // ──────────────────────────────
+    
 
     var splash = document.getElementById('splash-screen');
     if (splash) {
@@ -443,11 +447,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         setupTooltips();
         loadSystemInfo();
-        setupCustomSelects(); // Transform native selects to themed ones
+        setupCustomSelects(); 
     });
 });
 
-// ── Custom Select Implementation ──
+
 function setupCustomSelects() {
     var selects = document.querySelectorAll('select');
     selects.forEach(function (select) {
@@ -522,7 +526,7 @@ function setupCustomSelects() {
             if (!isOpen) container.classList.add('open');
         });
         
-        // Listen for external changes to the select
+        
         select.addEventListener('refresh', refreshOptions);
     });
 
