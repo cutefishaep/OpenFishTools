@@ -1,6 +1,5 @@
 'use strict';
 
-
 var FileStore = (function () {
 
     var _filePath = null;
@@ -25,7 +24,6 @@ var FileStore = (function () {
 
     function load() {
         if (!_filePath || !_hasCepFs()) {
-            
             try {
                 var raw = localStorage.getItem('fishToolsFileStore');
                 if (raw) _cache = JSON.parse(raw);

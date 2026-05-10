@@ -34,7 +34,6 @@ SettingsModule.prototype.setupListeners = function () {
 };
 
 SettingsModule.prototype.loadSettings = function () {
-    
     var store = window.FileStore;
     if (!store) return;
     var saved = store.get('config');

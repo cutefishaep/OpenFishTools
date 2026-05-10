@@ -4,7 +4,6 @@ var QRIS_DATA = "00020101021126610014COM.GO-JEK.WWW01189360091437879754150210G78
 
 try {
     window.csInterface = new CSInterface();
-    
     if (window.FileStore) {
         var _extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
         window.FileStore.init(_extPath);
@@ -12,7 +11,6 @@ try {
     window.settings = new window.SettingsModule();
     window.tips = new window.TipsModule();
     window.stopwatch = new window.StopwatchModule();
-    
     
     setupCustomSelects();
 } catch (e) {
@@ -130,7 +128,7 @@ function setupDonation() {
     var btnPaypal = document.getElementById('btn-paypal');
     if (btnPaypal) {
         btnPaypal.addEventListener('click', function () {
-            csInterface.openURLInDefaultBrowser("https:
+            csInterface.openURLInDefaultBrowser("https://www.paypal.com/paypalme/cutefishae");
         });
     }
 
@@ -153,13 +151,12 @@ function setupDonation() {
         });
     }
 
-
     var socialLinks = {
-        'btn-yt': 'https:
-        'btn-tt-aep': 'https:
-        'btn-tt-rbx': 'https:
-        'btn-ig': 'https:
-        'btn-gh': 'https:
+        'btn-yt': 'https://www.youtube.com/@cutefishYT',
+        'btn-tt-aep': 'https://www.tiktok.com/@cutefishaep',
+        'btn-tt-rbx': 'https://www.tiktok.com/@cutefishrbx',
+        'btn-ig': 'https://www.instagram.com/cutefishae',
+        'btn-gh': 'https://www.github.com/cutefishaep'
     };
 
     for (var id in socialLinks) {
@@ -263,14 +260,12 @@ window.setupTooltips = function () {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme || 'dark');
         if (window.FileStore) window.FileStore.set('theme', theme);
         if (window.settings) window.settings.settings.theme = theme;
         var sel = document.getElementById('theme-select');
         if (sel) sel.value = theme;
-        
         
         if (window.GraphModule && typeof window.GraphModule.refresh === 'function') {
             requestAnimationFrame(function() {
@@ -297,7 +292,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (sel) sel.value = style;
     }
 
-    
     var savedTheme = (window.FileStore && window.FileStore.get('theme')) || 'dark';
     var savedAnim  = window.FileStore ? window.FileStore.get('animEnabled') : true;
     var savedStyle = (window.FileStore && window.FileStore.get('uiStyle')) || 'capsule';
@@ -331,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function () {
             applyAnim(this.checked);
         });
     }
-    
 
     var splash = document.getElementById('splash-screen');
     if (splash) {
@@ -343,12 +336,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 800);
     }
 
-
     detectExtensionVersion();
     setupFlyoutMenu();
     setupTabs();
     setupDonation();
-
 
     csInterface.evalScript("app.version", function (res) {
         var majorVersion = parseInt(res, 10);
@@ -447,10 +438,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         setupTooltips();
         loadSystemInfo();
-        setupCustomSelects(); 
+        setupCustomSelects();
     });
 });
-
 
 function setupCustomSelects() {
     var selects = document.querySelectorAll('select');
@@ -525,7 +515,6 @@ function setupCustomSelects() {
             });
             if (!isOpen) container.classList.add('open');
         });
-        
         
         select.addEventListener('refresh', refreshOptions);
     });
