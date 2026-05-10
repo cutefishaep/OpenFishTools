@@ -5,8 +5,8 @@
   "config": {
     "tipsEnabled": true,
     "lastTab": "main",
-    "theme": "amoled",
-    "uiStyle": "material",
+    "theme": "forest",
+    "uiStyle": "capsule",
     "animEnabled": true,
     "beatMaker": {
       "threshold": "50",
