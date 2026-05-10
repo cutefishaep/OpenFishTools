@@ -94,7 +94,10 @@ SettingsModule.prototype.applySettings = function () {
                 var container = document.getElementById('container-' + id);
                 if (container) {
                     var trigger = container.querySelector('.custom-select-trigger span');
-                    if (trigger) trigger.textContent = el.options[el.selectedIndex]?.text || 'Select...';
+                    if (trigger) {
+                        var _idx = el.selectedIndex;
+                        trigger.textContent = (_idx >= 0 && el.options[_idx]) ? el.options[_idx].text : 'Select...';
+                    }
                 }
             }
         });

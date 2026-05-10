@@ -51,6 +51,13 @@ var UpdateModule = (function () {
     }
 
     
+    function resetBtn(btn) {
+        if (btn) {
+            btn.innerHTML = '<span class="material-icons">sync</span>';
+            btn.disabled = false;
+        }
+    }
+
     function performFetchCheck(silent) {
         var btn = document.getElementById('btn-check-update');
         var latestVerEl = document.getElementById('update-latest-ver');
@@ -95,6 +102,7 @@ var UpdateModule = (function () {
                         window.ModalModule.info("You are already using the latest version (v" + currentVersion + ").", "Up to Date");
                     }
                 }
+                resetBtn(btn);
             })
             .catch(function (error) {
                 console.error('Update check failed:', error);
@@ -102,12 +110,7 @@ var UpdateModule = (function () {
                 if (!silent && window.ModalModule) {
                     window.ModalModule.error("Failed to connect to GitHub. Please check your internet connection.", "Connection Error");
                 }
-            })
-            .finally(function () {
-                if (btn) {
-                    btn.innerHTML = '<span class="material-icons">sync</span>';
-                    btn.disabled = false;
-                }
+                resetBtn(btn);
             });
     }
 

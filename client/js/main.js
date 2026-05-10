@@ -329,9 +329,9 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("Tips init error", e); }
         }
 
-        if (stopwatch) {
+        if (window.stopwatch) {
             try {
-                stopwatch.init();
+                window.stopwatch.init();
             } catch (e) { console.error("Stopwatch init error", e); }
         }
 
@@ -413,7 +413,9 @@ function setupCustomSelects() {
 
         var trigger = document.createElement('div');
         trigger.className = 'custom-select-trigger';
-        trigger.innerHTML = '<span>' + (select.options[select.selectedIndex]?.text || 'Select...') + '</span><span class="material-icons chevron">expand_more</span>';
+        var _selIdx = select.selectedIndex;
+        var _selText = (_selIdx >= 0 && select.options[_selIdx]) ? select.options[_selIdx].text : 'Select...';
+        trigger.innerHTML = '<span>' + _selText + '</span><span class="material-icons chevron">expand_more</span>';
         container.appendChild(trigger);
 
         var optionsContainer = document.createElement('div');

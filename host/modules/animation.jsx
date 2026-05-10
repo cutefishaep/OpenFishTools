@@ -893,6 +893,9 @@ function _createStyleLayer(type, name) {
     var dur = _getSelDuration();
     if (!dur) throw new Error("Please select a layer first!");
     
+    // Simpan selected layer sebelum addSolid (karena addSolid otomatis ke posisi atas)
+    var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
+    
     var layer;
     var pa = comp.pixelAspect || 1.0;
     if (type === "ADJ") {
@@ -905,6 +908,12 @@ function _createStyleLayer(type, name) {
     layer.startTime = dur.start;
     layer.inPoint = dur.start;
     layer.outPoint = dur.end;
+    
+    // Pindahkan ke atas selected layer
+    if (selectedLayer) {
+        try { layer.moveBefore(selectedLayer); } catch (e) {}
+    }
+    
     return layer;
 }
 
@@ -997,10 +1006,12 @@ function _CF_GRID() {
         var layer = _createStyleLayer("SOLID", "CF Grid");
         var effects = _getEffectGroup(layer);
         
+        var comp = app.project.activeItem;
         var grid = effects.addProperty("ADBE Grid");
-        grid.property("ADBE Grid-0002").setValue(4);  
-        grid.property("ADBE Grid-0004").setValue(32); 
-        grid.property("ADBE Grid-0006").setValue(5);  
+        grid.property("ADBE Grid-0001").setValue([comp.width / 2, comp.height / 2]); // Anchor = center
+        grid.property("ADBE Grid-0002").setValue(1);  // Size From = Corner Point
+        grid.property("ADBE Grid-0003").setValue([comp.width * 0.701, comp.height * 0.86]); // Corner
+        grid.property("ADBE Grid-0006").setValue(5);  // Border
         
         effects.addProperty("ADBE Bevel Alpha").property("ADBE Bevel Alpha-0004").setValue(0.4);
         effects.addProperty("ADBE Drop Shadow").property("ADBE Drop Shadow-0004").setValue(5);
@@ -1126,6 +1137,32 @@ function _CF_SHATTER_SLOW() {
     finally { app.endUndoGroup(); }
 }
 
+function _CF_DROP_BEVEL() {
+    app.beginUndoGroup("CF Drop Bevel");
+    try {
+        var comp = app.project.activeItem;
+        if (!comp || comp.selectedLayers.length === 0) throw new Error("Select a layer first!");
+        var layer = comp.selectedLayers[0];
+        var effects = _getEffectGroup(layer);
+        
+        var bevel = effects.addProperty("ADBE Bevel Alpha");
+        bevel.property(1).setValue(2);    // Edge Thickness
+        bevel.property(2).setValue(-60);  // Light Angle
+        bevel.property(3).setValue([1, 1, 1]); // Light Color
+        bevel.property(4).setValue(1);    // Light Intensity
+        
+        var shadow = effects.addProperty("ADBE Drop Shadow");
+        shadow.property(1).setValue([0, 0, 0]); // Shadow Color
+        shadow.property(2).setValue(127.5);    // Opacity (50%)
+        shadow.property(3).setValue(135);      // Direction
+        shadow.property(4).setValue(23);       // Distance
+        shadow.property(5).setValue(0);        // Softness
+        
+        return true;
+    } catch(e) { return JSON.stringify({error: true, message: e.toString(), tool: "Drop Bevel"}); }
+    finally { app.endUndoGroup(); }
+}
+
 
 tools.TRANS_FADE_IN = function () { return _applyTransition("ADBE Opacity", "IN"); };
 tools.TRANS_FADE_OUT = function () { return _applyTransition("ADBE Opacity", "OUT"); };
@@ -1154,3 +1191,4 @@ tools.CF_GLOW_AURA = function() { return _CF_GLOW_AURA(); };
 tools.CF_SOLID_AURA = function() { return _CF_SOLID_AURA(); };
 tools.CF_SHATTER_SIMPLE = function() { return _CF_SHATTER_SIMPLE(); };
 tools.CF_SHATTER_SLOW = function() { return _CF_SHATTER_SLOW(); };
+tools.CF_DROP_BEVEL = function() { return _CF_DROP_BEVEL(); };
