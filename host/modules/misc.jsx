@@ -152,11 +152,13 @@ function _addBeatMark() {
     if (!comp || !(comp instanceof CompItem)) return "NO_COMP";
     try {
         app.executeCommand(2157);
-        return String(comp.markerProperty.numKeys);
+        return "true";
     } catch (e) {
         return "ERROR:" + e.toString();
     }
 }
+
+tools.BEATMARK = function () { return _addBeatMark(); };
 
 function _clearBeatMarks() {
     var comp = app.project.activeItem;
@@ -536,7 +538,7 @@ function _OVERLAP_3D(comp, layer) {
     }
 }
 
-function _autoBeatDetect() {
+function _autoBeatDetect(threshold, channel) {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return "ERROR:Please select a composition!";
     
@@ -546,18 +548,18 @@ function _autoBeatDetect() {
     var audioLayer = selLayers[0];
     if (!audioLayer.hasAudio) return "ERROR:Selected layer has no audio!";
 
+    var thres = parseFloat(threshold) || 15;
+    var chanName = channel || "Both Channels";
+
     app.beginUndoGroup("Auto Beat Detection");
     try {
-        // 1. Dynamic lookup for "Convert Audio to Keyframes" command ID
         var commandId = app.findMenuCommandId("Convert Audio to Keyframes");
         if (commandId === 0) {
-            // Fallback for some localized versions
             commandId = 2507; 
         }
         
         app.executeCommand(commandId); 
         
-        // Find the newly created "Audio Amplitude" layer
         var ampLayer = null;
         for (var i = 1; i <= comp.numLayers; i++) {
             var l = comp.layer(i);
@@ -568,35 +570,31 @@ function _autoBeatDetect() {
         }
 
         if (!ampLayer) {
-            // Fallback: take the top layer if it matches
             if (comp.layer(1).name === "Audio Amplitude") ampLayer = comp.layer(1);
         }
 
         if (!ampLayer) throw new Error("Could not find generated 'Audio Amplitude' layer.");
 
-        // More robust property access
-        var bothEffect = null;
+        var targetEffect = null;
         try {
-            // Try by match name or index
-            bothEffect = ampLayer.effect("Both Channels") || ampLayer.effect(3) || ampLayer.effect(1);
+            targetEffect = ampLayer.effect(chanName) || ampLayer.effect("Both Channels") || ampLayer.effect(3) || ampLayer.effect(1);
         } catch(e) {}
 
-        if (!bothEffect) throw new Error("Could not find Audio Amplitude effects.");
+        if (!targetEffect) throw new Error("Could not find Audio Amplitude effect: " + chanName);
         
-        var slider = bothEffect.property("Slider") || bothEffect.property(1);
+        var slider = targetEffect.property("Slider") || targetEffect.property(1);
 
         if (!slider) throw new Error("Could not find Slider property inside Audio Amplitude.");
 
-        var threshold = 15; // Peak threshold
         var markers = comp.markerProperty;
         var lastMarkTime = -1;
-        var minInterval = 0.25; // Min distance between beats
+        var minInterval = 0.25; 
 
         for (var i = 1; i <= slider.numKeys; i++) {
             var val = slider.keyValue(i);
             var time = slider.keyTime(i);
 
-            if (val > threshold && (time - lastMarkTime) > minInterval) {
+            if (val > thres && (time - lastMarkTime) > minInterval) {
                 markers.setValueAtTime(time, new MarkerValue(""));
                 lastMarkTime = time;
             }
@@ -606,17 +604,16 @@ function _autoBeatDetect() {
         app.endUndoGroup();
         return "SUCCESS";
     } catch (e) {
-        app.endUndoGroup();
+        if (app.isInUndoGroup) app.endUndoGroup();
         return "ERROR:" + e.toString();
     }
 }
 
-// Tool registration
 tools.PNG = function () { return _PNG(); };
 tools.CUBE = function (w, h, d, useLayer) { return _CUBE(w, h, d, useLayer); };
 tools.PURGE = function (target) { return _PURGE(target); };
 tools.BEATMARK = function () { return _addBeatMark(); };
 tools.CLEARBEATS = function () { return _clearBeatMarks(); };
-tools.BEAT_AUTO = function () { return _autoBeatDetect(); };
+tools.BEAT_AUTO = function (threshold, channel) { return _autoBeatDetect(threshold, channel); };
 tools.DEBUG_ALL = function () { return _DEBUG_ALL(); };
 tools.OVERLAP = function () { return _OVERLAP(); };

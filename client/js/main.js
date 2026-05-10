@@ -9,10 +9,10 @@ try {
         window.FileStore.init(_extPath);
     }
     window.settings = new window.SettingsModule();
+    window.settings.init();
+    
     window.tips = new window.TipsModule();
     window.stopwatch = new window.StopwatchModule();
-    
-    setupCustomSelects();
 } catch (e) {
     console.error("FishTools: Module instantiation failed", e);
 }
@@ -260,69 +260,33 @@ window.setupTooltips = function () {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    function applyTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme || 'dark');
-        if (window.FileStore) window.FileStore.set('theme', theme);
-        if (window.settings) window.settings.settings.theme = theme;
-        var sel = document.getElementById('theme-select');
-        if (sel) sel.value = theme;
-        
-        if (window.GraphModule && typeof window.GraphModule.refresh === 'function') {
-            requestAnimationFrame(function() {
-                window.GraphModule.refresh();
-            });
-        }
-    }
-
-    function applyAnim(enabled) {
-        document.documentElement.setAttribute('data-anim', enabled ? 'on' : 'off');
-        if (window.FileStore) window.FileStore.set('animEnabled', enabled);
-        if (window.settings) window.settings.settings.animEnabled = enabled;
-        var tog = document.getElementById('anim-toggle');
-        if (tog) tog.checked = enabled;
-    }
-
-    function applyStyle(style) {
-        document.body.classList.remove('style-material-you', 'style-simple');
-        if (style === 'material') document.body.classList.add('style-material-you');
-        if (style === 'simple') document.body.classList.add('style-simple');
-        if (window.FileStore) window.FileStore.set('uiStyle', style);
-        if (window.settings) window.settings.settings.uiStyle = style;
-        var sel = document.getElementById('style-select');
-        if (sel) sel.value = style;
-    }
-
-    var savedTheme = (window.FileStore && window.FileStore.get('theme')) || 'dark';
-    var savedAnim  = window.FileStore ? window.FileStore.get('animEnabled') : true;
-    var savedStyle = (window.FileStore && window.FileStore.get('uiStyle')) || 'capsule';
-    
-    if (savedAnim === undefined || savedAnim === null) savedAnim = true;
-    
-    applyTheme(savedTheme);
-    applyAnim(savedAnim);
-    applyStyle(savedStyle);
-
     var themeSelect = document.getElementById('theme-select');
     if (themeSelect) {
-        themeSelect.value = savedTheme;
         themeSelect.addEventListener('change', function () {
-            applyTheme(this.value);
+            if (window.settings) {
+                window.settings.set('theme', this.value);
+                window.settings.applySettings();
+            }
         });
     }
 
     var styleSelect = document.getElementById('style-select');
     if (styleSelect) {
-        styleSelect.value = savedStyle;
         styleSelect.addEventListener('change', function () {
-            applyStyle(this.value);
+            if (window.settings) {
+                window.settings.set('uiStyle', this.value);
+                window.settings.applySettings();
+            }
         });
     }
 
     var animToggle = document.getElementById('anim-toggle');
     if (animToggle) {
-        animToggle.checked = savedAnim;
         animToggle.addEventListener('change', function () {
-            applyAnim(this.checked);
+            if (window.settings) {
+                window.settings.set('animEnabled', this.checked);
+                window.settings.applySettings();
+            }
         });
     }
 
@@ -359,18 +323,6 @@ document.addEventListener('DOMContentLoaded', function () {
     loadHostScript(function () {
         if (window.ColorPicker) {
             window.ColorPicker.init();
-        }
-
-        if (settings) {
-            try {
-                settings.init();
-            } catch (e) { console.error("Settings init error", e); }
-        }
-
-        if (tips) {
-            try {
-                tips.init();
-            } catch (e) { console.error("Tips init error", e); }
         }
 
         if (stopwatch) {

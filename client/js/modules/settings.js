@@ -7,7 +7,12 @@ window.SettingsModule = function SettingsModule() {
         lastTab: 'main',
         theme: 'dark',
         uiStyle: 'capsule',
-        animEnabled: true
+        animEnabled: true,
+        beatMaker: {
+            threshold: 15,
+            channel: 'Both Channels',
+            lastSubTab: 'manual'
+        }
     };
     this.settings = JSON.parse(JSON.stringify(this.defaults));
 };
@@ -53,6 +58,51 @@ SettingsModule.prototype.saveSettings = function () {
 
 SettingsModule.prototype.applySettings = function () {
     this.restoreLastTab();
+    
+    var theme = this.settings.theme || 'dark';
+    var style = this.settings.uiStyle || 'capsule';
+    var anim = this.settings.animEnabled !== false;
+
+    // Apply to DOM
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-anim', anim ? 'on' : 'off');
+    
+    document.body.classList.remove('style-material-you', 'style-simple');
+    if (style === 'material') document.body.classList.add('style-material-you');
+    if (style === 'simple') document.body.classList.add('style-simple');
+
+    // Sync UI elements
+    var themeSelect = document.getElementById('theme-select');
+    if (themeSelect) themeSelect.value = theme;
+
+    var styleSelect = document.getElementById('style-select');
+    if (styleSelect) styleSelect.value = style;
+
+    var animToggle = document.getElementById('anim-toggle');
+    if (animToggle) animToggle.checked = anim;
+
+    // Refresh custom selects if they exist
+    if (window.setupCustomSelects) {
+        // Trigger a refresh on the original selects to update custom triggers
+        ['theme-select', 'style-select'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                var event = new Event('refresh');
+                el.dispatchEvent(event);
+                
+                // Also update trigger text manually since refresh just updates options
+                var container = document.getElementById('container-' + id);
+                if (container) {
+                    var trigger = container.querySelector('.custom-select-trigger span');
+                    if (trigger) trigger.textContent = el.options[el.selectedIndex]?.text || 'Select...';
+                }
+            }
+        });
+    }
+
+    if (window.GraphModule && typeof window.GraphModule.refresh === 'function') {
+        window.GraphModule.refresh();
+    }
 };
 
 SettingsModule.prototype.restoreLastTab = function () {

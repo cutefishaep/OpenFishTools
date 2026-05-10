@@ -108,9 +108,9 @@ function _applyMidWaveEase(prop) {
         prop.setInterpolationTypeAtKey(i, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
     }
 
-    // Convert easing percentages from debug output to KeyframeEase objects
+    
     prop.setTemporalEaseAtKey(1, [new KeyframeEase(0, 17)], [new KeyframeEase(0, 75)]);
-    prop.setTemporalEaseAtKey(2, [new KeyframeEase(0, 0.1)], [new KeyframeEase(0, 0.1)]); // 0.1 avoids invalid arg errors
+    prop.setTemporalEaseAtKey(2, [new KeyframeEase(0, 0.1)], [new KeyframeEase(0, 0.1)]); 
     prop.setTemporalEaseAtKey(3, [new KeyframeEase(0, 75)], [new KeyframeEase(0, 17)]);
 }
 
@@ -136,34 +136,57 @@ function _readVelocity() {
 }
 
 function _applyVelocity(dataStr) {
-    var data = JSON.parse(dataStr);
-    var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
-    var props = comp.selectedProperties;
-    app.beginUndoGroup("Apply Velocity");
     try {
+        var data = JSON.parse(dataStr);
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return "false";
+        
+        var props = comp.selectedProperties;
+        if (props.length === 0) return "true";
+
+        var inS = parseFloat(data.inSpeed); if (isNaN(inS)) inS = 0;
+        var inI = parseFloat(data.inInflu); if (isNaN(inI)) inI = 33.3;
+        var outS = parseFloat(data.outSpeed); if (isNaN(outS)) outS = 0;
+        var outI = parseFloat(data.outInflu); if (isNaN(outI)) outI = 33.3;
+
+        inI = Math.max(0.1, Math.min(100, inI));
+        outI = Math.max(0.1, Math.min(100, outI));
+
+        app.beginUndoGroup("Apply Velocity");
         for (var i = 0; i < props.length; i++) {
             var prop = props[i];
             if (!prop.canVaryOverTime) continue;
+            
             var keys = prop.selectedKeys;
-            for (var k = 0; k < keys.length; k++) {
-                var idx = keys[k];
-                var inE = new KeyframeEase(parseFloat(data.inSpeed), parseFloat(data.inInflu));
-                var outE = new KeyframeEase(parseFloat(data.outSpeed), parseFloat(data.outInflu));
-                
-                var dim = 1;
-                try { if(prop.value.length !== undefined) dim = prop.value.length; } catch(e){}
-                
-                var inArray = [], outArray = [];
-                for(var d=0; d<dim; d++) { inArray.push(inE); outArray.push(outE); }
+            if (keys.length === 0) continue;
 
-                prop.setTemporalEaseAtKey(idx, inArray, outArray);
+            var inE = new KeyframeEase(inS, inI);
+            var outE = new KeyframeEase(outS, outI);
+            
+            var dim = 1;
+            var val = prop.value;
+            if (val instanceof Array) {
+                dim = val.length;
+            } else if (prop.propertyValueType === PropertyValueType.TwoD || prop.propertyValueType === PropertyValueType.TwoD_SPATIAL) {
+                dim = 2;
+            } else if (prop.propertyValueType === PropertyValueType.ThreeD || prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL) {
+                dim = 3;
+            }
+
+            var inArray = [], outArray = [];
+            for (var d = 0; d < dim; d++) {
+                inArray.push(inE);
+                outArray.push(outE);
+            }
+
+            for (var k = 0; k < keys.length; k++) {
+                prop.setTemporalEaseAtKey(keys[k], inArray, outArray);
             }
         }
         app.endUndoGroup();
         return "true";
-    } catch(e) {
-        app.endUndoGroup();
+    } catch (e) {
+        if (app.isInUndoGroup) app.endUndoGroup();
         return "false";
     }
 }

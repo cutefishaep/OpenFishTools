@@ -89,7 +89,7 @@ DashboardModule.prototype.saveData = function () {
         todos:  todoItems
     };
 
-    // Save to file via FileStore
+    
     if (window.FileStore) {
         window.FileStore.set('dashboard', data);
     }

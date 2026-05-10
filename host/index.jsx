@@ -1,5 +1,5 @@
-// FishTools
-// Host Script Entry Point
+
+
 
 #include "modules/polyfill.jsx"
 #include "modules/core.jsx"

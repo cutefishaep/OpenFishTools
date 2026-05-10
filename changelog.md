@@ -2,6 +2,15 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.0.3] - 2026-05-10
+### Added
+- **Persistent Beat Maker**: Threshold, Channel, and last active sub-tab (Manual/Auto) are now automatically saved and restored.
+- **Solid Block Slider**: Refined the Material You slider to a perfect "blocking" style matching modern Android volume controls.
+
+### Fixed
+- **UI State Persistence**: Fixed critical issue where Theme, Style, and Animation settings would reset to default after a UI reload.
+- **Beat Maker Settings Logic**: Fixed a reference error that prevented detection settings from loading on startup.
+
 ## [1.0.2] - 2026-05-10
 ### Added
 - **CC2018 Legacy Support**: Full refactor for Chromium 57 compatibility (Adobe CC 2018).

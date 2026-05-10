@@ -13,13 +13,49 @@ window.BeatMakerModule = function BeatMakerModule() {
 
 BeatMakerModule.prototype.init = function (csInterface) {
     this.cs = csInterface;
+    this.loadSettings();
     this.setupListeners();
+};
+
+BeatMakerModule.prototype.loadSettings = function () {
+    if (!window.settings) return;
+    var settings = window.settings.get('beatMaker');
+    if (!settings) return;
+
+    var thresSlider = document.getElementById('beat-threshold');
+    var thresLabel = document.getElementById('beat-threshold-val');
+    var chanSelect = document.getElementById('beat-channel');
+
+    if (thresSlider && settings.threshold !== undefined) {
+        thresSlider.value = settings.threshold;
+        if (thresLabel) thresLabel.textContent = settings.threshold;
+    }
+    if (chanSelect && settings.channel) {
+        chanSelect.value = settings.channel;
+    }
+
+    if (settings.lastSubTab) {
+        var btn = settings.lastSubTab === 'auto' ? document.getElementById(this.autoBtnId) : document.getElementById(this.manualBtnId);
+        if (btn) btn.click();
+    }
+};
+
+BeatMakerModule.prototype.saveSettings = function () {
+    if (!window.settings) return;
+    var thres = document.getElementById('beat-threshold').value;
+    var chan = document.getElementById('beat-channel').value;
+    var lastSub = document.getElementById(this.autoBtnId).classList.contains('active') ? 'auto' : 'manual';
+    
+    window.settings.set('beatMaker', {
+        threshold: thres,
+        channel: chan,
+        lastSubTab: lastSub
+    });
 };
 
 BeatMakerModule.prototype.setupListeners = function () {
     var self = this;
 
-    // Mode Switching
     var btnManual = document.getElementById(this.manualBtnId);
     var btnAuto = document.getElementById(this.autoBtnId);
     var panelManual = document.getElementById(this.manualControlsId);
@@ -31,6 +67,7 @@ BeatMakerModule.prototype.setupListeners = function () {
             btnAuto.classList.remove('active');
             panelManual.style.display = 'block';
             panelAuto.style.display = 'none';
+            self.saveSettings();
         });
 
         btnAuto.addEventListener('click', function () {
@@ -38,10 +75,10 @@ BeatMakerModule.prototype.setupListeners = function () {
             btnManual.classList.remove('active');
             panelAuto.style.display = 'block';
             panelManual.style.display = 'none';
+            self.saveSettings();
         });
     }
 
-    // Manual Tap
     var tapBtn = document.getElementById(this.tapBtnId);
     if (tapBtn) {
         tapBtn.addEventListener('click', function (e) {
@@ -49,15 +86,31 @@ BeatMakerModule.prototype.setupListeners = function () {
         });
     }
 
-    // Auto Detect
     var autoDetectBtn = document.getElementById(this.autoDetectBtnId);
     if (autoDetectBtn) {
         autoDetectBtn.addEventListener('click', function () {
-            self.autoDetect();
+            var thres = document.getElementById('beat-threshold').value;
+            var chan = document.getElementById('beat-channel').value;
+            self.autoDetect(thres, chan);
         });
     }
 
-    // Clear All
+    var thresSlider = document.getElementById('beat-threshold');
+    var thresLabel = document.getElementById('beat-threshold-val');
+    if (thresSlider && thresLabel) {
+        thresSlider.addEventListener('input', function() {
+            thresLabel.textContent = this.value;
+            self.saveSettings();
+        });
+    }
+
+    var chanSelect = document.getElementById('beat-channel');
+    if (chanSelect) {
+        chanSelect.addEventListener('change', function () {
+            self.saveSettings();
+        });
+    }
+
     var clearBtn = document.getElementById(this.clearBtnId);
     if (clearBtn) {
         clearBtn.addEventListener('click', function () {
@@ -70,7 +123,6 @@ BeatMakerModule.prototype.tap = function (e) {
     var self = this;
     var tapBtn = document.getElementById(this.tapBtnId);
 
-    // Anim feedback
     tapBtn.classList.add('pulse');
     setTimeout(function () { 
         tapBtn.classList.remove('pulse');
@@ -81,11 +133,10 @@ BeatMakerModule.prototype.tap = function (e) {
     }
 };
 
-BeatMakerModule.prototype.autoDetect = function () {
+BeatMakerModule.prototype.autoDetect = function (threshold, channel) {
     var self = this;
     if (!self.cs) return;
 
-    // Check if layer is selected first (Simple check via evalScript)
     self.cs.evalScript('app.project.activeItem && app.project.activeItem.selectedLayers.length > 0', function (res) {
         if (res === "false" || res === "0") {
             if (window.ModalModule) {
@@ -94,8 +145,7 @@ BeatMakerModule.prototype.autoDetect = function () {
             return;
         }
 
-        // Run the auto beat script
-        self.cs.evalScript('executeTool("BEAT_AUTO")', function (res) {
+        self.cs.evalScript('executeTool("BEAT_AUTO", "' + threshold + '", "' + channel + '")', function (res) {
             if (res && res.indexOf("ERROR") !== -1) {
                 if (window.ModalModule) window.ModalModule.error(res.replace("ERROR:", ""), "Auto Beat");
             }

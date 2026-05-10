@@ -11,7 +11,7 @@ var ModalModule = (function () {
     }
 
     function injectStyles() {
-        // Styles moved to main style.css for theme consistency
+        
     }
 
     function createDOM() {
@@ -134,7 +134,7 @@ var ModalModule = (function () {
 
     function getThemeColor(type) {
         if (type === 'error') return 'var(--danger)';
-        if (type === 'warning') return '#ffbb33'; // Warnings often stay orange for visibility
+        if (type === 'warning') return '#ffbb33'; 
         return 'var(--accent)';
     }
 

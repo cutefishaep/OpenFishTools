@@ -486,12 +486,12 @@ function _MIDWAVE() {
         var t2 = curTime;
         var t3 = curTime + (20 * fd);
 
-        // Add Adjustment Layer
+        
         var adj = comp.layers.addSolid([1, 1, 1], "Mid-Wave", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.label = 5;
 
-        // Move above selected layer if any
+        
         if (comp.selectedLayers.length > 0 && comp.selectedLayers[0].index !== adj.index) {
             adj.moveBefore(comp.selectedLayers[0]);
         }
@@ -499,11 +499,11 @@ function _MIDWAVE() {
         adj.inPoint = t1;
         adj.outPoint = t3 + fd;
 
-        // Add Marker at exact center
+        
         var markerVal = new MarkerValue("Mid-Wave Center");
         adj.property("ADBE Marker").setValueAtTime(curTime, markerVal);
 
-        // Motion Tile
+        
         var mt = adj.property("ADBE Effect Parade").addProperty("ADBE Tile");
         mt.property("ADBE Tile-0001").setValue([comp.width / 2, comp.height / 2]);
         mt.property("ADBE Tile-0002").setValue(100);
@@ -514,7 +514,7 @@ function _MIDWAVE() {
         mt.property("ADBE Tile-0007").setValue(0);
         mt.property("ADBE Tile-0008").setValue(0);
 
-        // Wave Warp 1
+        
         var ww1 = adj.property("ADBE Effect Parade").addProperty("ADBE Wave Warp");
         ww1.property("ADBE Wave Warp-0001").setValue(1);
         ww1.property("ADBE Wave Warp-0003").setValue(800);
@@ -529,7 +529,7 @@ function _MIDWAVE() {
         wh1.setValueAtTime(t3, 0);
         _applyMidWaveEase(wh1);
 
-        // Wave Warp 2
+        
         var ww2 = adj.property("ADBE Effect Parade").addProperty("ADBE Wave Warp");
         ww2.property("ADBE Wave Warp-0001").setValue(1);
         ww2.property("ADBE Wave Warp-0003").setValue(800);
@@ -544,7 +544,7 @@ function _MIDWAVE() {
         wh2.setValueAtTime(t3, 0);
         _applyMidWaveEase(wh2);
 
-        // Deselect others, select adjustment layer
+        
         for (var i = 1; i <= comp.numLayers; i++) {
             comp.layer(i).selected = false;
         }
@@ -571,7 +571,7 @@ function _HUESPIN() {
         var selectedLayer = null;
         if (comp.selectedLayers.length > 0) selectedLayer = comp.selectedLayers[0];
 
-        // Create Adjustment Layer
+        
         var adj = comp.layers.addSolid([1, 1, 1], "Hue Spin", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.label = 5;
@@ -582,34 +582,34 @@ function _HUESPIN() {
             adj.moveBefore(selectedLayer);
         }
 
-        // Add Hue/Saturation effect
+        
         var hue = adj.property("ADBE Effect Parade").addProperty("ADBE HUE SATURATION");
 
         var channelRange = hue.property("ADBE HUE SATURATION-0003");
         var masterHue = hue.property("ADBE HUE SATURATION-0004");
 
-        // 1. Move to start time
+        
         comp.time = curTime;
         masterHue.setValue(0);
         channelRange.addKey(curTime);
 
-        // 2. Move playhead to end time
+        
         comp.time = curTime + duration;
 
-        // 3. Set Master Hue to 360 while playhead is at the end time
-        // Because Channel Range is now keyframed, setting Master Hue will auto-generate a keyframe cleanly in AE
+        
+        
         masterHue.setValue(360);
 
-        // Optional: restore comp time
+        
         comp.time = curTime;
 
-        // Set linear interpolation for smooth spin
+        
         if (channelRange.numKeys >= 2) {
             channelRange.setInterpolationTypeAtKey(1, KeyframeInterpolationType.LINEAR, KeyframeInterpolationType.LINEAR);
             channelRange.setInterpolationTypeAtKey(2, KeyframeInterpolationType.LINEAR, KeyframeInterpolationType.LINEAR);
         }
 
-        // Deselect all, select the new layer
+        
         for (var i = 1; i <= comp.numLayers; i++) {
             comp.layer(i).selected = false;
         }
@@ -641,7 +641,7 @@ function _OSCILLATE() {
 
         targetLayer.parent = nullLayer;
 
-        // Add Slider Controls for easy parameter adjustment
+        
         var fx = nullLayer.property("ADBE Effect Parade");
 
         var freqCtrl = fx.addProperty("ADBE Slider Control");
@@ -731,7 +731,7 @@ function _SWING() {
 
         targetLayer.parent = nullLayer;
 
-        // Add Slider Controls for easy parameter adjustment
+        
         var fx = nullLayer.property("ADBE Effect Parade");
 
         var freqCtrl = fx.addProperty("ADBE Slider Control");
@@ -808,12 +808,12 @@ function _FISHEYE() {
         var curTime = comp.time;
         var fd = comp.frameDuration;
         
-        // Always create a new Adjustment Layer for precision
+        
         var adj = comp.layers.addSolid([0, 0, 0], "Fish Eye Ripple", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.label = 5;
         
-        // Center the layer around curTime (2 frames before, 3 frames after)
+        
         adj.startTime = curTime - (2.5 * fd);
         adj.inPoint = curTime - (2 * fd);
         adj.outPoint = curTime + (3 * fd);
@@ -834,27 +834,27 @@ function _FISHEYE() {
 
         if (!warp) throw new Error("Warp effect creation failed.");
 
-        // Use index access for maximum compatibility
-        var warpStyle = warp.property(1); // Warp Style
-        var bend = warp.property(3);      // Bend
         
-        if (warpStyle) warpStyle.setValue(12); // Set to FishEye
+        var warpStyle = warp.property(1); 
+        var bend = warp.property(3);      
+        
+        if (warpStyle) warpStyle.setValue(12); 
         
         if (!bend) throw new Error("Could not find Bend property in Warp effect.");
         
-        // Perfect Fish Eye Ripple Sequence (6 Keys)
+        
         bend.setValueAtTime(curTime - (5 * fd), 0);
         bend.setValueAtTime(curTime - (2 * fd), 20);
-        bend.setValueAtTime(curTime, -100);          // PEAK
+        bend.setValueAtTime(curTime, -100);          
         bend.setValueAtTime(curTime + (4 * fd), 20);
         bend.setValueAtTime(curTime + (10 * fd), -5);
         bend.setValueAtTime(curTime + (18 * fd), 0);
         
-        // Adjust layer duration for the new timing (Starts at -5f, ends at +18f)
+        
         adj.inPoint = curTime - (5 * fd);
         adj.outPoint = curTime + (19 * fd);
         
-        // Apply basic easy ease (33% influence) to all 6 keys
+        
         for (var i = 1; i <= 6; i++) {
             bend.setInterpolationTypeAtKey(i, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
             var ease = new KeyframeEase(0, 33.33333);
@@ -870,7 +870,7 @@ function _FISHEYE() {
     }
 }
 
-// --- CUTE FISH STYLE HELPERS ---
+
 
 function _getEffectGroup(layer) {
     if (!layer) return null;
@@ -908,7 +908,7 @@ function _createStyleLayer(type, name) {
     return layer;
 }
 
-// --- CUTE FISH STYLE EFFECTS ---
+
 
 function _CF_COLORIZE() {
     app.beginUndoGroup("CF Colorize");
@@ -919,7 +919,7 @@ function _CF_COLORIZE() {
         var r = Math.random();
         var g = Math.random();
         var b = Math.random();
-        tint.property("ADBE Tint-0002").setValue([r, g, b]); // Map White To
+        tint.property("ADBE Tint-0002").setValue([r, g, b]); 
         return true;
     } catch(e) { return JSON.stringify({error: true, message: e.toString(), tool: "Colorize"}); }
     finally { app.endUndoGroup(); }
@@ -932,17 +932,17 @@ function _CF_SCANLINE() {
         var effects = _getEffectGroup(layer);
         var tv = effects.addProperty("S_TVDamage");
         
-        // Data presisi dari Debug Log
-        tv.property("S_TVDamage-0050").setValue(0);    // Reception Master
-        tv.property("S_TVDamage-0051").setValue(0.6);  // Interference Amp
-        tv.property("S_TVDamage-0052").setValue(0.6);  // Ghost Amp
-        tv.property("S_TVDamage-0053").setValue(0.5);  // Horizontal Hold
-        tv.property("S_TVDamage-0054").setValue(0.8);  // Vertical Hold
-        tv.property("S_TVDamage-0055").setValue(0.3);  // Bars Brightness
-        tv.property("S_TVDamage-0060").setValue(0.8);  // Static Amplitude
-        tv.property("S_TVDamage-0061").setValue(0.7);  // Static Density
-        tv.property("S_TVDamage-0101").setValue(1.1);  // Scanlines
-        tv.property("S_TVDamage-0102").setValue(0.65); // Scanlines Rel Freq
+        
+        tv.property("S_TVDamage-0050").setValue(0);    
+        tv.property("S_TVDamage-0051").setValue(0.6);  
+        tv.property("S_TVDamage-0052").setValue(0.6);  
+        tv.property("S_TVDamage-0053").setValue(0.5);  
+        tv.property("S_TVDamage-0054").setValue(0.8);  
+        tv.property("S_TVDamage-0055").setValue(0.3);  
+        tv.property("S_TVDamage-0060").setValue(0.8);  
+        tv.property("S_TVDamage-0061").setValue(0.7);  
+        tv.property("S_TVDamage-0101").setValue(1.1);  
+        tv.property("S_TVDamage-0102").setValue(0.65); 
         return true;
     } catch(e) { return JSON.stringify({error: true, message: e.toString(), tool: "Scanline"}); }
     finally { app.endUndoGroup(); }
@@ -956,7 +956,7 @@ function _CF_MONO() {
         try {
             effects.addProperty("ADBE Black & White");
         } catch(e) {
-            // Fallback jika match name gagal
+            
             effects.addProperty("Black & White");
         }
         return true;
@@ -971,20 +971,20 @@ function _CF_STARBURST() {
         var effects = _getEffectGroup(layer);
         
         var starburst = effects.addProperty("CC Star Burst");
-        starburst.property("CC Star Burst-0001").setValue(100); // Scatter
-        starburst.property("CC Star Burst-0004").setValue(32);  // Grid Spacing
-        starburst.property("CC Star Burst-0005").setValue(20);  // Size
+        starburst.property("CC Star Burst-0001").setValue(100); 
+        starburst.property("CC Star Burst-0004").setValue(32);  
+        starburst.property("CC Star Burst-0005").setValue(20);  
 
         var fill = effects.addProperty("ADBE Fill");
         var r = Math.random();
         var g = Math.random();
         var b = Math.random();
-        fill.property("ADBE Fill-0002").setValue([r, g, b]); // Random Color
+        fill.property("ADBE Fill-0002").setValue([r, g, b]); 
 
         effects.addProperty("ADBE Bevel Alpha").property("ADBE Bevel Alpha-0001").setValue(2);
         effects.addProperty("ADBE Drop Shadow").property("ADBE Drop Shadow-0004").setValue(14);
         
-        try { effects.addProperty("PEDG"); } catch(err) {} // Deep Glow
+        try { effects.addProperty("PEDG"); } catch(err) {} 
         
         return true;
     } catch(e) { return JSON.stringify({error: true, message: e.toString(), tool: "Starburst"}); }
@@ -998,9 +998,9 @@ function _CF_GRID() {
         var effects = _getEffectGroup(layer);
         
         var grid = effects.addProperty("ADBE Grid");
-        grid.property("ADBE Grid-0002").setValue(4);  // Size From: Width Slider
-        grid.property("ADBE Grid-0004").setValue(32); // Width
-        grid.property("ADBE Grid-0006").setValue(5);  // Border
+        grid.property("ADBE Grid-0002").setValue(4);  
+        grid.property("ADBE Grid-0004").setValue(32); 
+        grid.property("ADBE Grid-0006").setValue(5);  
         
         effects.addProperty("ADBE Bevel Alpha").property("ADBE Bevel Alpha-0004").setValue(0.4);
         effects.addProperty("ADBE Drop Shadow").property("ADBE Drop Shadow-0004").setValue(5);
@@ -1020,14 +1020,14 @@ function _CF_RADIO() {
         var effects = _getEffectGroup(layer);
         
         var radio = effects.addProperty("APC Radio Waves");
-        radio.property("APC Radio Waves-0002").setValue(1); // Wave Type: Polygon
-        radio.property("APC Radio Waves-0008").setValue(5); // Sides
-        radio.property("APC Radio Waves-0014").setValue(1); // Star: ENABLED
-        radio.property("APC Radio Waves-0016").setValue(-0.5); // Star Depth
-        radio.property("APC Radio Waves-0036").setValue(35); // Expansion
-        radio.property("APC Radio Waves-0044").setValue(27); // Spin
-        radio.property("APC Radio Waves-0050").setValue(5);  // Start Width
-        radio.property("APC Radio Waves-0052").setValue(5);  // End Width
+        radio.property("APC Radio Waves-0002").setValue(1); 
+        radio.property("APC Radio Waves-0008").setValue(5); 
+        radio.property("APC Radio Waves-0014").setValue(1); 
+        radio.property("APC Radio Waves-0016").setValue(-0.5); 
+        radio.property("APC Radio Waves-0036").setValue(35); 
+        radio.property("APC Radio Waves-0044").setValue(27); 
+        radio.property("APC Radio Waves-0050").setValue(5);  
+        radio.property("APC Radio Waves-0052").setValue(5);  
 
         effects.addProperty("ADBE Bevel Alpha").property("ADBE Bevel Alpha-0001").setValue(3);
         effects.addProperty("ADBE Drop Shadow").property("ADBE Drop Shadow-0004").setValue(21);
@@ -1047,8 +1047,8 @@ function _CF_GLOW_AURA() {
         var layer = comp.selectedLayers[0];
         var effects = _getEffectGroup(layer);
         var glow = effects.addProperty("S_GlowAura");
-        glow.property("S_GlowAura-0056").setValue(96); // Glow Width
-        glow.property("S_GlowAura-0050").setValue(0.8); // Brightness
+        glow.property("S_GlowAura-0056").setValue(96); 
+        glow.property("S_GlowAura-0050").setValue(0.8); 
         return true;
     } catch(e) { return JSON.stringify({error: true, message: e.toString(), tool: "Glow Aura"}); }
     finally { app.endUndoGroup(); }
@@ -1063,16 +1063,16 @@ function _CF_SOLID_AURA() {
         var effects = _getEffectGroup(layer);
         
         var minimax = effects.addProperty("ADBE Minimax");
-        minimax.property("ADBE Minimax-0001").setValue(2); // Maximum
-        minimax.property("ADBE Minimax-0002").setValue(28); // Radius
-        minimax.property("ADBE Minimax-0003").setValue(2);  // Alpha & Color
+        minimax.property("ADBE Minimax-0001").setValue(2); 
+        minimax.property("ADBE Minimax-0002").setValue(28); 
+        minimax.property("ADBE Minimax-0003").setValue(2);  
         
         effects.addProperty("ADBE Fill").property("ADBE Fill-0002").setValue([1, 1, 1]);
         
         var turb = effects.addProperty("ADBE Turbulent Displace");
-        turb.property("ADBE Turbulent Displace-0001").setValue(1); // Turbulent
-        turb.property("ADBE Turbulent Displace-0002").setValue(50); // Amount
-        turb.property("ADBE Turbulent Displace-0003").setValue(18); // Size
+        turb.property("ADBE Turbulent Displace-0001").setValue(1); 
+        turb.property("ADBE Turbulent Displace-0002").setValue(50); 
+        turb.property("ADBE Turbulent Displace-0003").setValue(18); 
         
         effects.addProperty("ADBE Bevel Alpha").property("ADBE Bevel Alpha-0001").setValue(3);
         try { effects.addProperty("PEDG").property("PEDG-0002").setValue(0.3); } catch(err) {}
@@ -1091,13 +1091,13 @@ function _CF_SHATTER_SIMPLE() {
         var effects = _getEffectGroup(layer);
         var shatter = effects.addProperty("APC Shatter");
         
-        // Data presisi dari Debug Log & Request
-        shatter.property("APC Shatter-0002").setValue(1); // View: Rendered
-        shatter.property("APC Shatter-0028").setValue(2); // Radius Force 1
-        shatter.property("APC Shatter-0030").setValue(5); // Strength Force 1
-        shatter.property("APC Shatter-0038").setValue(5); // Strength Force 2
-        shatter.property("APC Shatter-0050").setValue(3); // Gravity
-        shatter.property("APC Shatter-0006").setValue(8); // Pattern (Glass)
+        
+        shatter.property("APC Shatter-0002").setValue(1); 
+        shatter.property("APC Shatter-0028").setValue(2); 
+        shatter.property("APC Shatter-0030").setValue(5); 
+        shatter.property("APC Shatter-0038").setValue(5); 
+        shatter.property("APC Shatter-0050").setValue(3); 
+        shatter.property("APC Shatter-0006").setValue(8); 
         
         return true;
     } catch(e) { return JSON.stringify({error: true, message: e.toString(), tool: "Shatter Simple"}); }
@@ -1113,20 +1113,20 @@ function _CF_SHATTER_SLOW() {
         var effects = _getEffectGroup(layer);
         var shatter = effects.addProperty("APC Shatter");
         
-        // Data presisi dari Debug Log & Request
-        shatter.property("APC Shatter-0002").setValue(1); // View: Rendered
-        shatter.property("APC Shatter-0028").setValue(2); // Radius Force 1
-        shatter.property("APC Shatter-0030").setValue(0.3); // Strength
-        shatter.property("APC Shatter-0050").setValue(0);   // Gravity
-        shatter.property("APC Shatter-0040").setValue(0);   // Rotation Speed
-        shatter.property("APC Shatter-0006").setValue(8);   // Pattern (Glass)
+        
+        shatter.property("APC Shatter-0002").setValue(1); 
+        shatter.property("APC Shatter-0028").setValue(2); 
+        shatter.property("APC Shatter-0030").setValue(0.3); 
+        shatter.property("APC Shatter-0050").setValue(0);   
+        shatter.property("APC Shatter-0040").setValue(0);   
+        shatter.property("APC Shatter-0006").setValue(8);   
         
         return true;
     } catch(e) { return JSON.stringify({error: true, message: e.toString(), tool: "Shatter Slow"}); }
     finally { app.endUndoGroup(); }
 }
 
-// Tool registration
+
 tools.TRANS_FADE_IN = function () { return _applyTransition("ADBE Opacity", "IN"); };
 tools.TRANS_FADE_OUT = function () { return _applyTransition("ADBE Opacity", "OUT"); };
 tools.TRANS_SCALE_IN = function () { return _applyTransition("ADBE Scale", "IN"); };

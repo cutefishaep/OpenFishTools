@@ -1,12 +1,6 @@
 'use strict';
 
-/**
- * UpdateModule
- * Handles checking for updates from GitHub API.
- * 
- * Note: CC 2017 (Major Version 14) has issues with fetch/network requests in CEP 7.x.
- * CC 2018+ (Major Version 15+, CEP 8.0+) supports modern fetch API.
- */
+
 var UpdateModule = (function () {
     var GITHUB_API = "https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest";
     var GITHUB_URL = "https://github.com/cutefishaep/OpenFishTools/releases/latest";
@@ -22,21 +16,18 @@ var UpdateModule = (function () {
             curVerEl.textContent = "v" + (window.EXTENSION_VERSION || "0.0.8");
         }
         
-        // Auto check on load silently
+        
         setTimeout(function() { checkUpdate(true); }, 1000);
     }
 
-    /**
-     * Checks for updates.
-     * Branches logic based on After Effects version.
-     */
+    
     function checkUpdate(silent) {
         if (!window.csInterface) return;
 
         window.csInterface.evalScript("app.version", function (res) {
             var majorVersion = parseInt(res, 10);
 
-            // CC 2017 is version 14.x
+            
             if (majorVersion && majorVersion <= 14) {
                 if (!silent && window.ModalModule) {
                     window.ModalModule.confirm(
@@ -54,14 +45,12 @@ var UpdateModule = (function () {
                 return;
             }
 
-            // CC 2018+ (Version 15+)
+            
             performFetchCheck(silent);
         });
     }
 
-    /**
-     * Performs a fetch request to GitHub API to check for the latest release.
-     */
+    
     function performFetchCheck(silent) {
         var btn = document.getElementById('btn-check-update');
         var latestVerEl = document.getElementById('update-latest-ver');
@@ -122,9 +111,7 @@ var UpdateModule = (function () {
             });
     }
 
-    /**
-     * Semantic version comparison (simple)
-     */
+    
     function isNewer(latest, current) {
         var l = latest.split('.').map(Number);
         var c = current.split('.').map(Number);

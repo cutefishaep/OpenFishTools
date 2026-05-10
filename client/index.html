@@ -91,7 +91,21 @@
 
                 
                 <div id="beat-auto-controls" style="display:none; padding: 5px 0;">
-                    <p class="text-muted mb-8" style="text-align:center;">Detect beats from selected audio layer</p>
+                    <div class="settings-row" style="margin-bottom: 8px;">
+                        <span class="status-label">SENSITIVITY</span>
+                        <div style="flex:1; display:flex; align-items:center; gap:8px;">
+                            <input type="range" id="beat-threshold" min="5" max="50" value="15" style="flex:1;">
+                            <span id="beat-threshold-val" style="font-size:10px; width:15px; color:var(--accent);">15</span>
+                        </div>
+                    </div>
+                    <div class="settings-row" style="margin-bottom: 12px;">
+                        <span class="status-label">CHANNEL</span>
+                        <select id="beat-channel" style="font-size: 10px; height: 24px; padding: 0 4px;">
+                            <option value="Both Channels">Both Channels</option>
+                            <option value="Left Channel">Left Channel</option>
+                            <option value="Right Channel">Right Channel</option>
+                        </select>
+                    </div>
                     <button id="btn-beat-auto-detect" class="btn-primary w-full" style="height: 32px;">
                         <span class="material-icons"
                             style="font-size:16px !important; margin-right:6px;">graphic_eq</span>

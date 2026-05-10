@@ -21,7 +21,6 @@ var GraphModule = (function () {
     var isVelSnapEnabled = false, isVelAutoEnabled = false;
     var btnVelSnap, btnVelAuto;
 
-
     function init() {
         canvas = document.getElementById('ease-graph');
         if (!canvas) return;
@@ -36,7 +35,6 @@ var GraphModule = (function () {
         btnSavePreset = document.getElementById('btn-save-preset');
         presetList = document.getElementById('preset-list');
 
-        // Velocity Controls
         var btnVelRead = document.getElementById('btn-vel-read');
         var btnVelApply = document.getElementById('btn-vel-apply');
         if (btnVelRead) btnVelRead.addEventListener('click', readVelocity);
@@ -53,7 +51,6 @@ var GraphModule = (function () {
         window.addEventListener('touchmove', onTouchMove, { passive: false });
         window.addEventListener('touchend', onMouseUp);
 
-        // Velocity Controls listeners
         var velInputs = ['input-vel-in-speed', 'input-vel-in-infl', 'input-vel-out-speed', 'input-vel-out-infl'];
         velInputs.forEach(function(id) {
             var el = document.getElementById(id);
@@ -75,11 +72,10 @@ var GraphModule = (function () {
             render();
         });
         window.addEventListener('keyup', function (e) {
-            if (e.key === 'Shift') isSnapEnabled = btnSnap.classList.contains('active');
+            if (e.key === 'Shift') isSnapEnabled = btnSnap ? btnSnap.classList.contains('active') : false;
             render();
         });
 
-        // Speed Graph Interactive Setup
         speedCanvas = document.getElementById('speed-preview-canvas');
         btnVelSnap = document.getElementById('btn-vel-snap');
         btnVelAuto = document.getElementById('btn-vel-auto');
@@ -111,6 +107,7 @@ var GraphModule = (function () {
     }
 
     function resize() {
+        if (!canvas) return;
         var parent = canvas.parentElement;
         var rect = parent.getBoundingClientRect();
         parent.style.height = rect.width + 'px';
@@ -124,18 +121,18 @@ var GraphModule = (function () {
 
     function toggleSnap() {
         isSnapEnabled = !isSnapEnabled;
-        btnSnap.classList.toggle('active', isSnapEnabled);
+        if (btnSnap) btnSnap.classList.toggle('active', isSnapEnabled);
     }
 
     function toggleOvershoot() {
         isOvershootEnabled = !isOvershootEnabled;
-        btnOvershoot.classList.toggle('active', isOvershootEnabled);
+        if (btnOvershoot) btnOvershoot.classList.toggle('active', isOvershootEnabled);
         resize();
     }
 
     function toggleAutoApply() {
         isAutoApplyEnabled = !isAutoApplyEnabled;
-        btnAuto.classList.toggle('active', isAutoApplyEnabled);
+        if (btnAuto) btnAuto.classList.toggle('active', isAutoApplyEnabled);
     }
 
     function getLayout() {
@@ -187,7 +184,7 @@ var GraphModule = (function () {
         var s2 = getScreenPos(cp2.x, cp2.y);
         var dist1 = Math.hypot(x - s1.x, y - s1.y);
         var dist2 = Math.hypot(x - s2.x, y - s2.y);
-        var threshold = 35; // Larger threshold for easier grabbing
+        var threshold = 35;
 
         if (dist1 < threshold) {
             isDragging = 'cp1';
@@ -357,7 +354,6 @@ var GraphModule = (function () {
 
     function drawPoint(context, x, y, color) {
         context.fillStyle = color;
-        // Draw glow/shadow for better visibility
         context.shadowBlur = 4;
         context.shadowColor = 'rgba(0,0,0,0.3)';
         context.beginPath();
@@ -365,7 +361,6 @@ var GraphModule = (function () {
         context.fill();
         context.shadowBlur = 0;
         
-        // Add a stroke for visibility on light themes
         context.strokeStyle = 'rgba(0,0,0,0.1)';
         context.lineWidth = 1;
         context.stroke();
@@ -378,14 +373,12 @@ var GraphModule = (function () {
                 if (!res || res === 'false') return;
                 var data = JSON.parse(res);
                 if (data.error) {
-                    console.warn("Read Ease:", data.error);
                     return;
                 }
                 cp1 = { x: data.x1, y: data.y1 };
                 cp2 = { x: data.x2, y: data.y2 };
                 render();
             } catch (e) {
-                console.error("FishTools: Parse Ease Error", e);
             }
         });
     }
@@ -554,8 +547,8 @@ var GraphModule = (function () {
     }
 
     function readVelocity() {
-        if (!window.csInterface) return;
-        window.csInterface.evalScript('_readVelocity()', function (res) {
+        var cs = new CSInterface();
+        cs.evalScript('FishTools.readVelocity()', function (res) {
             try {
                 var data = JSON.parse(res);
                 if (data.error) return;
@@ -607,12 +600,10 @@ var GraphModule = (function () {
             }
         }
 
-        // AE Speed Graph Calculation (Exact dy/dx sampling)
         var accent = getCSSVar('--accent') || '#ffb400';
         var points = [];
-        var steps = 100; // Increased resolution for "sharpness"
+        var steps = 100;
         
-        // Influence constraints like AE
         var totalInf = outInf + inInf;
         var i1 = outInf / 100, i2 = inInf / 100;
         if (totalInf > 100) {
@@ -622,7 +613,6 @@ var GraphModule = (function () {
         var s1 = outSpd, s2 = inSpd;
         var dv = 100;
         
-        // AE uses a specific internal factor for handle lengths
         var p1x = i1, p1y = (s1 * i1) / dv;
         var p2x = 1 - i2, p2y = 1 - (s2 * i2) / dv;
 
@@ -638,28 +628,8 @@ var GraphModule = (function () {
             points.push({ x: padX + (xPos * graphW), y: y });
         }
 
-        // Sort points by X just in case
         points.sort(function(a, b) { return a.x - b.x; });
 
-        // Gradient fill removed as per 'no glow' request
-        /*
-        if (isFull && points.length > 0) {
-            var minY = Math.min.apply(Math, points.map(function(p){ return p.y; }));
-            var gradient = cx.createLinearGradient(0, minY, 0, h - padY);
-            gradient.addColorStop(0, accent + '33'); 
-            gradient.addColorStop(1, 'transparent');
-            cx.fillStyle = gradient;
-            cx.beginPath();
-            cx.moveTo(points[0].x, points[0].y);
-            for (var i = 1; i < points.length; i++) cx.lineTo(points[i].x, points[i].y);
-            cx.lineTo(points[points.length-1].x, h - padY);
-            cx.lineTo(points[0].x, h - padY);
-            cx.closePath();
-            cx.fill();
-        }
-        */
-
-        // Draw the curve
         cx.beginPath();
         cx.moveTo(points[0].x, points[0].y);
         for (var i = 1; i < points.length; i++) {
@@ -678,19 +648,17 @@ var GraphModule = (function () {
             var clrDim = getCSSVar('--text-mut') || 'rgba(255,255,255,0.2)';
             cx.strokeStyle = clrDim;
             cx.lineWidth = 1.5;
-            cx.setLineDash([2, 2]); // Dotted handle lines like AE
+            cx.setLineDash([2, 2]);
             cx.stroke();
             cx.setLineDash([]);
 
             cx.fillStyle = accent;
-            // Keyframes are smaller squares (AE style)
             cx.fillRect(padX - 4, startY - 4, 8, 8);
             cx.fillRect(w - padX - 4, endY - 4, 8, 8);
             
             var clrHandle = getCSSVar('--graph-handle') || '#ffffff';
             cx.fillStyle = clrHandle;
             
-            // Interaction Handles (Dots)
             cx.beginPath(); cx.arc(cp1X, cp1Y, 11, 0, Math.PI*2); cx.fill();
             cx.beginPath(); cx.arc(cp2X, cp2Y, 11, 0, Math.PI*2); cx.fill();
 
@@ -700,19 +668,14 @@ var GraphModule = (function () {
         }
     }
 
-    // Interactive Speed Graph Dragging
     function getSpeedPos(inInf, inSpd, outInf, outSpd, w, h) {
         var padX = 15;
         var padY = 15;
         var graphW = w - padX * 2;
         var graphH = h - padY * 2;
-        // Support higher speeds for dragging (up to 500)
         var maxSpeed = Math.max(Math.abs(inSpd), Math.abs(outSpd), 500);
         function getY(speed) { return (h - padY) - (Math.abs(speed) / maxSpeed) * graphH; }
         
-        // VISUAL MAPPING FIX:
-        // Left handle = Keyframe 1 Outgoing (outInf, outSpd)
-        // Right handle = Keyframe 2 Incoming (inInf, inSpd)
         return {
             cp1X: padX + graphW * (outInf / 100), cp1Y: getY(outSpd),
             cp2X: (w - padX) - graphW * (inInf / 100), cp2Y: getY(inSpd),
@@ -721,6 +684,7 @@ var GraphModule = (function () {
     }
 
     function onSpeedMouseDown(e) {
+        if (!speedCanvas) return;
         var rect = speedCanvas.getBoundingClientRect();
         var scaleX = speedCanvas.width / rect.width;
         var scaleY = speedCanvas.height / rect.height;
@@ -736,7 +700,6 @@ var GraphModule = (function () {
         var dist1 = Math.hypot(mx - pos.cp1X, my - pos.cp1Y);
         var dist2 = Math.hypot(mx - pos.cp2X, my - pos.cp2Y);
 
-        // Pick the closest handle (Simulated Z-axis/Priority logic)
         if (dist1 < 35 || dist2 < 35) {
             if (dist1 <= dist2) isDraggingSpeed = 'cp1';
             else isDraggingSpeed = 'cp2';
@@ -744,6 +707,7 @@ var GraphModule = (function () {
     }
 
     function onSpeedMouseMove(e) {
+        if (!speedCanvas) return;
         var rect = speedCanvas.getBoundingClientRect();
         var scaleX = speedCanvas.width / rect.width;
         var scaleY = speedCanvas.height / rect.height;
@@ -768,13 +732,11 @@ var GraphModule = (function () {
         speedCanvas.style.cursor = 'grabbing';
         
         if (isDraggingSpeed === 'cp1') {
-            // Dragging left handle (X-axis ONLY: outInf)
             var newOutInf = ((mx - pos.padX) / pos.graphW) * 100;
             if (isVelSnapEnabled) newOutInf = Math.round(newOutInf / 5) * 5;
             newOutInf = Math.max(0.1, Math.min(100 - inInf, newOutInf));
             document.getElementById('input-vel-out-infl').value = Math.round(newOutInf);
         } else {
-            // Dragging right handle (X-axis ONLY: inInf)
             var newInInf = ((speedCanvas.width - pos.padX - mx) / pos.graphW) * 100;
             if (isVelSnapEnabled) newInInf = Math.round(newInInf / 5) * 5;
             newInInf = Math.max(0.1, Math.min(100 - outInf, newInInf));
@@ -793,7 +755,6 @@ var GraphModule = (function () {
         isDraggingSpeed = null;
     }
 
-    // Velocity Presets Logic
     function loadVelPresets() {
         if (!window.FileStore) return;
         var data = window.FileStore.get('vel_presets');
@@ -815,7 +776,7 @@ var GraphModule = (function () {
         window.ModalModule.prompt('Enter a name for this speed preset:', 'P' + (velPresets.length + 1), function (name) {
             if (!name) return;
             
-            if (velPresets.length >= 10) velPresets.shift(); // Max 10
+            if (velPresets.length >= 10) velPresets.shift();
             velPresets.push({
                 name: name,
                 inSpd: parseFloat(document.getElementById('input-vel-in-speed').value) || 0,
@@ -846,7 +807,6 @@ var GraphModule = (function () {
             btn.style.position = 'relative';
             btn.style.padding = '4px';
             
-            // Delete Button (x)
             var delBtn = document.createElement('div');
             delBtn.innerHTML = '&times;';
             delBtn.style.position = 'absolute';
@@ -916,15 +876,14 @@ var GraphModule = (function () {
     }
 
     function applyVelocity() {
-        if (!window.csInterface) return;
+        var cs = new CSInterface();
         var data = {
             inSpeed: document.getElementById('input-vel-in-speed').value,
             inInflu: document.getElementById('input-vel-in-infl').value,
             outSpeed: document.getElementById('input-vel-out-speed').value,
             outInflu: document.getElementById('input-vel-out-infl').value
         };
-        // MUST wrap JSON in single quotes for ExtendScript to receive it as a string
-        window.csInterface.evalScript('_applyVelocity(\'' + JSON.stringify(data) + '\')', function (res) {
+        cs.evalScript('FishTools.applyVelocity(\'' + JSON.stringify(data) + '\')', function (res) {
             if (res !== "true" && window.ModalModule) {
                 window.ModalModule.error("Failed to apply velocity.", "Speed Graph");
             }

@@ -68,7 +68,7 @@ function _CURV() {
     return true;
 }
 
-// Tool registration
+
 tools.HUE = function () { return _HUE(); };
 tools.FILL = function () { return _FILL(); };
 tools.TINT = function () { return _TINT(); };

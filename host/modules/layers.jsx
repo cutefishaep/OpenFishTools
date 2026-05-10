@@ -470,7 +470,7 @@ function _setAnchorPoint(pos) {
     }
 }
 
-// Tool registration
+
 tools.FRZ = function () { return _FRZ(); };
 tools.FIT = function (alter) { return _FIT(alter); };
 tools.DSH = function () { return _DSH(); };
