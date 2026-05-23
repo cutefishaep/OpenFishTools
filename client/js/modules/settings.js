@@ -56,9 +56,11 @@ SettingsModule.prototype.saveSettings = function () {
     if (store) store.set('config', this.settings);
 };
 
-SettingsModule.prototype.applySettings = function () {
-    this.restoreLastTab();
-    
+SettingsModule.prototype.applySettings = function (skipTabRestore) {
+    if (!skipTabRestore) {
+        this.restoreLastTab();
+    }
+
     var theme = this.settings.theme || 'dark';
     var style = this.settings.uiStyle || 'capsule';
     var anim = this.settings.animEnabled !== false;
@@ -66,12 +68,12 @@ SettingsModule.prototype.applySettings = function () {
     // Apply to DOM
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-anim', anim ? 'on' : 'off');
-    
+
     document.body.classList.remove('style-material-you', 'style-simple');
     if (style === 'material') document.body.classList.add('style-material-you');
     if (style === 'simple') document.body.classList.add('style-simple');
 
-    // Sync UI elements
+    // Sync native select values
     var themeSelect = document.getElementById('theme-select');
     if (themeSelect) themeSelect.value = theme;
 
@@ -81,27 +83,30 @@ SettingsModule.prototype.applySettings = function () {
     var animToggle = document.getElementById('anim-toggle');
     if (animToggle) animToggle.checked = anim;
 
-    // Refresh custom selects if they exist
-    if (window.setupCustomSelects) {
-        // Trigger a refresh on the original selects to update custom triggers
-        ['theme-select', 'style-select'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) {
-                var event = new Event('refresh');
-                el.dispatchEvent(event);
-                
-                // Also update trigger text manually since refresh just updates options
-                var container = document.getElementById('container-' + id);
-                if (container) {
-                    var trigger = container.querySelector('.custom-select-trigger span');
-                    if (trigger) {
-                        var _idx = el.selectedIndex;
-                        trigger.textContent = (_idx >= 0 && el.options[_idx]) ? el.options[_idx].text : 'Select...';
-                    }
-                }
-            }
+    // Sync custom select UI (trigger text + selected option highlight)
+    ['theme-select', 'style-select'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+
+        var container = document.getElementById('container-' + id);
+        if (!container) return;
+
+        // Update trigger label
+        var trigger = container.querySelector('.custom-select-trigger span');
+        if (trigger) {
+            var _idx = el.selectedIndex;
+            trigger.textContent = (_idx >= 0 && el.options[_idx]) ? el.options[_idx].text : 'Select...';
+        }
+
+        // Update selected highlight in options list
+        var allOpts = container.querySelectorAll('.custom-select-option');
+        var currentVal = el.value;
+        var optEls = Array.from(el.options);
+        allOpts.forEach(function (optEl, i) {
+            var nativeOpt = optEls[i];
+            optEl.classList.toggle('selected', !!(nativeOpt && nativeOpt.value === currentVal));
         });
-    }
+    });
 
     if (window.GraphModule && typeof window.GraphModule.refresh === 'function') {
         window.GraphModule.refresh();

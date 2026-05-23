@@ -1,18 +1,12 @@
 'use strict';
 
+// Pre-create lightweight module instances that don't need DOM
 try {
     window.csInterface = new CSInterface();
-    if (window.FileStore) {
-        var _extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
-        window.FileStore.init(_extPath);
-    }
-    window.settings = new window.SettingsModule();
-    window.settings.init();
-    
     window.tips = new window.TipsModule();
     window.stopwatch = new window.StopwatchModule();
 } catch (e) {
-    console.error("FishTools: Module instantiation failed", e);
+    console.error("FishTools: Pre-init failed", e);
 }
 
 function setupFlyoutMenu() {
@@ -258,12 +252,28 @@ window.setupTooltips = function () {
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    // --- Initialize FileStore and Settings now that DOM is ready ---
+    try {
+        if (window.FileStore && window.csInterface) {
+            var _extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
+            window.FileStore.init(_extPath);
+        }
+        if (window.SettingsModule) {
+            window.settings = new window.SettingsModule();
+            // Load settings but don't apply yet — wait for custom selects to be built
+            window.settings.loadSettings();
+            window.settings.setupListeners();
+        }
+    } catch (e) {
+        console.error('FishTools: Settings init failed', e);
+    }
+
     var themeSelect = document.getElementById('theme-select');
     if (themeSelect) {
         themeSelect.addEventListener('change', function () {
             if (window.settings) {
                 window.settings.set('theme', this.value);
-                window.settings.applySettings();
+                window.settings.applySettings(true);
             }
         });
     }
@@ -273,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
         styleSelect.addEventListener('change', function () {
             if (window.settings) {
                 window.settings.set('uiStyle', this.value);
-                window.settings.applySettings();
+                window.settings.applySettings(true);
             }
         });
     }
@@ -283,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
         animToggle.addEventListener('change', function () {
             if (window.settings) {
                 window.settings.set('animEnabled', this.checked);
-                window.settings.applySettings();
+                window.settings.applySettings(true);
             }
         });
     }
@@ -394,9 +404,148 @@ document.addEventListener('DOMContentLoaded', function () {
 
         setupTooltips();
         loadSystemInfo();
+
+        // Build custom selects FIRST, then apply saved settings so
+        // the custom dropdown triggers show the correct saved value
         setupCustomSelects();
+        if (window.settings) {
+            window.settings.applySettings();
+        }
+
+        // Check AE script write permission after everything is loaded
+        checkScriptPermissions();
     });
 });
+
+function checkScriptPermissions() {
+    if (!window.csInterface) return;
+
+    // Try to write a small test file via ExtendScript to verify write permission
+    var testScript = [
+        '(function() {',
+        '  try {',
+        '    var f = new File(Folder.temp + "/fishtools_permtest.tmp");',
+        '    if (f.open("w")) { f.write("ok"); f.close(); f.remove(); return "ok"; }',
+        '    return "denied";',
+        '  } catch(e) { return "denied"; }',
+        '})()'
+    ].join('');
+
+    csInterface.evalScript(testScript, function (result) {
+        if (result === 'ok') return; // Permission granted, all good
+
+        // Permission not granted — show blocking modal
+        showPermissionModal();
+    });
+}
+
+function showPermissionModal() {
+    // Build a custom blocking modal (ModalModule may not support rich HTML content)
+    var overlay = document.createElement('div');
+    overlay.id = 'perm-modal-overlay';
+    overlay.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:99999',
+        'display:flex', 'align-items:center', 'justify-content:center',
+        'background:rgba(0,0,0,0.75)', 'backdrop-filter:blur(6px)',
+        '-webkit-backdrop-filter:blur(6px)', 'padding:16px'
+    ].join(';');
+
+    var box = document.createElement('div');
+    box.style.cssText = [
+        'background:var(--surface, #1a1a1a)',
+        'border:1px solid var(--border, #333)',
+        'border-radius:14px',
+        'padding:20px 20px 16px',
+        'max-width:320px', 'width:100%',
+        'box-shadow:0 24px 60px rgba(0,0,0,0.6)',
+        'font-family:var(--font, sans-serif)',
+        'animation:modal-in 0.25s cubic-bezier(0.34,1.56,0.64,1) both'
+    ].join(';');
+
+    // Icon + Title
+    var header = document.createElement('div');
+    header.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;';
+    header.innerHTML = [
+        '<span class="material-icons" style="color:#ffbb33;font-size:22px;">lock</span>',
+        '<span style="font-weight:700;font-size:13px;color:var(--text,#fff);letter-spacing:0.5px;">Permission Required</span>'
+    ].join('');
+
+    // Description
+    var desc = document.createElement('p');
+    desc.style.cssText = 'font-size:11px;color:var(--text-mut,#888);line-height:1.6;margin:0 0 14px;';
+    desc.textContent = 'Fish Tools needs write access to save your settings, presets, and graph data. Please enable it in After Effects preferences.';
+
+    // Steps
+    var steps = document.createElement('div');
+    steps.style.cssText = 'background:var(--bg,#111);border-radius:8px;padding:12px;margin-bottom:16px;';
+
+    var stepsData = [
+        { icon: 'settings', text: 'Open After Effects' },
+        { icon: 'tune', text: 'Preferences → Scripting & Expressions' },
+        { icon: 'check_box', text: 'Enable \'Allow Scripts to Write Files and Access Network\'' },
+        { icon: 'refresh', text: 'Restart After Effects' }
+    ];
+
+    stepsData.forEach(function (s, i) {
+        var row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 0;' + (i < stepsData.length - 1 ? 'border-bottom:1px solid var(--border,#222);' : '');
+        row.innerHTML = [
+            '<span style="width:20px;height:20px;border-radius:50%;background:var(--accent,#ffb400);display:flex;align-items:center;justify-content:center;flex-shrink:0;">',
+            '  <span style="font-size:9px;font-weight:bold;color:#000;">' + (i + 1) + '</span>',
+            '</span>',
+            '<span class="material-icons" style="font-size:14px;color:var(--accent,#ffb400);">' + s.icon + '</span>',
+            '<span style="font-size:10px;color:var(--text,#ddd);line-height:1.4;">' + s.text + '</span>'
+        ].join('');
+        steps.appendChild(row);
+    });
+
+    // Warning note
+    var note = document.createElement('div');
+    note.style.cssText = [
+        'font-size:9.5px', 'color:var(--text-mut,#666)',
+        'border-top:1px solid var(--border,#333)',
+        'padding-top:10px', 'margin-bottom:14px',
+        'line-height:1.5', 'display:flex', 'align-items:flex-start', 'gap:6px'
+    ].join(';');
+    note.innerHTML = '<span class="material-icons" style="font-size:12px;color:#ffbb33;flex-shrink:0;margin-top:1px;">info</span>' +
+        '<span>Without this, settings won\'t be saved between sessions. The extension will still work but all changes will reset on reload.</span>';
+
+    // Buttons
+    var footer = document.createElement('div');
+    footer.style.cssText = 'display:flex;gap:8px;';
+
+    var btnIgnore = document.createElement('button');
+    btnIgnore.textContent = 'Continue Anyway';
+    btnIgnore.className = 'btn-secondary';
+    btnIgnore.style.cssText = 'flex:1;font-size:10px;padding:7px;';
+    btnIgnore.addEventListener('click', function () {
+        document.body.removeChild(overlay);
+    });
+
+    var btnOk = document.createElement('button');
+    btnOk.textContent = 'Got It!';
+    btnOk.className = 'btn-primary';
+    btnOk.style.cssText = 'flex:2;font-size:10px;padding:7px;font-weight:700;';
+    btnOk.addEventListener('click', function () {
+        document.body.removeChild(overlay);
+    });
+
+    footer.appendChild(btnIgnore);
+    footer.appendChild(btnOk);
+
+    box.appendChild(header);
+    box.appendChild(desc);
+    box.appendChild(steps);
+    box.appendChild(note);
+    box.appendChild(footer);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    // Animate in
+    var style = document.createElement('style');
+    style.textContent = '@keyframes modal-in { from { opacity:0; transform:scale(0.88) translateY(12px); } to { opacity:1; transform:scale(1) translateY(0); } }';
+    document.head.appendChild(style);
+}
 
 function setupCustomSelects() {
     var selects = document.querySelectorAll('select');
