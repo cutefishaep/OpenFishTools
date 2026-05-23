@@ -37,12 +37,26 @@ var FileStore = (function () {
         }
     }
 
-    function init(extensionPath) {
-        if (!extensionPath) {
-            _useLocalStorage = true;
-            _loadFromLocalStorage();
-            return;
+    function _isWritable(dirPath) {
+        if (!_hasCepFs()) return false;
+        try {
+            if (!_ensureDir(dirPath)) return false;
+            var testFile = dirPath + '/.write_test';
+            var writeRes = window.cep.fs.writeFile(testFile, 'test');
+            if (writeRes.err === 0) {
+                window.cep.fs.deleteFile(testFile);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            return false;
         }
+    }
+
+    function init(extensionPath, userDataPath) {
+        _useLocalStorage = false;
+        _filePath = null;
+        _dataDir = null;
 
         if (!_hasCepFs()) {
             _useLocalStorage = true;
@@ -50,20 +64,52 @@ var FileStore = (function () {
             return;
         }
 
-        _dataDir = extensionPath + '/data';
-        _filePath = _dataDir + '/fishtools_save.json';
+        // We prioritize the official Adobe-recommended directory for persistent settings:
+        // macOS: ~/Library/Application Support/Adobe/com.cutefish.tools
+        // Windows: %APPDATA%/Adobe/com.cutefish.tools
+        // This avoids permission errors when installed in system-wide /Library/Application Support/Adobe/CEP/extensions
+        // and protects user data (presets/settings) from being wiped out during extension updates or reinstalls.
+        var targetUserDir = userDataPath ? (userDataPath + '/Adobe/com.cutefish.tools') : null;
+        var extDataDir = extensionPath ? (extensionPath + '/data') : null;
 
-        // Ensure directory exists before attempting any file operations
-        var dirOk = _ensureDir(_dataDir);
-        if (!dirOk) {
-            // Fallback to localStorage if we can't create the directory
-            _useLocalStorage = true;
-            _filePath = null;
-            _loadFromLocalStorage();
+        if (targetUserDir && _isWritable(targetUserDir)) {
+            _dataDir = targetUserDir;
+            _filePath = _dataDir + '/fishtools_save.json';
+
+            // If the user file doesn't exist yet, try to pre-load from the extension's default file (from repository/installer)
+            var userFileStat = window.cep.fs.stat(_filePath);
+            if (userFileStat.err !== 0 && extDataDir) {
+                var extFile = extDataDir + '/fishtools_save.json';
+                var extFileStat = window.cep.fs.stat(extFile);
+                if (extFileStat.err === 0) {
+                    // Pre-load from extension folder
+                    var readRes = window.cep.fs.readFile(extFile);
+                    if (readRes.err === 0 && readRes.data) {
+                        try {
+                            _cache = JSON.parse(readRes.data) || {};
+                            // Save it to the user path immediately so it's initialized
+                            save();
+                            return;
+                        } catch (e) {}
+                    }
+                }
+            }
+
+            load();
             return;
         }
 
-        load();
+        // Fallback: Try Extension Path (e.g. if USER_DATA is somehow not writable)
+        if (extDataDir && _isWritable(extDataDir)) {
+            _dataDir = extDataDir;
+            _filePath = _dataDir + '/fishtools_save.json';
+            load();
+            return;
+        }
+
+        // Fallback to LocalStorage if both paths are unwritable
+        _useLocalStorage = true;
+        _loadFromLocalStorage();
     }
 
     function _loadFromLocalStorage() {
@@ -149,6 +195,19 @@ var FileStore = (function () {
         try { localStorage.removeItem('fishToolsFileStore'); } catch (e) {}
     }
 
+    function replace(newData) {
+        _cache = newData || {};
+        save();
+    }
+
+    function getDataDir() {
+        return _dataDir;
+    }
+
+    function isLocalStorage() {
+        return _useLocalStorage;
+    }
+
     return {
         init: init,
         load: load,
@@ -156,7 +215,10 @@ var FileStore = (function () {
         set: set,
         remove: remove,
         getAll: getAll,
-        clear: clear
+        clear: clear,
+        getDataDir: getDataDir,
+        isLocalStorage: isLocalStorage,
+        replace: replace
     };
 
 })();

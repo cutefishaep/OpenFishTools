@@ -256,7 +256,8 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
         if (window.FileStore && window.csInterface) {
             var _extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
-            window.FileStore.init(_extPath);
+            var _userPath = window.csInterface.getSystemPath(SystemPath.USER_DATA);
+            window.FileStore.init(_extPath, _userPath);
         }
         if (window.SettingsModule) {
             window.settings = new window.SettingsModule();

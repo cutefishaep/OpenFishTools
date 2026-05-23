@@ -7,7 +7,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 - **Script Write Permission Check**: Added startup permission check that warns users if "Allow Scripts to Write Files and Access Network" is not enabled in After Effects settings. Renders a beautiful 4-step modal to guide the user on how to enable it.
 
 ### Fixed
-- **Settings Persistence on macOS**: Resolved issue where settings did not persist on macOS due to write directory existence check handling. Added reliable fallback to `localStorage` when file-writing permissions are denied.
+- **Settings Persistence on macOS/Windows**: Resolved issue where settings did not persist on macOS/Windows by shifting the save location to the official Adobe-recommended user data directory (`~/Library/Application Support/Adobe/com.cutefish.tools` on macOS and `%APPDATA%/Adobe/com.cutefish.tools` on Windows). This avoids OS permissions errors when the plugin is installed in system-wide directories and prevents user settings from being wiped during plugin updates/reinstalls.
 - **Theme and Easing Initialization**: Fixed issue where Theme, Easing Graph, and Style settings would revert to default on panel reload by moving the initialization code inside `DOMContentLoaded` event and ensuring custom dropdown selectors are ready before restoring settings.
 - **Tab Preservation on Theme Change**: Fixed bug where selecting a different theme or UI style would reset the active workspace tab to the default "Home" tab.
 

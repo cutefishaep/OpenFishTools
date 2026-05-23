@@ -36,6 +36,9 @@ SettingsModule.prototype.setupListeners = function () {
     };
 
     safeAdd('btn-reset-settings', 'click', function () { self.resetSettings(); });
+    safeAdd('btn-backup-settings', 'click', function () { self.backupSettings(); });
+    safeAdd('btn-restore-settings', 'click', function () { self.restoreSettings(); });
+    safeAdd('btn-open-settings-dir', 'click', function () { self.openSettingsDir(); });
 };
 
 SettingsModule.prototype.loadSettings = function () {
@@ -148,4 +151,144 @@ SettingsModule.prototype.resetSettings = function () {
             }
         }
     );
+};
+
+SettingsModule.prototype.backupSettings = function () {
+    var store = window.FileStore;
+    if (!store) return;
+
+    if (store.isLocalStorage()) {
+        window.ModalModule.alert('Cannot export settings because the extension is running in LocalStorage fallback mode.', 'Error');
+        return;
+    }
+
+    if (!window.cep || !window.cep.fs) {
+        window.ModalModule.alert('File system API not available.', 'Error');
+        return;
+    }
+
+    var initialPath = (store.getDataDir() || '') + '/fishtools_backup.json';
+    var saveFunc = window.cep.fs.showSaveDialogEx || window.cep.fs.showSaveDialog;
+    var result;
+
+    if (window.cep.fs.showSaveDialogEx) {
+        result = window.cep.fs.showSaveDialogEx(
+            'Backup Settings',
+            initialPath,
+            ['json'],
+            'fishtools_backup.json',
+            '', // friendlyFilePrefix
+            '', // prompt
+            ''  // nameFieldLabel
+        );
+    } else {
+        result = window.cep.fs.showSaveDialog(
+            'Backup Settings',
+            initialPath,
+            ['json'],
+            'fishtools_backup.json'
+        );
+    }
+
+    if (result.err === 0 && result.data) {
+        var targetPath = result.data;
+        var data = store.getAll();
+        var jsonStr = JSON.stringify(data, null, 2);
+
+        var writeRes = window.cep.fs.writeFile(targetPath, jsonStr);
+        if (writeRes.err === 0) {
+            window.ModalModule.alert('Settings successfully backed up to:\n' + targetPath, 'Backup Success');
+        } else {
+            window.ModalModule.alert('Failed to write backup file. Error code: ' + writeRes.err, 'Backup Error');
+        }
+    }
+};
+
+SettingsModule.prototype.restoreSettings = function () {
+    var store = window.FileStore;
+    if (!store) return;
+
+    if (!window.cep || !window.cep.fs) {
+        window.ModalModule.alert('File system API not available.', 'Error');
+        return;
+    }
+
+    var initialPath = store.getDataDir() || '';
+    var result;
+
+    if (window.cep.fs.showOpenDialogEx) {
+        result = window.cep.fs.showOpenDialogEx(
+            false, // allowMultipleSelection
+            false, // chooseDirectory
+            'Restore Settings',
+            initialPath,
+            ['json'],
+            '', // friendlyFilePrefix
+            ''  // prompt
+        );
+    } else {
+        result = window.cep.fs.showOpenDialog(
+            false,
+            false,
+            'Restore Settings',
+            initialPath,
+            ['json']
+        );
+    }
+
+    if (result.err === 0 && result.data && result.data.length > 0) {
+        var selectedPath = result.data[0];
+        var readRes = window.cep.fs.readFile(selectedPath);
+        if (readRes.err === 0 && readRes.data) {
+            try {
+                var parsed = JSON.parse(readRes.data);
+                if (parsed && (parsed.config || parsed.theme || parsed.uiStyle)) {
+                    window.ModalModule.confirm(
+                        'This will overwrite all your current settings and presets. Do you want to proceed?',
+                        'Confirm Restore',
+                        function (confirmed) {
+                            if (confirmed) {
+                                store.replace(parsed);
+                                window.ModalModule.confirm(
+                                    'Settings successfully restored! Click Reload to apply changes.',
+                                    'Restore Success',
+                                    function (reloadConfirmed) {
+                                        if (reloadConfirmed) {
+                                            location.reload();
+                                        }
+                                    },
+                                    { confirmText: 'Reload', cancelText: 'Dismiss' }
+                                );
+                            }
+                        }
+                    );
+                } else {
+                    window.ModalModule.alert('Invalid backup file structure.', 'Restore Error');
+                }
+            } catch (e) {
+                window.ModalModule.alert('Failed to parse backup file. Make sure it is a valid JSON file.', 'Restore Error');
+            }
+        } else {
+            window.ModalModule.alert('Failed to read selected file. Error code: ' + readRes.err, 'Restore Error');
+        }
+    }
+};
+
+SettingsModule.prototype.openSettingsDir = function () {
+    var store = window.FileStore;
+    if (!store) return;
+    var path = store.getDataDir();
+    if (!path) {
+        window.ModalModule.alert('Data directory is not available (using LocalStorage fallback).', 'Error');
+        return;
+    }
+
+    if (window.csInterface) {
+        var script = 'var f = new Folder("' + path + '"); if (f.exists) { f.execute(); "true"; } else { "false"; }';
+        window.csInterface.evalScript(script, function (result) {
+            if (result === 'false') {
+                window.ModalModule.alert('Failed to open settings directory. Folder does not exist.', 'Error');
+            }
+        });
+    }
 };
