@@ -5,7 +5,6 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 ## [1.0.4] - 2026-05-23
 ### Added
 - **Script Write Permission Check**: Added startup permission check that warns users if "Allow Scripts to Write Files and Access Network" is not enabled in After Effects settings. Renders a beautiful 4-step modal to guide the user on how to enable it.
-- **Y, X, and Scale Oscillate**: Added Y Oscillate, X Oscillate, and Scale Oscillate buttons to the Continuous section of Beat Effects. Includes an "Overlap Graph" option for Scale Oscillate that applies the custom Bezier easing curve from the Graph Editor directly to the After Effects bounce expression.
 
 ### Fixed
 - **Settings Persistence on macOS/Windows**: Resolved issue where settings did not persist on macOS/Windows by shifting the save location to the official Adobe-recommended user data directory (`~/Library/Application Support/Adobe/com.cutefish.tools` on macOS and `%APPDATA%/Adobe/com.cutefish.tools` on Windows). This avoids OS permissions errors when the plugin is installed in system-wide directories and prevents user settings from being wiped during plugin updates/reinstalls.
