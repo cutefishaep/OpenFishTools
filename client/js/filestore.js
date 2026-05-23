@@ -14,9 +14,24 @@ var FileStore = (function () {
     function _ensureDir(dirPath) {
         if (!_hasCepFs()) return false;
         try {
+            // First check if the directory already exists
+            var stat = window.cep.fs.stat(dirPath);
+            if (stat.err === 0 && stat.data && typeof stat.data.isDirectory === 'function') {
+                if (stat.data.isDirectory()) {
+                    return true; // Already exists and is a directory
+                }
+            }
+
+            // If it doesn't exist, create it
             var result = window.cep.fs.makedir(dirPath);
-            // err 0 = success, err 174 = already exists (EEXIST) - both are fine
-            return (result.err === 0 || result.err === 174);
+            if (result.err === 0) return true;
+
+            // Re-verify after makedir in case of platform-specific error codes for already-exists (e.g. 183 on Windows, 17 on macOS)
+            stat = window.cep.fs.stat(dirPath);
+            if (stat.err === 0 && stat.data && typeof stat.data.isDirectory === 'function') {
+                return stat.data.isDirectory();
+            }
+            return false;
         } catch (e) {
             return false;
         }
@@ -73,8 +88,8 @@ var FileStore = (function () {
                     _cache = {};
                 }
             } else if (result.err !== 0) {
-                // File doesn't exist yet or read error - start fresh
-                _cache = {};
+                // File doesn't exist yet or read error - try to restore from localStorage fallback
+                _loadFromLocalStorage();
             }
         } catch (e) {
             // If cep.fs throws, fall back to localStorage
