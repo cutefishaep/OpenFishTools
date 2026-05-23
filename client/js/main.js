@@ -420,16 +420,35 @@ document.addEventListener('DOMContentLoaded', function () {
 function checkScriptPermissions() {
     if (!window.csInterface) return;
 
-    // Try to write a small test file via ExtendScript to verify write permission
+    // Use After Effects preferences API to check the "Allow scripts to write files" setting
+    // for superior reliability and to avoid macOS sandbox/system temp folder permission issues.
     var testScript = [
         '(function() {',
         '  try {',
-        '    var f = new File(Folder.temp + "/fishtools_permtest.tmp");',
-        '    if (f.open("w")) { f.write("ok"); f.close(); f.remove(); return "ok"; }',
-        '    return "denied";',
-        '  } catch(e) { return "denied"; }',
+        '    if (app.preferences && app.preferences.getPrefAsLong) {',
+        '      var hasPref = app.preferences.getPrefAsLong("Main Pref Section", "Pref_SCRIPTING_FILE_NETWORK_SECURITY");',
+        '      if (hasPref === 1) return "ok";',
+        '      if (hasPref === 0) return "denied";',
+        '    }',
+        '  } catch(e) {}',
+        '  ',
+        '  // Fallback: Try writing a small test file if pref lookup failed or is unavailable',
+        '  try {',
+        '    var tempPath = Folder.temp.fullName || Folder.temp.toString();',
+        '    if (tempPath.slice(-1) === "/" || tempPath.slice(-1) === "\\\\") {',
+        '      tempPath = tempPath.slice(0, -1);',
+        '    }',
+        '    var f = new File(tempPath + "/fishtools_permtest.tmp");',
+        '    if (f.open("w")) {',
+        '      f.write("ok");',
+        '      f.close();',
+        '      f.remove();',
+        '      return "ok";',
+        '    }',
+        '  } catch(e) {}',
+        '  return "denied";',
         '})()'
-    ].join('');
+    ].join('\n');
 
     csInterface.evalScript(testScript, function (result) {
         if (result === 'ok') return; // Permission granted, all good
