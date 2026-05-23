@@ -59,7 +59,13 @@
                 btn.classList.add('tool-btn--active');
                 setTimeout(function () { btn.classList.remove('tool-btn--active'); }, 200);
 
-                if (alter !== null) {
+                if (toolName === 'SCALE_OSC') {
+                    var overlap = document.getElementById('scale-osc-overlap-toggle').checked;
+                    var coords = (window.GraphModule && typeof window.GraphModule.getBezierCoords === 'function')
+                                 ? window.GraphModule.getBezierCoords()
+                                 : { x1: 0.33, y1: 0, x2: 0.67, y2: 1 };
+                    self._runTool('SCALE_OSC', overlap, coords.x1, coords.y1, coords.x2, coords.y2);
+                } else if (alter !== null) {
                     self._runTool(toolName, alter === 'true');
                 } else {
                     self._runTool(toolName);

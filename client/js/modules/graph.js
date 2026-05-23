@@ -888,12 +888,20 @@ var GraphModule = (function () {
                 window.ModalModule.error("Failed to apply velocity.", "Speed Graph");
             }
         });
+    function getBezierCoords() {
+        return {
+            x1: cp1.x,
+            y1: cp1.y,
+            x2: cp2.x,
+            y2: cp2.y
+        };
     }
 
     return {
         init: init,
         resize: resize,
-        refresh: refresh
+        refresh: refresh,
+        getBezierCoords: getBezierCoords
     };
 
 })();

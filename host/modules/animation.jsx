@@ -800,6 +800,294 @@ function _SWING() {
     }
 }
 
+function _Y_OSC() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+
+    app.beginUndoGroup("Y Oscillate");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "Y_Oscillate_Null";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+
+        targetLayer.parent = nullLayer;
+
+        var fx = nullLayer.property("ADBE Effect Parade");
+
+        var freqCtrl = fx.addProperty("ADBE Slider Control");
+        freqCtrl.name = "Freq";
+        freqCtrl.property("ADBE Slider Control-0001").setValue(3);
+
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(30);
+
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(2.7);
+
+        var posExpr = [
+            "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+            "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+            "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "",
+            "m = thisComp.marker;",
+            "",
+            "if (time < inPoint || time > outPoint){",
+            "    value;",
+            "}else{",
+            "    n = 0;",
+            "    if (m.numKeys > 0){",
+            "        n = m.nearestKey(time).index;",
+            "        if (m.key(n).time > time) n--;",
+            "    }",
+            "    if (n > 0){",
+            "        markerTime = m.key(n).time;",
+            "        if (markerTime >= inPoint && markerTime <= outPoint){",
+            "            t = time - markerTime;",
+            "            currAmp = amp / Math.exp(t * decay);",
+            "            y = Math.cos(t * freq * Math.PI * 2) * currAmp;",
+            "            value + [0, y];",
+            "        }else{",
+            "            value;",
+            "        }",
+            "    }else{",
+            "        value;",
+            "    }",
+            "}"
+        ].join("\n");
+
+        var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
+        positionProp.expression = posExpr;
+
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _X_OSC() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+
+    app.beginUndoGroup("X Oscillate");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "X_Oscillate_Null";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+
+        targetLayer.parent = nullLayer;
+
+        var fx = nullLayer.property("ADBE Effect Parade");
+
+        var freqCtrl = fx.addProperty("ADBE Slider Control");
+        freqCtrl.name = "Freq";
+        freqCtrl.property("ADBE Slider Control-0001").setValue(3);
+
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(30);
+
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(2.7);
+
+        var posExpr = [
+            "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+            "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+            "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "",
+            "m = thisComp.marker;",
+            "",
+            "if (time < inPoint || time > outPoint){",
+            "    value;",
+            "}else{",
+            "    n = 0;",
+            "    if (m.numKeys > 0){",
+            "        n = m.nearestKey(time).index;",
+            "        if (m.key(n).time > time) n--;",
+            "    }",
+            "    if (n > 0){",
+            "        markerTime = m.key(n).time;",
+            "        if (markerTime >= inPoint && markerTime <= outPoint){",
+            "            t = time - markerTime;",
+            "            currAmp = amp / Math.exp(t * decay);",
+            "            x = Math.cos(t * freq * Math.PI * 2) * currAmp;",
+            "            value + [x, 0];",
+            "        }else{",
+            "            value;",
+            "        }",
+            "    }else{",
+            "        value;",
+            "    }",
+            "}"
+        ].join("\n");
+
+        var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
+        positionProp.expression = posExpr;
+
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
+function _SCALE_OSC(overlap, x1, y1, x2, y2) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+
+    app.beginUndoGroup("Scale Oscillate");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "Scale_Oscillate_Null";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+
+        targetLayer.parent = nullLayer;
+
+        var fx = nullLayer.property("ADBE Effect Parade");
+
+        var freqCtrl = fx.addProperty("ADBE Slider Control");
+        freqCtrl.name = "Freq";
+        freqCtrl.property("ADBE Slider Control-0001").setValue(3);
+
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(30);
+
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(2.7);
+
+        var scaleExpr;
+        if (overlap) {
+            // Cubic Bezier Solver
+            scaleExpr = [
+                "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+                "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+                "",
+                "// Cubic Bezier Solver",
+                "function solveBezier(x1, y1, x2, y2, t) {",
+                "    function getBezierX(u) {",
+                "        return 3 * (1-u)*(1-u) * u * x1 + 3 * (1-u) * u*u * x2 + u*u*u;",
+                "    }",
+                "    function getBezierY(u) {",
+                "        return 3 * (1-u)*(1-u) * u * y1 + 3 * (1-u) * u*u * y2 + u*u*u;",
+                "    }",
+                "    var low = 0, high = 1, mid = 0.5;",
+                "    for (var i = 0; i < 12; i++) {",
+                "        mid = (low + high) / 2;",
+                "        var x = getBezierX(mid);",
+                "        if (x < t) low = mid; else high = mid;",
+                "    }",
+                "    return getBezierY(mid);",
+                "}",
+                "",
+                "m = thisComp.marker;",
+                "",
+                "if (time < inPoint || time > outPoint){",
+                "    value;",
+                "}else{",
+                "    n = 0;",
+                "    if (m.numKeys > 0){",
+                "        n = m.nearestKey(time).index;",
+                "        if (m.key(n).time > time) n--;",
+                "    }",
+                "    if (n > 0){",
+                "        markerTime = m.key(n).time;",
+                "        if (markerTime >= inPoint && markerTime <= outPoint){",
+                "            t = time - markerTime;",
+                "            dur = freq > 0 ? (1 / freq) : 0.5;",
+                "            if (t < dur) {",
+                "                progress = t / dur;",
+                "                easedVal = solveBezier(" + x1 + ", " + y1 + ", " + x2 + ", " + y2 + ", progress);",
+                "                s = amp * (1 - easedVal);",
+                "                value + [s, s];",
+                "            } else {",
+                "                value;",
+                "            }",
+                "        }else{",
+                "            value;",
+                "        }",
+                "    }else{",
+                "        value;",
+                "    }",
+                "}"
+            ].join("\n");
+        } else {
+            scaleExpr = [
+                "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+                "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+                "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+                "",
+                "m = thisComp.marker;",
+                "",
+                "if (time < inPoint || time > outPoint){",
+                "    value;",
+                "}else{",
+                "    n = 0;",
+                "    if (m.numKeys > 0){",
+                "        n = m.nearestKey(time).index;",
+                "        if (m.key(n).time > time) n--;",
+                "    }",
+                "    if (n > 0){",
+                "        markerTime = m.key(n).time;",
+                "        if (markerTime >= inPoint && markerTime <= outPoint){",
+                "            t = time - markerTime;",
+                "            currAmp = amp / Math.exp(t * decay);",
+                "            s = Math.cos(t * freq * Math.PI * 2) * currAmp;",
+                "            value + [s, s];",
+                "        }else{",
+                "            value;",
+                "        }",
+                "    }else{",
+                "        value;",
+                "    }",
+                "}"
+            ].join("\n");
+        }
+
+        var scaleProp = nullLayer.property("ADBE Transform Group").property("ADBE Scale");
+        scaleProp.expression = scaleExpr;
+
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
 function _FISHEYE() {
     var comp = app.project.activeItem;
     if (!comp) return false;
@@ -1180,6 +1468,9 @@ tools.HUESPIN = function () { return _HUESPIN(); };
 tools.OSCILLATE = function () { return _OSCILLATE(); };
 tools.SWING = function () { return _SWING(); };
 tools.FISHEYE = function () { return _FISHEYE(); };
+tools.Y_OSC = function () { return _Y_OSC(); };
+tools.X_OSC = function () { return _X_OSC(); };
+tools.SCALE_OSC = function (overlap, x1, y1, x2, y2) { return _SCALE_OSC(overlap, x1, y1, x2, y2); };
 
 tools.CF_COLORIZE = function() { return _CF_COLORIZE(); };
 tools.CF_SCANLINE = function() { return _CF_SCANLINE(); };
