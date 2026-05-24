@@ -1221,69 +1221,6 @@ input[type="range"]:hover {
     background: var(--border);
 }
 
-/* ===== Bounce Settings Panels ===== */
-.bounce-settings-panel {
-    display: none;
-    background: var(--surface2);
-    border: 1px solid var(--accent);
-    border-radius: 6px;
-    padding: 10px 12px 8px;
-    margin-bottom: 8px;
-    animation: bounceSlide 0.2s ease-out;
-}
-.bounce-settings-panel.active { display: block; }
-
-@keyframes bounceSlide {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.bounce-settings-title {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 9px;
-    font-weight: 800;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-}
-
-.bounce-settings-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
-
-.bounce-label {
-    font-size: 9px;
-    color: var(--text-dim);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
-}
-
-.bounce-input {
-    width: 72px !important;
-    padding: 4px 8px !important;
-    font-size: 10px !important;
-    text-align: right;
-    border-radius: 4px !important;
-    flex-shrink: 0;
-}
-
-.beat-bounce-btn.active-panel {
-    background: rgba(var(--accent-rgb), 0.15) !important;
-    border-color: var(--accent) !important;
-    color: var(--accent) !important;
-}
-
-
 
 
 

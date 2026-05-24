@@ -3,7 +3,7 @@
 
 var UpdateModule = (function () {
     var GITHUB_API = "https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest";
-    var GITHUB_URL = "https://github.com/cutefishaep/OpenFishTools/releases/latest";
+    var GITHUB_URL = "https://cutefish.my.id";
 
     function init() {
         var btn = document.getElementById('btn-check-update');
@@ -31,11 +31,11 @@ var UpdateModule = (function () {
             if (majorVersion && majorVersion <= 14) {
                 if (!silent && window.ModalModule) {
                     window.ModalModule.confirm(
-                        "After Effects CC 2017 cannot use the internal update checker due to technical limitations. \n\nWould you like to visit GitHub manually to check for the latest version?",
+                        "After Effects CC 2017 cannot use the internal update checker due to technical limitations. \n\nWould you like to visit cutefish.my.id manually to check for the latest version?",
                         "Manual Check Required",
                         function (confirmed) {
                             if (confirmed) {
-                                window.csInterface.openURLInDefaultBrowser("https://github.com/cutefishaep/OpenFishTools/releases");
+                                window.csInterface.openURLInDefaultBrowser("https://cutefish.my.id");
                             }
                         }
                     );

@@ -2,7 +2,12 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
-## [1.0.4] - 2026-05-23
+## [1.0.5] - 2026-05-24
+### Added
+- **X BEAT and Y BEAT (Continuous Beat Effects)**: Replaced `X_OSCILLATE` and `Y_OSCILLATE` with `X_BEAT` and `Y_BEAT`, implementing symmetrical pure decay jumps (`amp / Math.exp(t * decay)`) with new default settings (Amp: 500, Decay: 20). Only takes effect during the Null layer's duration.
+- **Smart Marker Detection (Layer & Composition Fallback)**: Refactored `Flash` (EXPO), `S_Shake` (SHKE), `Lens Blur` (LENS), `Scale Overlap` (SCALE_OVERLAP), `X BEAT`, and `Y BEAT` to use expressions that dynamically prefer target layer markers (`thisComp.layer(index + 1).marker`) and fall back to composition markers (`thisComp.marker`) if no layer markers are present. This prevents expression errors and ensures compatibility with any marker workflow.
+
+## [1.0.4] - 2026-05-24
 ### Added
 - **Script Write Permission Check**: Added startup permission check that warns users if "Allow Scripts to Write Files and Access Network" is not enabled in After Effects settings. Renders a beautiful 4-step modal to guide the user on how to enable it.
 

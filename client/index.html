@@ -308,6 +308,24 @@
             </div>
 
             <div class="card">
+                <h3>Actions</h3>
+                <div class="toolbox-grid col-5">
+                    <button id="btn-precomp" class="tool-btn" title="Pre-compose"><span
+                            class="material-icons">layers</span><span class="tool-label">PRECOMP</span></button>
+                    <button id="btn-center" class="tool-btn" title="Center Layer"><span
+                            class="material-icons">filter_center_focus</span><span
+                            class="tool-label">CENTER</span></button>
+                    <button id="btn-overlap" class="tool-btn" title="Overlap"><span
+                            class="material-icons">auto_awesome_motion</span><span
+                            class="tool-label">OVERLAP</span></button>
+                    <button id="btn-screenshot" class="tool-btn" title="Screenshot"><span
+                            class="material-icons">camera_alt</span><span class="tool-label">SHOT</span></button>
+                    <button id="btn-dup-comp" class="tool-btn" title="Duplicate Comp"><span
+                            class="material-icons">file_copy</span><span class="tool-label">DUP</span></button>
+                </div>
+            </div>
+
+            <div class="card">
                 <div class="card-header">
                     <h3>Toolbox</h3>
                 </div>
@@ -385,7 +403,7 @@
                             class="material-icons">palette</span><span class="tool-label">HUE SPIN</span></button>
                 </div>
                 <div class="section-label">Continuous</div>
-                <div class="toolbox-grid col-4">
+                <div class="toolbox-grid col-5">
                     <button class="tool-btn" data-tool="EXPO" title="Flash"><span
                             class="material-icons">flash_on</span><span class="tool-label">FLASH</span></button>
                     <button class="tool-btn" data-tool="SHKE" title="S_Shake"><span
@@ -394,85 +412,15 @@
                             class="material-icons">blur_circular</span><span class="tool-label">LENS</span></button>
                     <button class="tool-btn" data-tool="OSCILLATE" title="Oscillate"><span
                             class="material-icons">wifi</span><span class="tool-label">OSCILLATE</span></button>
+                    <button class="tool-btn" data-tool="Y_BEAT" title="Y Beat"><span
+                            class="material-icons">south</span><span class="tool-label">Y BEAT</span></button>
+                    <button class="tool-btn" data-tool="X_BEAT" title="X Beat"><span
+                            class="material-icons">east</span><span class="tool-label">X BEAT</span></button>
+                    <button class="tool-btn" data-tool="SCALE_OVERLAP" title="Scale Overlap"><span
+                            class="material-icons">aspect_ratio</span><span class="tool-label">SCALE OVER</span></button>
                     <button class="tool-btn" data-tool="SWING" title="Swing"><span
                             class="material-icons">360</span><span class="tool-label">SWING</span></button>
-                    <button class="tool-btn beat-bounce-btn" id="btn-y-bounce" title="Y Oscillate"><span
-                            class="material-icons">swap_vert</span><span class="tool-label">Y OSC</span></button>
-                    <button class="tool-btn beat-bounce-btn" id="btn-x-bounce" title="X Oscillate"><span
-                            class="material-icons">swap_horiz</span><span class="tool-label">X OSC</span></button>
-                    <button class="tool-btn beat-bounce-btn" id="btn-scale-bounce" title="Scale Oscillate"><span
-                            class="material-icons">open_with</span><span class="tool-label">SCL OSC</span></button>
                 </div>
-
-                <!-- Y Oscillate Settings -->
-                <div class="bounce-settings-panel" id="panel-y-bounce">
-                    <div class="bounce-settings-title"><span class="material-icons" style="font-size:13px;">swap_vert</span> Y Oscillate Settings</div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Amp (px)</label>
-                        <input type="number" id="y-bounce-amp" value="50" step="5" min="-500" max="500" class="bounce-input">
-                    </div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Freq (Hz)</label>
-                        <input type="number" id="y-bounce-freq" value="2" step="0.5" min="0.1" max="20" class="bounce-input">
-                    </div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Decay</label>
-                        <input type="number" id="y-bounce-decay" value="3" step="0.5" min="0.1" max="20" class="bounce-input">
-                    </div>
-                    <button id="btn-apply-y-bounce" class="btn-primary w-full" style="margin-top:6px;font-size:10px;">
-                        <span class="material-icons" style="font-size:13px;">play_arrow</span> Apply Y Oscillate
-                    </button>
-                </div>
-
-                <!-- X Oscillate Settings -->
-                <div class="bounce-settings-panel" id="panel-x-bounce">
-                    <div class="bounce-settings-title"><span class="material-icons" style="font-size:13px;">swap_horiz</span> X Oscillate Settings</div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Amp (px)</label>
-                        <input type="number" id="x-bounce-amp" value="50" step="5" min="-500" max="500" class="bounce-input">
-                    </div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Freq (Hz)</label>
-                        <input type="number" id="x-bounce-freq" value="2" step="0.5" min="0.1" max="20" class="bounce-input">
-                    </div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Decay</label>
-                        <input type="number" id="x-bounce-decay" value="3" step="0.5" min="0.1" max="20" class="bounce-input">
-                    </div>
-                    <button id="btn-apply-x-bounce" class="btn-primary w-full" style="margin-top:6px;font-size:10px;">
-                        <span class="material-icons" style="font-size:13px;">play_arrow</span> Apply X Oscillate
-                    </button>
-                </div>
-
-                <!-- Scale Oscillate Settings -->
-                <div class="bounce-settings-panel" id="panel-scale-bounce">
-                    <div class="bounce-settings-title"><span class="material-icons" style="font-size:13px;">open_with</span> Scale Oscillate Settings</div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Amp (%)</label>
-                        <input type="number" id="scale-bounce-amp" value="20" step="2" min="-100" max="200" class="bounce-input">
-                    </div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Freq (Hz)</label>
-                        <input type="number" id="scale-bounce-freq" value="2" step="0.5" min="0.1" max="20" class="bounce-input">
-                    </div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Decay</label>
-                        <input type="number" id="scale-bounce-decay" value="3" step="0.5" min="0.1" max="20" class="bounce-input">
-                    </div>
-                    <div class="bounce-settings-row">
-                        <label class="bounce-label">Overlap Graph</label>
-                        <label class="switch-container" style="margin:0;">
-                            <span class="switch">
-                                <input type="checkbox" id="scale-bounce-overlap">
-                                <span class="slider"></span>
-                            </span>
-                        </label>
-                    </div>
-                    <button id="btn-apply-scale-bounce" class="btn-primary w-full" style="margin-top:6px;font-size:10px;">
-                        <span class="material-icons" style="font-size:13px;">play_arrow</span> Apply Scale Oscillate
-                    </button>
-                </div>
-
             </div>
 
             <div class="card">
@@ -537,24 +485,6 @@
                         <span class="material-icons">slow_motion_video</span>
                         <span class="tool-label">SLOW</span>
                     </button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>Actions</h3>
-                <div class="toolbox-grid col-5">
-                    <button id="btn-precomp" class="tool-btn" title="Pre-compose"><span
-                            class="material-icons">layers</span><span class="tool-label">PRECOMP</span></button>
-                    <button id="btn-center" class="tool-btn" title="Center Layer"><span
-                            class="material-icons">filter_center_focus</span><span
-                            class="tool-label">CENTER</span></button>
-                    <button id="btn-overlap" class="tool-btn" title="Overlap"><span
-                            class="material-icons">auto_awesome_motion</span><span
-                            class="tool-label">OVERLAP</span></button>
-                    <button id="btn-screenshot" class="tool-btn" title="Screenshot"><span
-                            class="material-icons">camera_alt</span><span class="tool-label">SHOT</span></button>
-                    <button id="btn-dup-comp" class="tool-btn" title="Duplicate Comp"><span
-                            class="material-icons">file_copy</span><span class="tool-label">DUP</span></button>
                 </div>
             </div>
 

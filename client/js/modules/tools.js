@@ -12,7 +12,6 @@
         this._bindToolButtons();
         this._bindAnchorGrid();
         this._bindActionButtons();
-        this._bindBounceButtons();
     };
 
     ToolboxModule.prototype._runTool = function (toolName) {
@@ -197,70 +196,6 @@
                 ModalModule.confirm("Are you sure you want to clear UNDO history? This cannot be undone.", "Purge Undo", function (confirmed) {
                     if (confirmed) self._runTool('PURGE', 'UNDO');
                 });
-            });
-        }
-    };
-    ToolboxModule.prototype._bindBounceButtons = function () {
-        var self = this;
-
-        function setupBounceToggle(btnId, panelId) {
-            var btn = document.getElementById(btnId);
-            var panel = document.getElementById(panelId);
-            if (!btn || !panel) return;
-
-            btn.addEventListener('click', function () {
-                var isOpen = panel.classList.contains('active');
-
-                // Close all other bounce panels
-                document.querySelectorAll('.bounce-settings-panel.active').forEach(function (p) {
-                    p.classList.remove('active');
-                });
-                document.querySelectorAll('.beat-bounce-btn.active-panel').forEach(function (b) {
-                    b.classList.remove('active-panel');
-                });
-
-                if (!isOpen) {
-                    panel.classList.add('active');
-                    btn.classList.add('active-panel');
-                }
-            });
-        }
-
-        setupBounceToggle('btn-y-bounce', 'panel-y-bounce');
-        setupBounceToggle('btn-x-bounce', 'panel-x-bounce');
-        setupBounceToggle('btn-scale-bounce', 'panel-scale-bounce');
-
-        // Apply Y Oscillate
-        var btnApplyY = document.getElementById('btn-apply-y-bounce');
-        if (btnApplyY) {
-            btnApplyY.addEventListener('click', function () {
-                var amp   = document.getElementById('y-bounce-amp').value;
-                var freq  = document.getElementById('y-bounce-freq').value;
-                var decay = document.getElementById('y-bounce-decay').value;
-                self._runTool('Y_BOUNCE', amp, freq, decay);
-            });
-        }
-
-        // Apply X Oscillate
-        var btnApplyX = document.getElementById('btn-apply-x-bounce');
-        if (btnApplyX) {
-            btnApplyX.addEventListener('click', function () {
-                var amp   = document.getElementById('x-bounce-amp').value;
-                var freq  = document.getElementById('x-bounce-freq').value;
-                var decay = document.getElementById('x-bounce-decay').value;
-                self._runTool('X_BOUNCE', amp, freq, decay);
-            });
-        }
-
-        // Apply Scale Oscillate
-        var btnApplyScale = document.getElementById('btn-apply-scale-bounce');
-        if (btnApplyScale) {
-            btnApplyScale.addEventListener('click', function () {
-                var amp     = document.getElementById('scale-bounce-amp').value;
-                var freq    = document.getElementById('scale-bounce-freq').value;
-                var decay   = document.getElementById('scale-bounce-decay').value;
-                var overlap = document.getElementById('scale-bounce-overlap').checked;
-                self._runTool('SCALE_BOUNCE', amp, freq, decay, overlap);
             });
         }
     };
