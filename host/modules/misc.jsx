@@ -609,6 +609,124 @@ function _autoBeatDetect(threshold, channel) {
     }
 }
 
+function _changeCompRatio(w, h) {
+    var targetComps = [];
+    
+    var activeComp = app.project.activeItem;
+    if (activeComp && activeComp instanceof CompItem) {
+        targetComps.push(activeComp);
+    }
+    
+    var selection = app.project.selection;
+    if (selection) {
+        for (var i = 0; i < selection.length; i++) {
+            if (selection[i] instanceof CompItem) {
+                var alreadyAdded = false;
+                for (var j = 0; j < targetComps.length; j++) {
+                    if (targetComps[j].id === selection[i].id) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    targetComps.push(selection[i]);
+                }
+            }
+        }
+    }
+    
+    if (targetComps.length === 0) {
+        return '{"error":true,"message":"Please select a composition first!"}';
+    }
+    
+    app.beginUndoGroup("Change Composition Ratio");
+    try {
+        var wVal = parseInt(w, 10);
+        var hVal = parseInt(h, 10);
+        if (isNaN(wVal) || isNaN(hVal)) {
+            throw new Error("Invalid width or height: " + w + "x" + h);
+        }
+        for (var i = 0; i < targetComps.length; i++) {
+            targetComps[i].width = wVal;
+            targetComps[i].height = hVal;
+        }
+        app.endUndoGroup();
+        return '{"error":false,"message":"Composition ratio updated to ' + wVal + 'x' + hVal + '."}';
+    } catch (e) {
+        app.endUndoGroup();
+        return '{"error":true,"message":"Failed to change ratio: ' + e.toString() + '"}';
+    }
+}
+
+function _changeCompFPS(newFPS) {
+    var targetComps = [];
+    
+    var activeComp = app.project.activeItem;
+    if (activeComp && activeComp instanceof CompItem) {
+        targetComps.push(activeComp);
+    }
+    
+    var selection = app.project.selection;
+    if (selection) {
+        for (var i = 0; i < selection.length; i++) {
+            if (selection[i] instanceof CompItem) {
+                var alreadyAdded = false;
+                for (var j = 0; j < targetComps.length; j++) {
+                    if (targetComps[j].id === selection[i].id) {
+                        alreadyAdded = true;
+                        break;
+                    }
+                }
+                if (!alreadyAdded) {
+                    targetComps.push(selection[i]);
+                }
+            }
+        }
+    }
+    
+    if (targetComps.length === 0) {
+        return '{"error":true,"message":"Please select a composition first!"}';
+    }
+    
+    app.beginUndoGroup("Change Composition FPS");
+    try {
+        var fpsVal = parseFloat(newFPS);
+        if (isNaN(fpsVal)) {
+            throw new Error("Invalid FPS value: " + newFPS);
+        }
+        for (var i = 0; i < targetComps.length; i++) {
+            var targetComp = targetComps[i];
+            var oldDuration = targetComp.duration;
+            var oldFrameRate = targetComp.frameRate;
+            var oldFrameDist = 1.0 / oldFrameRate;
+            
+            var layersAtEnd = [];
+            for (var j = 1; j <= targetComp.numLayers; j++) {
+                var layer = targetComp.layer(j);
+                if (Math.abs(layer.outPoint - oldDuration) < (oldFrameDist * 1.5)) {
+                    layersAtEnd.push(layer);
+                }
+            }
+            
+            targetComp.frameRate = fpsVal;
+            targetComp.duration = oldDuration;
+            
+            var newDuration = targetComp.duration;
+            for (var k = 0; k < layersAtEnd.length; k++) {
+                try {
+                    layersAtEnd[k].outPoint = newDuration;
+                } catch (e) {
+                }
+            }
+        }
+        app.endUndoGroup();
+        return '{"error":false,"message":"Composition frame rate updated to ' + fpsVal + ' FPS."}';
+    } catch (e) {
+        app.endUndoGroup();
+        return '{"error":true,"message":"Failed to change FPS: ' + e.toString() + '"}';
+    }
+}
+
 tools.PNG = function () { return _PNG(); };
 tools.CUBE = function (w, h, d, useLayer) { return _CUBE(w, h, d, useLayer); };
 tools.PURGE = function (target) { return _PURGE(target); };
@@ -617,3 +735,5 @@ tools.CLEARBEATS = function () { return _clearBeatMarks(); };
 tools.BEAT_AUTO = function (threshold, channel) { return _autoBeatDetect(threshold, channel); };
 tools.DEBUG_ALL = function () { return _DEBUG_ALL(); };
 tools.OVERLAP = function () { return _OVERLAP(); };
+tools.changeCompRatio = function (w, h) { return _changeCompRatio(w, h); };
+tools.changeCompFPS = function (fps) { return _changeCompFPS(fps); };

@@ -12,6 +12,7 @@
         this._bindToolButtons();
         this._bindAnchorGrid();
         this._bindActionButtons();
+        this._bindFormatButtons();
     };
 
     ToolboxModule.prototype._runTool = function (toolName) {
@@ -198,5 +199,33 @@
                 });
             });
         }
+    };
+
+    ToolboxModule.prototype._bindFormatButtons = function () {
+        var self = this;
+        var ratioButtons = document.querySelectorAll('.btn-ratio');
+        ratioButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var w = btn.getAttribute('data-width');
+                var h = btn.getAttribute('data-height');
+                
+                btn.classList.add('tool-btn--active');
+                setTimeout(function () { btn.classList.remove('tool-btn--active'); }, 200);
+                
+                self._runTool('changeCompRatio', w, h);
+            });
+        });
+        
+        var fpsButtons = document.querySelectorAll('.btn-fps');
+        fpsButtons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var fps = btn.getAttribute('data-fps');
+                
+                btn.classList.add('tool-btn--active');
+                setTimeout(function () { btn.classList.remove('tool-btn--active'); }, 200);
+                
+                self._runTool('changeCompFPS', fps);
+            });
+        });
     };
 })();

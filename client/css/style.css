@@ -622,14 +622,14 @@ textarea { min-height: 80px; resize: vertical; }
 }
 
 
-.anchor-grid-wrapper { display: flex; justify-content: center; padding: 10px 0; }
+.anchor-grid-wrapper { display: flex; justify-content: center; padding: 4px 0; }
 .anchor-grid {
-    display: grid; grid-template-columns: repeat(3, 32px);
-    grid-template-rows: repeat(3, 32px); grid-gap: 6px;
+    display: grid; grid-template-columns: repeat(3, 20px);
+    grid-template-rows: repeat(3, 20px); grid-gap: 4px;
 }
 .anchor-cell {
     background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 6px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .anchor-cell:hover { border-color: var(--accent); background: var(--border); }
 .anchor-cell.anchor-active { 
@@ -638,7 +638,7 @@ textarea { min-height: 80px; resize: vertical; }
     box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.4);
 }
 
-.style-material-you .anchor-cell { border-radius: 10px; border: none; background: var(--surface); }
+.style-material-you .anchor-cell { border-radius: 6px; border: none; background: var(--surface); }
 .style-material-you .anchor-cell:hover { background: var(--border); }
 .style-simple .anchor-cell { border-radius: 0; }
 
