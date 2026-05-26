@@ -15,11 +15,11 @@ var GraphModule = (function () {
     var isAutoApplyEnabled = false;
     var autoApplyTimer = null;
 
-    var btnSnap, btnOvershoot, btnRead, btnApply, btnSavePreset, presetList, btnAuto;
+    var btnSnap, btnOvershoot, btnRead, btnApply, btnSavePreset, presetList, btnAuto, btnCopy, btnPaste;
     var speedCanvas, isDraggingSpeed = null;
     var velPresets = [];
     var isVelSnapEnabled = false, isVelAutoEnabled = false;
-    var btnVelSnap, btnVelAuto;
+    var btnVelSnap, btnVelAuto, btnVelCopy, btnVelPaste;
 
     function init() {
         canvas = document.getElementById('ease-graph');
@@ -32,13 +32,19 @@ var GraphModule = (function () {
         btnRead = document.getElementById('btn-graph-read');
         btnApply = document.getElementById('btn-graph-apply');
         btnAuto = document.getElementById('btn-graph-auto');
+        btnCopy = document.getElementById('btn-graph-copy');
+        btnPaste = document.getElementById('btn-graph-paste');
         btnSavePreset = document.getElementById('btn-save-preset');
         presetList = document.getElementById('preset-list');
 
         var btnVelRead = document.getElementById('btn-vel-read');
         var btnVelApply = document.getElementById('btn-vel-apply');
+        var btnVelCopy = document.getElementById('btn-vel-copy');
+        var btnVelPaste = document.getElementById('btn-vel-paste');
         if (btnVelRead) btnVelRead.addEventListener('click', readVelocity);
         if (btnVelApply) btnVelApply.addEventListener('click', applyVelocity);
+        if (btnVelCopy) btnVelCopy.addEventListener('click', copyVelocityValue);
+        if (btnVelPaste) btnVelPaste.addEventListener('click', pasteVelocityValue);
 
         resize();
         window.addEventListener('resize', resize);
@@ -66,6 +72,8 @@ var GraphModule = (function () {
         if (btnApply) btnApply.addEventListener('click', applyEase);
         if (btnAuto) btnAuto.addEventListener('click', toggleAutoApply);
         if (btnSavePreset) btnSavePreset.addEventListener('click', savePreset);
+        if (btnCopy) btnCopy.addEventListener('click', copyEaseValue);
+        if (btnPaste) btnPaste.addEventListener('click', pasteEaseValue);
 
         window.addEventListener('keydown', function (e) {
             if (e.key === 'Shift') isSnapEnabled = true;
@@ -392,6 +400,118 @@ var GraphModule = (function () {
 
         var cs = new CSInterface();
         cs.evalScript("FishTools.applyEase(" + JSON.stringify(args) + ")");
+    }
+
+    function copyEaseValue() {
+        var value = cp1.x + "," + cp1.y + ";" + cp2.x + "," + cp2.y;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(value).then(function() {
+                if (window.ModalModule) window.ModalModule.info("Ease value copied to clipboard!", "Copied");
+            }).catch(function() {
+                fallbackCopy(value);
+            });
+        } else {
+            fallbackCopy(value);
+        }
+    }
+
+    function pasteEaseValue() {
+        if (window.ModalModule) {
+            window.ModalModule.prompt("Paste graph value (format: x1,y1;x2,y2):", "0.33,0;0.67,1", function(value) {
+                if (!value) return;
+                parseEaseValue(value);
+            });
+        }
+    }
+
+    function parseEaseValue(value) {
+        try {
+            var parts = value.split(";");
+            if (parts.length !== 2) throw new Error("Invalid format");
+            var p1 = parts[0].split(",");
+            var p2 = parts[1].split(",");
+            if (p1.length !== 2 || p2.length !== 2) throw new Error("Invalid format");
+            cp1.x = clamp(parseFloat(p1[0]), 0, 1);
+            cp1.y = parseFloat(p1[1]);
+            cp2.x = clamp(parseFloat(p2[0]), 0, 1);
+            cp2.y = parseFloat(p2[1]);
+            if (isNaN(cp1.x) || isNaN(cp1.y) || isNaN(cp2.x) || isNaN(cp2.y)) throw new Error("Invalid numbers");
+            render();
+            if (window.ModalModule) window.ModalModule.info("Ease value applied!", "Success");
+        } catch (e) {
+            if (window.ModalModule) window.ModalModule.error("Invalid format. Use: x1,y1;x2,y2", "Parse Error");
+        }
+    }
+
+    function copyVelocityValue() {
+        var inSpeed = document.getElementById('input-vel-in-speed');
+        var inInfl = document.getElementById('input-vel-in-infl');
+        var outSpeed = document.getElementById('input-vel-out-speed');
+        var outInfl = document.getElementById('input-vel-out-infl');
+        var value = (inSpeed ? inSpeed.value : 0) + "," + (inInfl ? inInfl.value : 33) + ";" +
+                    (outSpeed ? outSpeed.value : 0) + "," + (outInfl ? outInfl.value : 33);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(value).then(function() {
+                if (window.ModalModule) window.ModalModule.info("Velocity value copied to clipboard!", "Copied");
+            }).catch(function() {
+                fallbackCopy(value);
+            });
+        } else {
+            fallbackCopy(value);
+        }
+    }
+
+    function pasteVelocityValue() {
+        if (window.ModalModule) {
+            window.ModalModule.prompt("Paste velocity value (format: inSpeed,inInfl;outSpeed,outInfl):", "0,33;0,33", function(value) {
+                if (!value) return;
+                parseVelocityValue(value);
+            });
+        }
+    }
+
+    function parseVelocityValue(value) {
+        try {
+            var parts = value.split(";");
+            if (parts.length !== 2) throw new Error("Invalid format");
+            var inVal = parts[0].split(",");
+            var outVal = parts[1].split(",");
+            if (inVal.length !== 2 || outVal.length !== 2) throw new Error("Invalid format");
+
+            var inSpeed = parseFloat(inVal[0]);
+            var inInfl = parseFloat(inVal[1]);
+            var outSpeed = parseFloat(outVal[0]);
+            var outInfl = parseFloat(outVal[1]);
+
+            if (isNaN(inSpeed) || isNaN(inInfl) || isNaN(outSpeed) || isNaN(outInfl)) throw new Error("Invalid numbers");
+
+            var elInSpeed = document.getElementById('input-vel-in-speed');
+            var elInInfl = document.getElementById('input-vel-in-infl');
+            var elOutSpeed = document.getElementById('input-vel-out-speed');
+            var elOutInfl = document.getElementById('input-vel-out-infl');
+
+            if (elInSpeed) elInSpeed.value = inSpeed;
+            if (elInInfl) elInInfl.value = inInfl;
+            if (elOutSpeed) elOutSpeed.value = outSpeed;
+            if (elOutInfl) elOutInfl.value = outInfl;
+
+            renderSpeedPreview();
+            if (window.ModalModule) window.ModalModule.info("Velocity value applied!", "Success");
+        } catch (e) {
+            if (window.ModalModule) window.ModalModule.error("Invalid format. Use: inSpeed,inInfl;outSpeed,outInfl", "Parse Error");
+        }
+    }
+
+    function fallbackCopy(text) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (window.ModalModule) window.ModalModule.info("Copied to clipboard!", "Copied");
     }
 
     function savePreset() {
