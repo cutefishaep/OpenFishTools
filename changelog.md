@@ -2,6 +2,23 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.0.6] - 2026-06-02
+### Added
+- **Recommended Tools Card**: Added a new "Recommended Tools" section to the main dashboard showcasing "WOMTools" by "womxsy" with direct TikTok redirection.
+- **ShowIntro Setting**: Integrated the startup write permission popup with settings (`showIntro`). Clicking "Got It!" now permanently dismisses the warning dialog.
+- **Snap Scroll Setting**: Added a dedicated toggle under the settings panel to enable/disable card snap-scroll functionality.
+- **Scale Beat (Continuous Beat Effect)**: Added `SCALE_BEAT` tool to trigger uniform scale decays based on layer or comp markers, complete with controllable Amp and Decay sliders.
+
+### Changed
+- **OSCILLATE Direction**: Refactored the oscillate expression to start movement smoothly from the default layer position (0,0) and animate clockwise (Right -> Down -> Left -> Up).
+- **Descriptive Null Layer Names**: Generated Beat Effect control null layers now receive clear, descriptive names mapping to their utility (e.g., `Oscillate_Null`, `Y_Beat_Null`, `X_Beat_Null`, `Scale_Overlap_Null`).
+- **Global Animation Control**: Disabling animations in the settings now successfully disables both UI transitions and card snap-scroll animations globally.
+- **Precomp Right-Click Shortcut**: Added a right-click shortcut on the Precomp button to automatically crop the precomp size according to the bounding box of the inner objects (using the Auto Crop menu command).
+
+### Fixed
+- **SCALE OVER Duration Bug**: Fixed a bug where Scale Over effects remained active outside of the generated controller null's inPoint/outPoint range.
+- **Comment Cleanup**: Stripped all single-line and multi-line comments from all project JavaScript (`.js`) and ExtendScript (`.jsx`) files to clean production scripts.
+
 ## [1.0.5] - 2026-05-24
 ### Added
 - **X BEAT and Y BEAT (Continuous Beat Effects)**: Replaced `X_OSCILLATE` and `Y_OSCILLATE` with `X_BEAT` and `Y_BEAT`, implementing symmetrical pure decay jumps (`amp / Math.exp(t * decay)`) with new default settings (Amp: 500, Decay: 20). Only takes effect during the Null layer's duration.

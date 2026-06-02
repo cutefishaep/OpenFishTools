@@ -1,6 +1,6 @@
 'use strict';
 
-// Pre-create lightweight module instances that don't need DOM
+
 try {
     window.csInterface = new CSInterface();
     window.tips = new window.TipsModule();
@@ -161,6 +161,13 @@ function setupDonation() {
             }
         })(id, socialLinks[id]);
     }
+
+    var btnWomtools = document.getElementById('btn-womtools');
+    if (btnWomtools) {
+        btnWomtools.addEventListener('click', function () {
+            csInterface.openURLInDefaultBrowser('https://www.tiktok.com/@womxsy');
+        });
+    }
 }
 
 function loadHostScript(callback) {
@@ -252,7 +259,7 @@ window.setupTooltips = function () {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // --- Initialize FileStore and Settings now that DOM is ready ---
+    
     try {
         if (window.FileStore && window.csInterface) {
             var _extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
@@ -261,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (window.SettingsModule) {
             window.settings = new window.SettingsModule();
-            // Load settings but don't apply yet — wait for custom selects to be built
+            
             window.settings.loadSettings();
             window.settings.setupListeners();
         }
@@ -406,14 +413,14 @@ document.addEventListener('DOMContentLoaded', function () {
         setupTooltips();
         loadSystemInfo();
 
-        // Build custom selects FIRST, then apply saved settings so
-        // the custom dropdown triggers show the correct saved value
+        
+        
         setupCustomSelects();
         if (window.settings) {
             window.settings.applySettings();
         }
 
-        // Check AE script write permission after everything is loaded
+        
         checkScriptPermissions();
     });
 });
@@ -421,8 +428,11 @@ document.addEventListener('DOMContentLoaded', function () {
 function checkScriptPermissions() {
     if (!window.csInterface) return;
 
-    // Use After Effects preferences API to check the "Allow scripts to write files" setting
-    // for superior reliability and to avoid macOS sandbox/system temp folder permission issues.
+    
+    if (window.settings && window.settings.get('showIntro') === false) return;
+
+    
+    
     var testScript = [
         '(function() {',
         '  try {',
@@ -452,15 +462,18 @@ function checkScriptPermissions() {
     ].join('\n');
 
     csInterface.evalScript(testScript, function (result) {
-        if (result === 'ok') return; // Permission granted, all good
-
-        // Permission not granted — show blocking modal
+        if (result === 'ok') {
+            
+            if (window.settings) window.settings.set('showIntro', false);
+            return;
+        }
+        
         showPermissionModal();
     });
 }
 
 function showPermissionModal() {
-    // Build a custom blocking modal (ModalModule may not support rich HTML content)
+    
     var overlay = document.createElement('div');
     overlay.id = 'perm-modal-overlay';
     overlay.style.cssText = [
@@ -482,7 +495,7 @@ function showPermissionModal() {
         'animation:modal-in 0.25s cubic-bezier(0.34,1.56,0.64,1) both'
     ].join(';');
 
-    // Icon + Title
+    
     var header = document.createElement('div');
     header.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;';
     header.innerHTML = [
@@ -490,12 +503,12 @@ function showPermissionModal() {
         '<span style="font-weight:700;font-size:13px;color:var(--text,#fff);letter-spacing:0.5px;">Permission Required</span>'
     ].join('');
 
-    // Description
+    
     var desc = document.createElement('p');
     desc.style.cssText = 'font-size:11px;color:var(--text-mut,#888);line-height:1.6;margin:0 0 14px;';
     desc.textContent = 'Fish Tools needs write access to save your settings, presets, and graph data. Please enable it in After Effects preferences.';
 
-    // Steps
+    
     var steps = document.createElement('div');
     steps.style.cssText = 'background:var(--bg,#111);border-radius:8px;padding:12px;margin-bottom:16px;';
 
@@ -519,7 +532,7 @@ function showPermissionModal() {
         steps.appendChild(row);
     });
 
-    // Warning note
+    
     var note = document.createElement('div');
     note.style.cssText = [
         'font-size:9.5px', 'color:var(--text-mut,#666)',
@@ -530,7 +543,7 @@ function showPermissionModal() {
     note.innerHTML = '<span class="material-icons" style="font-size:12px;color:#ffbb33;flex-shrink:0;margin-top:1px;">info</span>' +
         '<span>Without this, settings won\'t be saved between sessions. The extension will still work but all changes will reset on reload.</span>';
 
-    // Buttons
+    
     var footer = document.createElement('div');
     footer.style.cssText = 'display:flex;gap:8px;';
 
@@ -547,6 +560,8 @@ function showPermissionModal() {
     btnOk.className = 'btn-primary';
     btnOk.style.cssText = 'flex:2;font-size:10px;padding:7px;font-weight:700;';
     btnOk.addEventListener('click', function () {
+        
+        if (window.settings) window.settings.set('showIntro', false);
         document.body.removeChild(overlay);
     });
 
@@ -561,7 +576,7 @@ function showPermissionModal() {
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
-    // Animate in
+    
     var style = document.createElement('style');
     style.textContent = '@keyframes modal-in { from { opacity:0; transform:scale(0.88) translateY(12px); } to { opacity:1; transform:scale(1) translateY(0); } }';
     document.head.appendChild(style);

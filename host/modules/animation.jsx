@@ -541,7 +541,7 @@ function _OSCILLATE() {
     try {
         var targetLayer = comp.selectedLayers[0];
         var nullLayer = comp.layers.addNull();
-        nullLayer.name = "Oscillate_Null";
+        nullLayer.name = "OSCILLATE";
         nullLayer.label = 1;
         nullLayer.inPoint = targetLayer.inPoint;
         nullLayer.outPoint = targetLayer.outPoint;
@@ -557,6 +557,10 @@ function _OSCILLATE() {
         var decayCtrl = fx.addProperty("ADBE Slider Control");
         decayCtrl.name = "Decay";
         decayCtrl.property("ADBE Slider Control-0001").setValue(2.7);
+        
+        
+        
+        
         var posExpr = [
             "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
             "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
@@ -582,11 +586,11 @@ function _OSCILLATE() {
             "        if (markerTime >= inPoint && markerTime <= outPoint){",
             "",
             "            t = time - markerTime;",
-            "",
             "            currAmp = amp / Math.exp(t * decay);",
             "",
-            "            x = Math.cos(t * freq * Math.PI * 2) * currAmp;",
-            "            y = Math.sin(t * freq * Math.PI * 2) * currAmp;",
+            "            // Start at default(0,0), go right->down->left->up",
+            "            x = Math.sin(t * freq * Math.PI * 2) * currAmp;",
+            "            y = (1 - Math.cos(t * freq * Math.PI * 2)) * currAmp;",
             "",
             "            value + [x, y];",
             "",
@@ -618,7 +622,7 @@ function _Y_BEAT() {
     try {
         var targetLayer = comp.selectedLayers[0];
         var nullLayer = comp.layers.addNull();
-        nullLayer.name = "Y_Beat_Null";
+        nullLayer.name = "Y BEAT";
         nullLayer.label = 1;
         nullLayer.inPoint = targetLayer.inPoint;
         nullLayer.outPoint = targetLayer.outPoint;
@@ -682,7 +686,7 @@ function _X_BEAT() {
     try {
         var targetLayer = comp.selectedLayers[0];
         var nullLayer = comp.layers.addNull();
-        nullLayer.name = "X_Beat_Null";
+        nullLayer.name = "X BEAT";
         nullLayer.label = 1;
         nullLayer.inPoint = targetLayer.inPoint;
         nullLayer.outPoint = targetLayer.outPoint;
@@ -727,8 +731,71 @@ function _X_BEAT() {
             "    value + [val, 0];",
             "}"
         ].join("\n");
-        var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
         positionProp.expression = posExpr;
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+function _SCALE_BEAT() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    app.beginUndoGroup("Scale Beat");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "SCALE BEAT";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+        targetLayer.parent = nullLayer;
+        var fx = nullLayer.property("ADBE Effect Parade");
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(500);
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(20);
+        var scaleExpr = [
+            "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+            "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "",
+            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
+            "",
+            "if (time < inPoint || time > outPoint || !m || m.numKeys === 0){",
+            "    value;",
+            "}else{",
+            "    n = m.nearestKey(time).index;",
+            "    if (m.key(n).time > time) {",
+            "        t2 = m.key(n).time;",
+            "        t1 = (n > 1) ? m.key(n-1).time : -99999;",
+            "    } else {",
+            "        t1 = m.key(n).time;",
+            "        t2 = (n < m.numKeys) ? m.key(n+1).time : 99999;",
+            "    }",
+            "",
+            "    val1 = 0;",
+            "    if (t1 >= inPoint && t1 <= outPoint) {",
+            "        val1 = amp / Math.exp((time - t1) * decay);",
+            "    }",
+            "",
+            "    val2 = 0;",
+            "    if (t2 >= inPoint && t2 <= outPoint) {",
+            "        val2 = amp / Math.exp((t2 - time) * decay);",
+            "    }",
+            "",
+            "    val = (Math.abs(val1) > Math.abs(val2)) ? val1 : val2;",
+            "    value + [val, val];",
+            "}"
+        ].join("\n");
+        var scaleProp = nullLayer.property("ADBE Transform Group").property("ADBE Scale");
+        scaleProp.expression = scaleExpr;
         for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
         nullLayer.selected = true;
         return true;
@@ -746,7 +813,7 @@ function _SCALE_OVERLAP() {
     try {
         var targetLayer = comp.selectedLayers[0];
         var nullLayer = comp.layers.addNull();
-        nullLayer.name = "Scale_Overlap_Null";
+        nullLayer.name = "SCALE OVER";
         nullLayer.label = 1;
         nullLayer.inPoint = targetLayer.inPoint;
         nullLayer.outPoint = targetLayer.outPoint;
@@ -768,7 +835,9 @@ function _SCALE_OVERLAP() {
             "scaleOut = effect(\"Scale Out\")(\"ADBE Slider Control-0001\");",
             "overshoot = effect(\"Overshoot\")(\"ADBE Slider Control-0001\");",
             "",
-            "if (m && m.numKeys > 0) {",
+            "if (time < inPoint || time > outPoint) {",
+            "    value;",
+            "} else if (m && m.numKeys > 0) {",
             "    n = 0;",
             "    if (m.numKeys > 0) {",
             "        n = m.nearestKey(time).index;",
@@ -786,7 +855,6 @@ function _SCALE_OVERLAP() {
             "        t = time - t1;",
             "        progress = Math.max(0, Math.min(1, t / dur));",
             "        s = overshoot / 10;",
-
             "        eased = progress * progress * ((s + 1) * progress - s);",
             "        val = startVal + (endVal - startVal) * eased;",
             "        value + [val, val];",
@@ -1190,6 +1258,7 @@ tools.HUESPIN = function () { return _HUESPIN(); };
 tools.OSCILLATE = function () { return _OSCILLATE(); };
 tools.Y_BEAT = function () { return _Y_BEAT(); };
 tools.X_BEAT = function () { return _X_BEAT(); };
+tools.SCALE_BEAT = function () { return _SCALE_BEAT(); };
 tools.SCALE_OVERLAP = function () { return _SCALE_OVERLAP(); };
 tools.SWING = function () { return _SWING(); };
 tools.FISHEYE = function () { return _FISHEYE(); };

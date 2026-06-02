@@ -8,6 +8,8 @@ window.SettingsModule = function SettingsModule() {
         theme: 'dark',
         uiStyle: 'capsule',
         animEnabled: true,
+        snapScroll: false,
+        showIntro: true,
         beatMaker: {
             threshold: 15,
             channel: 'Both Channels',
@@ -39,6 +41,16 @@ SettingsModule.prototype.setupListeners = function () {
     safeAdd('btn-backup-settings', 'click', function () { self.backupSettings(); });
     safeAdd('btn-restore-settings', 'click', function () { self.restoreSettings(); });
     safeAdd('btn-open-settings-dir', 'click', function () { self.openSettingsDir(); });
+
+    safeAdd('snap-scroll-toggle', 'change', function (e) {
+        self.settings.snapScroll = e.target.checked;
+        if (e.target.checked) {
+            window.CardNavModule.enable();
+        } else {
+            window.CardNavModule.disable();
+        }
+        self.saveSettings();
+    });
 };
 
 SettingsModule.prototype.loadSettings = function () {
@@ -67,16 +79,18 @@ SettingsModule.prototype.applySettings = function (skipTabRestore) {
     var theme = this.settings.theme || 'dark';
     var style = this.settings.uiStyle || 'capsule';
     var anim = this.settings.animEnabled !== false;
+    var snap = this.settings.snapScroll === true;
 
-    // Apply to DOM
+    
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-anim', anim ? 'on' : 'off');
+    document.documentElement.setAttribute('data-snap', snap ? 'on' : 'off');
 
     document.body.classList.remove('style-material-you', 'style-simple');
     if (style === 'material') document.body.classList.add('style-material-you');
     if (style === 'simple') document.body.classList.add('style-simple');
 
-    // Sync native select values
+    
     var themeSelect = document.getElementById('theme-select');
     if (themeSelect) themeSelect.value = theme;
 
@@ -86,7 +100,19 @@ SettingsModule.prototype.applySettings = function (skipTabRestore) {
     var animToggle = document.getElementById('anim-toggle');
     if (animToggle) animToggle.checked = anim;
 
-    // Sync custom select UI (trigger text + selected option highlight)
+    var snapToggle = document.getElementById('snap-scroll-toggle');
+    if (snapToggle) snapToggle.checked = snap;
+
+    
+    if (window.CardNavModule) {
+        if (snap && !window.CardNavModule.isEnabled()) {
+            window.CardNavModule.enable();
+        } else if (!snap && window.CardNavModule.isEnabled()) {
+            window.CardNavModule.disable();
+        }
+    }
+
+    
     ['theme-select', 'style-select'].forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
@@ -94,14 +120,14 @@ SettingsModule.prototype.applySettings = function (skipTabRestore) {
         var container = document.getElementById('container-' + id);
         if (!container) return;
 
-        // Update trigger label
+        
         var trigger = container.querySelector('.custom-select-trigger span');
         if (trigger) {
             var _idx = el.selectedIndex;
             trigger.textContent = (_idx >= 0 && el.options[_idx]) ? el.options[_idx].text : 'Select...';
         }
 
-        // Update selected highlight in options list
+        
         var allOpts = container.querySelectorAll('.custom-select-option');
         var currentVal = el.value;
         var optEls = Array.from(el.options);
@@ -177,9 +203,9 @@ SettingsModule.prototype.backupSettings = function () {
             initialPath,
             ['json'],
             'fishtools_backup.json',
-            '', // friendlyFilePrefix
-            '', // prompt
-            ''  // nameFieldLabel
+            '', 
+            '', 
+            ''  
         );
     } else {
         result = window.cep.fs.showSaveDialog(
@@ -218,13 +244,13 @@ SettingsModule.prototype.restoreSettings = function () {
 
     if (window.cep.fs.showOpenDialogEx) {
         result = window.cep.fs.showOpenDialogEx(
-            false, // allowMultipleSelection
-            false, // chooseDirectory
+            false, 
+            false, 
             'Restore Settings',
             initialPath,
             ['json'],
-            '', // friendlyFilePrefix
-            ''  // prompt
+            '', 
+            ''  
         );
     } else {
         result = window.cep.fs.showOpenDialog(

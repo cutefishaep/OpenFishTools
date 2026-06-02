@@ -28,12 +28,9 @@
 #beat-tap-btn.pulse { animation: beatPulse 0.3s ease; }
 
 
-[data-anim="off"] .splash-logo,
-[data-anim="off"] .tab-content.active,
-[data-anim="off"] .todo-item,
-[data-anim="off"] #beat-tap-btn.pulse,
-[data-anim="off"] .floating-nav,
-[data-anim="off"] .tab-btn {
+[data-anim="off"] *,
+[data-anim="off"] *::before,
+[data-anim="off"] *::after {
     animation: none !important;
     transition: none !important;
 }
@@ -311,6 +308,23 @@ textarea { min-height: 80px; resize: vertical; }
 .content-container {
     height: 100vh; overflow-y: auto;
     padding: 10px 10px 72px;
+    scroll-behavior: smooth;
+}
+
+/* === Card Navigator (Snap Scroll Mode) === */
+.card {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+}
+
+[data-snap="on"] .card {
+    opacity: 0.45;
+    transform: scale(0.985);
+}
+
+[data-snap="on"] .card.card--focused {
+    opacity: 1;
+    transform: scale(1);
+    border-color: var(--accent);
 }
 
 .tab-content { display: none; }
@@ -777,6 +791,41 @@ input:checked + .slider::before { transform: translateX(16px); background: #000;
 
 .style-material-you .credit-btn { border-radius: 20px; border: none; background: var(--surface); }
 .style-simple .credit-btn { border-radius: 0; border: 1px solid var(--border); background: none; }
+
+
+/* === Recommended Tools === */
+.rec-tool-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0;
+}
+.rec-tool-thumb {
+    width: 40px; height: 40px; flex-shrink: 0;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+}
+.rec-tool-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.rec-tool-placeholder-icon { font-size: 20px; color: var(--text-mut); }
+.rec-tool-info {
+    flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.rec-tool-name {
+    font-size: 11px; font-weight: 800; color: var(--text);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rec-tool-author {
+    font-size: 9px; color: var(--text-dim); font-weight: 500;
+}
+.rec-tool-btn {
+    flex-shrink: 0; width: 30px; height: 30px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim); transition: all 0.15s ease;
+}
+.rec-tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rec-tool-btn .material-icons { font-size: 14px; }
 
 
 .modal-overlay, .custom-modal-overlay {

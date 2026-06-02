@@ -14,19 +14,19 @@ var FileStore = (function () {
     function _ensureDir(dirPath) {
         if (!_hasCepFs()) return false;
         try {
-            // First check if the directory already exists
+            
             var stat = window.cep.fs.stat(dirPath);
             if (stat.err === 0 && stat.data && typeof stat.data.isDirectory === 'function') {
                 if (stat.data.isDirectory()) {
-                    return true; // Already exists and is a directory
+                    return true; 
                 }
             }
 
-            // If it doesn't exist, create it
+            
             var result = window.cep.fs.makedir(dirPath);
             if (result.err === 0) return true;
 
-            // Re-verify after makedir in case of platform-specific error codes for already-exists (e.g. 183 on Windows, 17 on macOS)
+            
             stat = window.cep.fs.stat(dirPath);
             if (stat.err === 0 && stat.data && typeof stat.data.isDirectory === 'function') {
                 return stat.data.isDirectory();
@@ -64,11 +64,11 @@ var FileStore = (function () {
             return;
         }
 
-        // We prioritize the official Adobe-recommended directory for persistent settings:
-        // macOS: ~/Library/Application Support/Adobe/com.cutefish.tools
-        // Windows: %APPDATA%/Adobe/com.cutefish.tools
-        // This avoids permission errors when installed in system-wide /Library/Application Support/Adobe/CEP/extensions
-        // and protects user data (presets/settings) from being wiped out during extension updates or reinstalls.
+        
+        
+        
+        
+        
         var targetUserDir = userDataPath ? (userDataPath + '/Adobe/com.cutefish.tools') : null;
         var extDataDir = extensionPath ? (extensionPath + '/data') : null;
 
@@ -76,18 +76,18 @@ var FileStore = (function () {
             _dataDir = targetUserDir;
             _filePath = _dataDir + '/fishtools_save.json';
 
-            // If the user file doesn't exist yet, try to pre-load from the extension's default file (from repository/installer)
+            
             var userFileStat = window.cep.fs.stat(_filePath);
             if (userFileStat.err !== 0 && extDataDir) {
                 var extFile = extDataDir + '/fishtools_save.json';
                 var extFileStat = window.cep.fs.stat(extFile);
                 if (extFileStat.err === 0) {
-                    // Pre-load from extension folder
+                    
                     var readRes = window.cep.fs.readFile(extFile);
                     if (readRes.err === 0 && readRes.data) {
                         try {
                             _cache = JSON.parse(readRes.data) || {};
-                            // Save it to the user path immediately so it's initialized
+                            
                             save();
                             return;
                         } catch (e) {}
@@ -99,7 +99,7 @@ var FileStore = (function () {
             return;
         }
 
-        // Fallback: Try Extension Path (e.g. if USER_DATA is somehow not writable)
+        
         if (extDataDir && _isWritable(extDataDir)) {
             _dataDir = extDataDir;
             _filePath = _dataDir + '/fishtools_save.json';
@@ -107,7 +107,7 @@ var FileStore = (function () {
             return;
         }
 
-        // Fallback to LocalStorage if both paths are unwritable
+        
         _useLocalStorage = true;
         _loadFromLocalStorage();
     }
@@ -134,11 +134,11 @@ var FileStore = (function () {
                     _cache = {};
                 }
             } else if (result.err !== 0) {
-                // File doesn't exist yet or read error - try to restore from localStorage fallback
+                
                 _loadFromLocalStorage();
             }
         } catch (e) {
-            // If cep.fs throws, fall back to localStorage
+            
             _useLocalStorage = true;
             _filePath = null;
             _loadFromLocalStorage();
@@ -157,11 +157,11 @@ var FileStore = (function () {
         }
 
         try {
-            // Re-ensure directory exists before each write (handles Mac sandbox quirks)
+            
             _ensureDir(_dataDir);
             var result = window.cep.fs.writeFile(_filePath, json);
             if (result.err !== 0) {
-                // Write failed - fall back to localStorage
+                
                 try { localStorage.setItem('fishToolsFileStore', json); } catch (e2) {}
             }
         } catch (e) {

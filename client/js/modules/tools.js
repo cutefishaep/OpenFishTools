@@ -103,6 +103,12 @@
             btnPrecomp.addEventListener('click', function () {
                 self._runTool('PRECOMP');
             });
+            btnPrecomp.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+                btnPrecomp.classList.add('tool-btn--active');
+                setTimeout(function () { btnPrecomp.classList.remove('tool-btn--active'); }, 200);
+                self._runTool('PRECOMP_AUTOCROP');
+            });
         }
         var btnCenter = document.getElementById('btn-center');
         if (btnCenter) {

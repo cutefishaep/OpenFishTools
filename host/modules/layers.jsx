@@ -204,6 +204,129 @@ function _PRECOMP() {
     }
 }
 
+function _PRECOMP_AUTOCROP() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return false;
+    var selectedLayers = comp.selectedLayers;
+    if (selectedLayers.length === 0) return false;
+
+    app.beginUndoGroup("Pre-compose Auto Crop");
+    try {
+        
+        var earliestStartTime = Number.MAX_VALUE;
+        var latestEndTime = 0;
+        var layerIndices = [];
+        for (var i = 0; i < selectedLayers.length; i++) {
+            var layer = selectedLayers[i];
+            layerIndices.push(layer.index);
+            if (layer.inPoint < earliestStartTime) earliestStartTime = layer.inPoint;
+            if (layer.outPoint > latestEndTime) latestEndTime = layer.outPoint;
+        }
+        var preCompName = "Pre-comp " + comp.layer(layerIndices[0]).name;
+        var preComp = comp.layers.precompose(layerIndices, preCompName, true);
+        var newDuration = latestEndTime - earliestStartTime;
+        if (newDuration > 0 && newDuration < preComp.duration) {
+            preComp.duration = newDuration;
+        }
+        for (var i = 1; i <= preComp.numLayers; i++) {
+            preComp.layer(i).startTime -= earliestStartTime;
+        }
+
+        
+        var fps = preComp.frameRate;
+        var duration = preComp.duration;
+        var totalFrames = Math.round(duration * fps);
+        var sampleStep = Math.max(1, Math.floor(totalFrames / 60)); 
+
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+        for (var f = 0; f <= totalFrames; f += sampleStep) {
+            var t = f / fps;
+            if (t > duration) t = duration;
+            for (var li = 1; li <= preComp.numLayers; li++) {
+                var l = preComp.layer(li);
+                if (l instanceof CameraLayer || l instanceof LightLayer) continue;
+                if (t < l.inPoint || t > l.outPoint) continue;
+                try {
+                    var rect = l.sourceRectAtTime(t, false);
+                    var sc = l.property("ADBE Transform Group").property("ADBE Scale").valueAtTime(t, false);
+                    var pos = l.property("ADBE Transform Group").property("ADBE Position").valueAtTime(t, false);
+                    var anc = l.property("ADBE Transform Group").property("ADBE Anchor Point").valueAtTime(t, false);
+
+                    var scX = sc[0] / 100;
+                    var scY = sc[1] / 100;
+
+                    
+                    var corners = [
+                        [rect.left,              rect.top             ],
+                        [rect.left + rect.width, rect.top             ],
+                        [rect.left,              rect.top + rect.height],
+                        [rect.left + rect.width, rect.top + rect.height]
+                    ];
+
+                    for (var c = 0; c < corners.length; c++) {
+                        var cx = (corners[c][0] - anc[0]) * scX + pos[0];
+                        var cy = (corners[c][1] - anc[1]) * scY + pos[1];
+                        if (cx < minX) minX = cx;
+                        if (cy < minY) minY = cy;
+                        if (cx > maxX) maxX = cx;
+                        if (cy > maxY) maxY = cy;
+                    }
+                } catch (e) {  }
+            }
+        }
+
+        
+        if (!isFinite(minX)) {
+            minX = 0; minY = 0;
+            maxX = preComp.width; maxY = preComp.height;
+        }
+
+        var newW = Math.ceil(maxX - minX);
+        var newH = Math.ceil(maxY - minY);
+        if (newW < 2) newW = 2;
+        if (newH < 2) newH = 2;
+
+        
+        for (var li = 1; li <= preComp.numLayers; li++) {
+            var l = preComp.layer(li);
+            if (l instanceof CameraLayer || l instanceof LightLayer) continue;
+            try {
+                var pos = l.property("ADBE Transform Group").property("ADBE Position");
+                if (pos.isTimeVarying) {
+                    for (var k = 1; k <= pos.numKeys; k++) {
+                        var kv = pos.keyValue(k);
+                        pos.setValueAtKey(k, [kv[0] - minX, kv[1] - minY]);
+                    }
+                } else {
+                    var pv = pos.value;
+                    pos.setValue([pv[0] - minX, pv[1] - minY]);
+                }
+            } catch (e) {  }
+        }
+
+        
+        preComp.width  = newW;
+        preComp.height = newH;
+
+        
+        for (var i = 1; i <= comp.numLayers; i++) {
+            var cl = comp.layer(i);
+            if (cl.source instanceof CompItem && cl.source.id === preComp.id) {
+                cl.startTime = earliestStartTime;
+                break;
+            }
+        }
+
+        return true;
+    } catch (err) {
+        alert("Pre-compose Auto Crop Error: " + err.toString());
+        return false;
+    } finally {
+        app.endUndoGroup();
+    }
+}
+
 function _DUP(newName) {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return "Please select a composition or a precomp layer.";
@@ -481,6 +604,7 @@ tools.SOL = function (alter) { return _SOL(alter); };
 tools.NUL = function (alter) { return _NUL(alter); };
 tools.CAM = function () { return _CAM(); };
 tools.PRECOMP = function () { return _PRECOMP(); };
+tools.PRECOMP_AUTOCROP = function () { return _PRECOMP_AUTOCROP(); };
 tools.CENTERINCOMP = function () { return _CENTERINCOMP(); };
 tools.setAnchorPoint = function (pos) { return _setAnchorPoint(pos); };
 tools.DUP = function (newName) { return _DUP(newName); };

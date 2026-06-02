@@ -144,6 +144,22 @@
                 </div>
             </div>
 
+            <div class="card">
+                <h3>Recommended Tools</h3>
+                <div class="rec-tool-item" id="rec-womtools">
+                    <div class="rec-tool-thumb">
+                        <span class="material-icons rec-tool-placeholder-icon">build_circle</span>
+                    </div>
+                    <div class="rec-tool-info">
+                        <span class="rec-tool-name">WOMTools</span>
+                        <span class="rec-tool-author">by womxsy</span>
+                    </div>
+                    <button class="rec-tool-btn" id="btn-womtools" title="Open TikTok">
+                        <span class="material-icons">open_in_new</span>
+                    </button>
+                </div>
+            </div>
+
         </div>
 
         
@@ -320,7 +336,7 @@
             <div class="card">
                 <h3>Actions</h3>
                 <div class="toolbox-grid col-5">
-                    <button id="btn-precomp" class="tool-btn" title="Pre-compose"><span
+                    <button id="btn-precomp" class="tool-btn has-context" title="Precomp"><span
                             class="material-icons">layers</span><span class="tool-label">PRECOMP</span></button>
                     <button id="btn-center" class="tool-btn" title="Center Layer"><span
                             class="material-icons">filter_center_focus</span><span
@@ -478,6 +494,8 @@
                             class="material-icons">south</span><span class="tool-label">Y BEAT</span></button>
                     <button class="tool-btn" data-tool="X_BEAT" title="X Beat"><span
                             class="material-icons">east</span><span class="tool-label">X BEAT</span></button>
+                    <button class="tool-btn" data-tool="SCALE_BEAT" title="Scale Beat"><span
+                            class="material-icons">zoom_in</span><span class="tool-label">SCALE BEAT</span></button>
                     <button class="tool-btn" data-tool="SCALE_OVERLAP" title="Scale Overlap"><span
                             class="material-icons">aspect_ratio</span><span class="tool-label">SCALE OVER</span></button>
                     <button class="tool-btn" data-tool="SWING" title="Swing"><span
@@ -669,6 +687,15 @@
                         </span>
                     </label>
                 </div>
+                <div class="settings-row">
+                    <span class="status-label" style="margin:0;">SNAP SCROLL</span>
+                    <label class="switch-container" style="margin:0;">
+                        <span class="switch">
+                            <input type="checkbox" id="snap-scroll-toggle">
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                </div>
             </div>
 
             <div class="card">
@@ -819,6 +846,7 @@
     <script src="./js/modules/beatmaker.js"></script>
     <script src="./js/modules/debug.js"></script>
     <script src="./js/modules/bubbletext.js"></script>
+    <script src="./js/modules/cardnav.js"></script>
     <script src="./js/main.js"></script>
     <div id="custom-tooltip"></div>
 
