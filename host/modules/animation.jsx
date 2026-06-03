@@ -731,6 +731,7 @@ function _X_BEAT() {
             "    value + [val, 0];",
             "}"
         ].join("\n");
+        var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
         positionProp.expression = posExpr;
         for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
         nullLayer.selected = true;

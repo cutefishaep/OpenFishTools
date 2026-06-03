@@ -18,6 +18,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 ### Fixed
 - **SCALE OVER Duration Bug**: Fixed a bug where Scale Over effects remained active outside of the generated controller null's inPoint/outPoint range.
 - **Comment Cleanup**: Stripped all single-line and multi-line comments from all project JavaScript (`.js`) and ExtendScript (`.jsx`) files to clean production scripts.
+- **X BEAT Reference Bug**: Fixed a reference error in the `X_BEAT` tool where `positionProp` was used without being declared.
 
 ## [1.0.5] - 2026-05-24
 ### Added
