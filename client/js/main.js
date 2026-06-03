@@ -410,6 +410,12 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("BubbleTextModule init error", e); }
         }
 
+        if (window.TextToSpeechModule) {
+            try {
+                window.TextToSpeechModule.init();
+            } catch (e) { console.error("TextToSpeechModule init error", e); }
+        }
+
         setupTooltips();
         loadSystemInfo();
 

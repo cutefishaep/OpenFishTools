@@ -10,6 +10,7 @@ window.SettingsModule = function SettingsModule() {
         animEnabled: true,
         snapScroll: false,
         showIntro: true,
+        elevenLabsApiKey: '',
         beatMaker: {
             threshold: 15,
             channel: 'Both Channels',

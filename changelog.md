@@ -8,6 +8,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 - **ShowIntro Setting**: Integrated the startup write permission popup with settings (`showIntro`). Clicking "Got It!" now permanently dismisses the warning dialog.
 - **Snap Scroll Setting**: Added a dedicated toggle under the settings panel to enable/disable card snap-scroll functionality.
 - **Scale Beat (Continuous Beat Effect)**: Added `SCALE_BEAT` tool to trigger uniform scale decays based on layer or comp markers, complete with controllable Amp and Decay sliders.
+- **Google Translate Text to Speech Integration**: Added a "Text To Speech" dashboard card using Google Translate's keyless TTS API. Offers 100% free, unlimited generation across 13 languages, interactive in-panel text previewing, and automatic After Effects audio import with styled box-wrapped subtitle layers.
 
 ### Changed
 - **OSCILLATE Direction**: Refactored the oscillate expression to start movement smoothly from the default layer position (0,0) and animate clockwise (Right -> Down -> Left -> Up).
@@ -19,6 +20,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 - **SCALE OVER Duration Bug**: Fixed a bug where Scale Over effects remained active outside of the generated controller null's inPoint/outPoint range.
 - **Comment Cleanup**: Stripped all single-line and multi-line comments from all project JavaScript (`.js`) and ExtendScript (`.jsx`) files to clean production scripts.
 - **X BEAT Reference Bug**: Fixed a reference error in the `X_BEAT` tool where `positionProp` was used without being declared.
+- **CEP Base64 Encoding Bug**: Fixed a reference error in `tts.js` where `window.cep.fs.encoding` was used instead of the correct `window.cep.encoding.Base64` constant.
 
 ## [1.0.5] - 2026-05-24
 ### Added

@@ -737,3 +737,221 @@ tools.DEBUG_ALL = function () { return _DEBUG_ALL(); };
 tools.OVERLAP = function () { return _OVERLAP(); };
 tools.changeCompRatio = function (w, h) { return _changeCompRatio(w, h); };
 tools.changeCompFPS = function (fps) { return _changeCompFPS(fps); };
+
+function _CLEAN_TTS_CACHE(cacheDirPath) {
+    try {
+        var folder = new Folder(cacheDirPath);
+        if (folder.exists) {
+            var files = folder.getFiles();
+            for (var i = 0; i < files.length; i++) {
+                try {
+                    files[i].remove();
+                } catch (err) {}
+            }
+            folder.remove();
+            return 'OK';
+        }
+        return 'ERROR:Cache folder not found';
+    } catch (e) {
+        return 'ERROR:' + e.toString();
+    }
+}
+
+function _IMPORT_TTS(filePath, textContent, addTextLayer, animateText, animDirection, animBasedOn) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) {
+        return '{"error":true,"message":"Please select a composition first!"}';
+    }
+
+    var dir = animDirection || 'bottom_to_top';
+    var basedOn = animBasedOn || 'lines';
+
+    app.beginUndoGroup("Import TTS Speech");
+    try {
+        var file = new File(filePath);
+        if (!file.exists) {
+            throw new Error("Generated audio file does not exist on disk.");
+        }
+
+        var importOptions = new ImportOptions(file);
+        var importItem = app.project.importFile(importOptions);
+        var audioLayer = comp.layers.add(importItem);
+        audioLayer.name = "TTS_Audio";
+        audioLayer.startTime = comp.time;
+
+        if (addTextLayer) {
+            var compRatio = comp.width / comp.height;
+            var shortSide = Math.min(comp.width, comp.height);
+
+            var sizeRatio = 0.039;
+            if (compRatio >= 1.7) {
+                sizeRatio = 0.035;
+            } else if (compRatio >= 0.9) {
+                sizeRatio = 0.037;
+            }
+            var fontSize = Math.round(shortSide * sizeRatio);
+            fontSize = Math.max(16, Math.min(fontSize, 80));
+
+            var maxChars = 38;
+            if (compRatio >= 1.7) {
+                maxChars = 80;
+            } else if (compRatio >= 0.9) {
+                maxChars = 55;
+            }
+
+            var cleanText = textContent.replace(/[\r\n]+/g, ' ');
+            var words = cleanText.split(' ');
+            var lines = [];
+            var currentLine = "";
+            for (var i = 0; i < words.length; i++) {
+                var word = words[i];
+                var testLine = currentLine ? (currentLine + " " + word) : word;
+                var testLineClean = testLine.replace(/^\s+|\s+$/g, '');
+                if (testLineClean.length > maxChars) {
+                    if (currentLine) lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            }
+            if (currentLine) lines.push(currentLine);
+            var wrappedText = lines.join('\n');
+
+            var textLayer = comp.layers.addText(wrappedText);
+            textLayer.name = "TTS_Caption";
+            textLayer.startTime = comp.time;
+            textLayer.outPoint = audioLayer.outPoint;
+
+            var textProp = textLayer.property("ADBE Text Properties").property("ADBE Text Document");
+            var textDoc = textProp.value;
+            textDoc.text = wrappedText;
+            textDoc.fontSize = fontSize;
+            textDoc.fillColor = [1, 1, 1];
+            textDoc.applyStroke = false;
+            textDoc.justification = ParagraphJustification.CENTER_JUSTIFY;
+
+            var leadingRatio = 1.3;
+            textDoc.autoLeading = false;
+            textDoc.leading = Math.round(fontSize * leadingRatio);
+
+            textProp.setValue(textDoc);
+
+            var dsEffect = textLayer.Effects.addProperty("ADBE Drop Shadow");
+            if (dsEffect) {
+                var opacityProp = dsEffect.property("ADBE Drop Shadow-0002") || dsEffect.property("Shadow Opacity") || dsEffect.property(2);
+                var directionProp = dsEffect.property("ADBE Drop Shadow-0003") || dsEffect.property("Direction") || dsEffect.property(3);
+                var distanceProp = dsEffect.property("ADBE Drop Shadow-0004") || dsEffect.property("Distance") || dsEffect.property(4);
+                var softnessProp = dsEffect.property("ADBE Drop Shadow-0005") || dsEffect.property("Softness") || dsEffect.property(5);
+
+                if (opacityProp) opacityProp.setValue(255);
+                if (directionProp) directionProp.setValue(135);
+                if (distanceProp) distanceProp.setValue(Math.max(2, Math.round(fontSize * 0.08)));
+                if (softnessProp) softnessProp.setValue(0);
+            }
+
+            var rect = textLayer.sourceRectAtTime(comp.time, false);
+            var apProp = textLayer.property("ADBE Transform Group").property("ADBE Anchor Point");
+            if (apProp) {
+                apProp.setValue([rect.left + rect.width / 2, rect.top + rect.height / 2, 0]);
+            }
+
+            var posY = comp.height * 0.86;
+            if (compRatio >= 1.7) {
+                posY = comp.height * 0.90;
+            } else if (compRatio >= 0.9) {
+                posY = comp.height * 0.88;
+            }
+
+            var posProp = textLayer.property("ADBE Transform Group").property("ADBE Position");
+            posProp.setValue([comp.width / 2, posY]);
+
+            if (animateText) {
+                var textProps = textLayer.property("ADBE Text Properties");
+                var animators = textProps.property("ADBE Text Animators");
+                var animator = animators.addProperty("ADBE Text Animator");
+                animator.name = "TTS Appear";
+
+                var selectors = animator.property("ADBE Text Selectors");
+                var rangeSel = selectors.addProperty("ADBE Text Selector");
+
+                var rangeStart = rangeSel.property("ADBE Text Percent Start");
+                var rangeEnd = rangeSel.property("ADBE Text Percent End");
+                var layerInTime = textLayer.inPoint;
+                var animDuration = textLayer.outPoint - textLayer.inPoint;
+
+                rangeStart.setValueAtTime(layerInTime, 0);
+                rangeStart.setValueAtTime(layerInTime + animDuration, 100);
+                rangeEnd.setValue(100);
+
+                var basedOnMap = {
+                    'characters': 1,
+                    'characters_excl_spaces': 2,
+                    'words': 3,
+                    'lines': 4
+                };
+                var basedOnVal = basedOnMap[basedOn] || 4;
+                try {
+                    var advProp = rangeSel.property("ADBE Text Range Advanced");
+                    if (advProp) {
+                        var rangeTypeProp = advProp.property("ADBE Text Range Type2") || advProp.property("Based On");
+                        if (rangeTypeProp) rangeTypeProp.setValue(basedOnVal);
+                        
+                        var easeHighProp = advProp.property("ADBE Text Ease High") || advProp.property("Ease High");
+                        if (easeHighProp) easeHighProp.setValue(50);
+                        
+                        var easeLowProp = advProp.property("ADBE Text Ease Low") || advProp.property("Ease Low");
+                        if (easeLowProp) easeLowProp.setValue(50);
+                    }
+                } catch(e) {}
+
+                var animPropGroup = animator.property("ADBE Text Animator Properties");
+                
+                var offsetProp = null;
+                try { offsetProp = animPropGroup.addProperty("ADBE Text Position"); } catch (e) {
+                    try { offsetProp = animPropGroup.addProperty("Position"); } catch (e2) {
+                        try { offsetProp = animPropGroup.addProperty("ADBE Text Position 3D"); } catch (e3) {}
+                    }
+                }
+
+                var opacityProp = null;
+                try { opacityProp = animPropGroup.addProperty("ADBE Text Opacity"); } catch (e) {
+                    try { opacityProp = animPropGroup.addProperty("Opacity"); } catch (e2) {}
+                }
+
+                var offsetAmt = Math.round(fontSize * 1.2);
+                var offsetVec = [0, 0, 0];
+
+                if (dir === 'bottom_to_top') {
+                    offsetVec = [0, offsetAmt, 0];
+                } else if (dir === 'top_to_bottom') {
+                    offsetVec = [0, -offsetAmt, 0];
+                } else if (dir === 'left_to_right') {
+                    offsetVec = [-offsetAmt, 0, 0];
+                } else if (dir === 'right_to_left') {
+                    offsetVec = [offsetAmt, 0, 0];
+                }
+
+                if (offsetProp) {
+                    try { offsetProp.setValue(offsetVec); } catch(e) {}
+                }
+                if (opacityProp) {
+                    try { opacityProp.setValue(0); } catch(e) {}
+                }
+            }
+        }
+
+        app.endUndoGroup();
+        return '{"error":false,"message":"TTS imported successfully!"}';
+    } catch (e) {
+        app.endUndoGroup();
+        return '{"error":true,"message":"TTS Import Error: ' + e.toString() + ' (Line ' + e.line + ')"}';
+    }
+}
+
+tools.CLEAN_TTS_CACHE = function (filePath) {
+    return _CLEAN_TTS_CACHE(filePath);
+};
+
+tools.IMPORT_TTS = function (filePath, textContent, addTextLayer, animateText, animDirection, animBasedOn) {
+    return _IMPORT_TTS(filePath, textContent, addTextLayer, animateText, animDirection, animBasedOn);
+};

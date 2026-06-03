@@ -1270,7 +1270,67 @@ input[type="range"]:hover {
     background: var(--border);
 }
 
+#tts-text-input {
+    width: 100%;
+    min-height: 60px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 8px;
+    font-family: inherit;
+    font-size: 11px;
+    resize: vertical;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+#tts-text-input:focus {
+    border-color: var(--accent);
+}
+#tts-voice-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 0 8px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+}
+#tts-voice-select:focus {
+    border-color: var(--accent);
+}
+.style-simple #tts-text-input,
+.style-simple #tts-voice-select {
+    border-radius: 0;
+}
 
+/* === TTS Card Overrides === */
+#card-tts #container-tts-voice-select {
+    flex: 1 !important;
+    min-width: 0;
+}
 
+#card-tts .custom-select-trigger {
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+}
 
+#card-tts #tts-text-options .custom-select-trigger {
+    min-height: 25px !important;
+    height: 25px !important;
+    padding: 2px 8px !important;
+    font-size: 10px !important;
+}
 
+#card-tts #tts-text-options .custom-select-trigger .chevron {
+    font-size: 14px !important;
+    width: 14px !important;
+}
+
+#card-tts .custom-select-options {
+    max-height: 180px !important;
+}

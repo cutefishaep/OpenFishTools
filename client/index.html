@@ -120,6 +120,71 @@
                 </div>
             </div>
 
+            <div class="card" id="card-tts">
+                <div class="card-header" style="justify-content:space-between;">
+                    <h3>Text To Speech</h3>
+                    <button id="btn-tts-clean-cache" class="icon-btn" title="Clear TTS cache (delete generated MP3)" style="background:transparent; border:1px solid var(--border); border-radius:4px; height:26px; width:26px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer;">
+                        <span class="material-icons" style="font-size:14px;">delete_sweep</span>
+                    </button>
+                </div>
+                <div class="tts-body" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                    <textarea id="tts-text-input" placeholder="Type text to generate speech..." style="width:100%; min-height:64px; box-sizing:border-box; resize:vertical;"></textarea>
+
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <select id="tts-voice-select" style="flex:1; height:28px; font-size:11px;"></select>
+                        <button id="btn-tts-preview" class="icon-btn" title="Preview voice" style="background:var(--surface); border:1px solid var(--border); border-radius:4px; height:28px; width:28px; display:flex; align-items:center; justify-content:center; color:var(--text); cursor:pointer; flex-shrink:0;">
+                            <span class="material-icons" style="font-size:14px;">volume_up</span>
+                        </button>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="status-label" style="font-size:10px;">ADD TEXT LAYER</span>
+                        <label class="switch-container" style="margin:0;">
+                            <span class="switch">
+                                <input type="checkbox" id="tts-add-text-toggle" checked>
+                                <span class="slider"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div id="tts-anim-toggle-container" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="status-label" style="font-size:10px;">TEXT ANIMATION</span>
+                        <label class="switch-container" style="margin:0;">
+                            <span class="switch">
+                                <input type="checkbox" id="tts-anim-toggle" checked>
+                                <span class="slider"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div id="tts-text-options" style="display:flex; flex-direction:column; gap:6px; padding:8px; background:var(--surface); border:1px solid var(--border); border-radius:6px;">
+                        <span class="section-label" style="font-size:9px; font-weight:800; letter-spacing:0.06em; margin-bottom:2px;">ANIMATION PARAMS</span>
+                        <div style="display:flex; gap:6px;">
+                            <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+                                <span class="status-label" style="font-size:9px;">DIRECTION</span>
+                                <select id="tts-anim-direction" style="width:100%; height:26px; font-size:10px;">
+                                    <option value="bottom_to_top">Bottom to Top</option>
+                                    <option value="top_to_bottom">Top to Bottom</option>
+                                    <option value="left_to_right">Left to Right</option>
+                                    <option value="right_to_left">Right to Left</option>
+                                </select>
+                            </div>
+                            <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+                                <span class="status-label" style="font-size:9px;">BASED ON</span>
+                                <select id="tts-anim-based-on" style="width:100%; height:26px; font-size:10px;">
+                                    <option value="characters">Characters</option>
+                                    <option value="characters_excl_spaces">Chars (no spaces)</option>
+                                    <option value="words">Words</option>
+                                    <option value="lines" selected>Lines</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-tts-generate" class="btn-primary w-full" style="height:32px; font-size:11px; font-weight:800; border-radius:4px; border:none; background:var(--accent); color:var(--bg); cursor:pointer; text-align:center; display:block; letter-spacing:0.06em;">GENERATE</button>
+                </div>
+            </div>
+
             <div class="card">
                 <h3>Log</h3>
                 <p id="tip-content">Loading log...</p>
@@ -847,6 +912,7 @@
     <script src="./js/modules/debug.js"></script>
     <script src="./js/modules/bubbletext.js"></script>
     <script src="./js/modules/cardnav.js"></script>
+    <script src="./js/modules/tts.js"></script>
     <script src="./js/main.js"></script>
     <div id="custom-tooltip"></div>
 
