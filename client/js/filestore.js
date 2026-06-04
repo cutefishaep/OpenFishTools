@@ -58,6 +58,9 @@ var FileStore = (function () {
         _filePath = null;
         _dataDir = null;
 
+        if (extensionPath) extensionPath = extensionPath.replace(/\\/g, '/');
+        if (userDataPath) userDataPath = userDataPath.replace(/\\/g, '/');
+
         if (!_hasCepFs()) {
             _useLocalStorage = true;
             _loadFromLocalStorage();
