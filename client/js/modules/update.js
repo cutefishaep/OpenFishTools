@@ -3,7 +3,7 @@
 
 var UpdateModule = (function () {
     var GITHUB_API = "https://api.github.com/repos/cutefishaep/OpenFishTools/releases/latest";
-    var GITHUB_URL = "https://cutefish.my.id";
+    var GITHUB_URL = "https://cutefish.my.id/#fishtoolupdate";
 
     function init() {
         var btn = document.getElementById('btn-check-update');
@@ -35,7 +35,7 @@ var UpdateModule = (function () {
                         "Manual Check Required",
                         function (confirmed) {
                             if (confirmed) {
-                                window.csInterface.openURLInDefaultBrowser("https://cutefish.my.id");
+                                window.csInterface.openURLInDefaultBrowser("https://cutefish.my.id/#fishtoolupdate");
                             }
                         }
                     );

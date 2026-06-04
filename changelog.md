@@ -15,6 +15,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 - **Descriptive Null Layer Names**: Generated Beat Effect control null layers now receive clear, descriptive names mapping to their utility (e.g., `Oscillate_Null`, `Y_Beat_Null`, `X_Beat_Null`, `Scale_Overlap_Null`).
 - **Global Animation Control**: Disabling animations in the settings now successfully disables both UI transitions and card snap-scroll animations globally.
 - **Precomp Right-Click Shortcut**: Added a right-click shortcut on the Precomp button to automatically crop the precomp size according to the bounding box of the inner objects (using the Auto Crop menu command).
+- **Update Redirection URL**: Updated the update check fallback link to point directly to `https://cutefish.my.id/#fishtoolupdate`.
 
 ### Fixed
 - **SCALE OVER Duration Bug**: Fixed a bug where Scale Over effects remained active outside of the generated controller null's inPoint/outPoint range.
