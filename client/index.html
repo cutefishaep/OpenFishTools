@@ -185,6 +185,45 @@
                 </div>
             </div>
 
+            <div class="card" id="card-autosave">
+                <div class="card-header autosave-card-header">
+                    <h3 class="autosave-title">
+                        Auto Save
+                        <span id="autosave-status" class="autosave-status-text">Disabled</span>
+                    </h3>
+                    <label class="switch-container" style="margin:0;">
+                        <span class="switch">
+                            <input type="checkbox" id="autosave-toggle">
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="autosave-progress-track" id="autosave-progress-track">
+                    <div class="autosave-progress-bar" id="autosave-progress-bar"></div>
+                </div>
+
+                <div id="autosave-warning" class="autosave-warning" style="display:none;">
+                    <span class="material-icons" style="font-size:13px; flex-shrink:0;">warning</span>
+                    <span id="autosave-warning-text">Please save your project first to use Auto Save.</span>
+                </div>
+
+                <div class="settings-row" style="border:none; padding:8px 0 4px; align-items:center;">
+                    <span class="status-label">INTERVAL</span>
+                    <div style="flex:1; display:flex; align-items:center; gap:8px;">
+                        <input type="range" id="autosave-interval" min="5" max="60" step="5" value="10" style="flex:1;">
+                        <span style="display:flex; align-items:center; gap:3px; white-space:nowrap;">
+                            <span id="autosave-interval-display" style="font-size:12px; font-weight:800; color:var(--accent); min-width:20px; text-align:right;">10</span>
+                            <span class="status-label" style="font-size:9px;">sec</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div style="padding-top:2px;">
+                    <span id="autosave-last-saved" style="font-size:9px; color:var(--text-dim); letter-spacing:0.02em;">Last saved: —</span>
+                </div>
+            </div>
+
             <div class="card">
                 <h3>Log</h3>
                 <p id="tip-content">Loading log...</p>
@@ -705,6 +744,100 @@
                 <button id="btn-generate-bubble" class="btn-secondary w-full">GENERATE</button>
             </div>
 
+            <div class="card" id="card-text-animate">
+                <div class="card-header" style="justify-content:space-between; align-items:center; display:flex; margin-bottom:12px;">
+                    <h3 style="margin:0; padding:0; border:none;">Text Animate</h3>
+                    <button id="btn-ta-clear" class="icon-btn" title="Delete animation from text layer" style="background:transparent; border:1px solid var(--border); border-radius:4px; height:26px; width:26px; display:flex; align-items:center; justify-content:center; color:var(--text-muted); cursor:pointer;" onmouseover="this.style.color='var(--danger)'; this.style.borderColor='var(--danger)';" onmouseout="this.style.color='var(--text-muted)'; this.style.borderColor='var(--border)';">
+                        <span class="material-icons" style="font-size:14px;">delete</span>
+                    </button>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:12px;">
+                    <span class="status-label" style="font-size:9px;">BASED ON</span>
+                    <select id="ta-based-on" style="width:100%; height:26px; font-size:10px;">
+                        <option value="1" selected>Characters</option>
+                        <option value="3">Words</option>
+                        <option value="4">Lines</option>
+                    </select>
+                </div>
+
+                <div class="section-label">Bounce</div>
+                <div class="toolbox-grid col-4" style="margin-bottom:8px;">
+                    <button class="tool-btn ta-btn" data-preset="BOUNCE_UP" title="Bounce Up">
+                        <span class="material-icons">arrow_upward</span>
+                        <span class="tool-label">UP</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="BOUNCE_DOWN" title="Bounce Down">
+                        <span class="material-icons">arrow_downward</span>
+                        <span class="tool-label">DOWN</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="BOUNCE_LEFT" title="Bounce from Right">
+                        <span class="material-icons">arrow_back</span>
+                        <span class="tool-label">LEFT</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="BOUNCE_RIGHT" title="Bounce from Left">
+                        <span class="material-icons">arrow_forward</span>
+                        <span class="tool-label">RIGHT</span>
+                    </button>
+                </div>
+
+                <div class="section-label">Smooth</div>
+                <div class="toolbox-grid col-4" style="margin-bottom:8px;">
+                    <button class="tool-btn ta-btn" data-preset="FADE_UP" title="Smooth Fade Up">
+                        <span class="material-icons">vertical_align_top</span>
+                        <span class="tool-label">FADE UP</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="FADE_DOWN" title="Smooth Fade Down">
+                        <span class="material-icons">vertical_align_bottom</span>
+                        <span class="tool-label">FADE DOWN</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="SLIDE_LEFT" title="Slide from Right">
+                        <span class="material-icons">west</span>
+                        <span class="tool-label">SLIDE L</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="SLIDE_RIGHT" title="Slide from Left">
+                        <span class="material-icons">east</span>
+                        <span class="tool-label">SLIDE R</span>
+                    </button>
+                </div>
+
+                <div class="section-label">Special</div>
+                <div class="toolbox-grid col-3">
+                    <button class="tool-btn ta-btn" data-preset="SCALE_POP" title="Scale Pop with overshoot">
+                        <span class="material-icons">zoom_in</span>
+                        <span class="tool-label">SCALE POP</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="TYPEWRITER" title="Typewriter character reveal">
+                        <span class="material-icons">keyboard</span>
+                        <span class="tool-label">TYPEWRITER</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="SPIN_IN" title="Spin + scale reveal">
+                        <span class="material-icons">rotate_right</span>
+                        <span class="tool-label">SPIN</span>
+                    </button>
+                </div>
+
+                <div class="section-label" style="margin-top:10px;">Cutefish Choice</div>
+                <div class="toolbox-grid col-4">
+                    <button class="tool-btn ta-btn" data-preset="CF_1" title="Cutefish Choice 1 (Bouncy Position)">
+                        <span class="material-icons">animation</span>
+                        <span class="tool-label">CHOICE 1</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="CF_2" title="Cutefish Choice 2 (Ramp Overshoot Position)">
+                        <span class="material-icons">animation</span>
+                        <span class="tool-label">CHOICE 2</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="CF_3" title="Cutefish Choice 3 (Bouncy Scale)">
+                        <span class="material-icons">animation</span>
+                        <span class="tool-label">CHOICE 3</span>
+                    </button>
+                    <button class="tool-btn ta-btn" data-preset="CF_4" title="Cutefish Choice 4 (Ramp Overshoot Scale)">
+                        <span class="material-icons">animation</span>
+                        <span class="tool-label">CHOICE 4</span>
+                    </button>
+                </div>
+            </div>
+
+
         </div>
 
         
@@ -913,6 +1046,8 @@
     <script src="./js/modules/bubbletext.js"></script>
     <script src="./js/modules/cardnav.js"></script>
     <script src="./js/modules/tts.js"></script>
+    <script src="./js/modules/autosave.js"></script>
+    <script src="./js/modules/textanimate.js"></script>
     <script src="./js/main.js"></script>
     <div id="custom-tooltip"></div>
 

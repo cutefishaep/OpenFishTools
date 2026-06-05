@@ -2,6 +2,17 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.0.7] - 2026-06-05
+### Added
+- **Text Animate Trash Button**: Added a trash icon button to the Text Animate card header to quickly clear all FishTools-applied animators, dynamic slider controls, and markers (`IN`/`OUT`) from the selected layer.
+
+### Changed
+- **Dynamic Auto-Fitting Stagger Delay**: Re-engineered stagger delay calculation inside the Text Animate expressions. It now dynamically calculates the remaining time between markers and automatically compresses the delay for longer texts so that animations never overflow or get truncated.
+
+### Fixed
+- **Preset Expression ReferenceError**: Resolved a `ReferenceError: bounce is not defined` inside After Effects expressions for standard presets by conditionally generating code blocks inside ExtendScript instead of compiling the check literally into AE.
+- **ExtendScript Marker ReferenceError**: Fixed `ReferenceError: Function markers.key is undefined` by shifting from `.key(index)` to the correct `.keyValue(index)` ExtendScript API for Marker properties.
+
 ## [1.0.6] - 2026-06-02
 ### Added
 - **Recommended Tools Card**: Added a new "Recommended Tools" section to the main dashboard showcasing "WOMTools" by "womxsy" with direct TikTok redirection.

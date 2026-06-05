@@ -416,6 +416,18 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("TextToSpeechModule init error", e); }
         }
 
+        if (window.AutoSaveModule) {
+            try {
+                window.AutoSaveModule.init();
+            } catch (e) { console.error("AutoSaveModule init error", e); }
+        }
+
+        if (window.TextAnimateModule) {
+            try {
+                window.TextAnimateModule.init();
+            } catch (e) { console.error("TextAnimateModule init error", e); }
+        }
+
         setupTooltips();
         loadSystemInfo();
 
