@@ -2,12 +2,16 @@
 set -e
 
 APP_NAME="OpenFishTools"
-APP_VERSION="${APP_VERSION:-1.0.8}"
+APP_VERSION="${APP_VERSION:-1.0.95}"
 BUNDLE_ID="com.cutefish.tools"
 EXTENSION_FOLDER_NAME="OpenFishTools"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+if [ -f "$PROJECT_ROOT/scripts/update_version.sh" ]; then
+    bash "$PROJECT_ROOT/scripts/update_version.sh" "$APP_VERSION"
+fi
 
 PAYLOAD_DIR="$SCRIPT_DIR/payload"
 EMPTY_PAYLOAD_DIR="$SCRIPT_DIR/empty_payload"

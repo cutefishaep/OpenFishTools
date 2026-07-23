@@ -34,6 +34,11 @@ jobs:
           echo "TAG=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
           echo "Building version: $VERSION (tag: $GITHUB_REF_NAME)"
 
+      - name: Inject version into manifest and installer files
+        run: |
+          chmod +x scripts/update_version.sh
+          ./scripts/update_version.sh ${{ steps.version.outputs.VERSION }}
+
       - name: Build Mac .pkg installer
         env:
           APP_VERSION: ${{ steps.version.outputs.VERSION }}
@@ -78,6 +83,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building version: $VERSION"
+
+      - name: Inject version into manifest and installer files
+        shell: bash
+        run: |
+          chmod +x scripts/update_version.sh
+          ./scripts/update_version.sh ${{ steps.version.outputs.VERSION }}
 
       - name: Install Inno Setup 6
         run: choco install innosetup --no-progress -y
