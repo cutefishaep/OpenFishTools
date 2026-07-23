@@ -1,0 +1,9 @@
+#!/bin/bash
+
+TARGET_DIR="/Library/Application Support/Adobe/CEP/extensions/OpenFishTools"
+
+if [ -d "$TARGET_DIR" ]; then
+    rm -rf "$TARGET_DIR"
+fi
+
+exit 0

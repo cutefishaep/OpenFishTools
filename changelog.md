@@ -2,6 +2,14 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.0.9] - 2026-07-23
+### Added
+- **AE to AM Converter Dashboard Card**: Added a dedicated "Ae > Am Converter" card on the dashboard featuring toggles for "Bake Expressions" (enabled by default) and "Import Adjustment Layers". Runs clean, comment-free ExtendScript with a lightweight non-modal status window titled `Ae > Am Converter`.
+- **Auto Save Folder & Custom Naming**: Redesigned Auto Save to generate timestamped `.aep` backups in `[DataDir]/Auto Save/` using the format `ProjectName [HH.MM.SS] [DD-MM-YYYY].aep`. Added a folder icon button on the card header to directly open the Auto Save directory in Explorer or Finder.
+- **MIT License & Legal Disclaimer**: Added official `LICENSE` file under the MIT License with copyright holder `cutefishaep`, along with clear disclaimers clarifying independence from Adobe Inc.
+- **Platform Installers & Build Automation**: Created automated Mac (`build_pkg.sh`) and Windows (`build.bat`) build scripts producing clean output files (`OpenFishTools.pkg` and `OpenFishTools_Setup.exe`) with auto-detected signing capabilities.
+- **GitHub Release CI/CD**: Added `.github/workflows/release.yml` for automated GitHub Releases, supporting tags like `1.0.9` or `v1.0.9` with clean release titles.
+
 ## [1.0.8] - 2026-07-23
 ### Fixed
 - **Cut Front / Back**: Added boundary guard so the cut only applies when the playhead is strictly inside the layer's in/out range, preventing accidental trims when the playhead is outside the layer. Snapshot layer references before the loop to avoid stale references after layer operations.

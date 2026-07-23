@@ -10,11 +10,14 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 PAYLOAD_DIR="$SCRIPT_DIR/payload"
+EMPTY_PAYLOAD_DIR="$SCRIPT_DIR/empty_payload"
 SCRIPTS_DIR="$SCRIPT_DIR/scripts"
+UNINSTALL_SCRIPTS_DIR="$SCRIPT_DIR/scripts_uninstall"
 RESOURCES_DIR="$SCRIPT_DIR/resources"
 BUILD_DIR="$SCRIPT_DIR/build"
 OUTPUT_PKG="$SCRIPT_DIR/${APP_NAME}.pkg"
 COMPONENT_PKG="$BUILD_DIR/${APP_NAME}_component.pkg"
+UNINSTALL_COMPONENT_PKG="$BUILD_DIR/${APP_NAME}_uninstall_component.pkg"
 
 INSTALL_LOCATION="/Library/Application Support/Adobe/CEP/extensions"
 
@@ -37,10 +40,11 @@ error()   { echo "  ERROR: $1"; exit 1; }
 echo ""
 echo "OpenFishTools - Mac Package Builder v$APP_VERSION"
 
-section "Step 1: Preparing payload"
+section "Step 1: Preparing payloads"
 
-rm -rf "$PAYLOAD_DIR"
+rm -rf "$PAYLOAD_DIR" "$EMPTY_PAYLOAD_DIR"
 mkdir -p "$PAYLOAD_DIR/$EXTENSION_FOLDER_NAME"
+mkdir -p "$EMPTY_PAYLOAD_DIR"
 
 info "Copying extension files..."
 rsync -av \
@@ -54,15 +58,16 @@ rsync -av \
     "$PROJECT_ROOT/" \
     "$PAYLOAD_DIR/$EXTENSION_FOLDER_NAME/"
 
-info "Payload prepared at: $PAYLOAD_DIR"
+info "Payloads prepared."
 
 section "Step 2: Setting script permissions"
 
 chmod +x "$SCRIPTS_DIR/preinstall"
 chmod +x "$SCRIPTS_DIR/postinstall"
+chmod +x "$UNINSTALL_SCRIPTS_DIR/postinstall"
 info "Permissions set."
 
-section "Step 3: Building component package"
+section "Step 3: Building component packages"
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
@@ -75,11 +80,20 @@ pkgbuild \
     --install-location "$INSTALL_LOCATION" \
     "$COMPONENT_PKG"
 
-info "Component package built: $COMPONENT_PKG"
+pkgbuild \
+    --root "$EMPTY_PAYLOAD_DIR" \
+    --scripts "$UNINSTALL_SCRIPTS_DIR" \
+    --identifier "${BUNDLE_ID}.uninstall.pkg" \
+    --version "$APP_VERSION" \
+    --install-location "/tmp" \
+    "$UNINSTALL_COMPONENT_PKG"
+
+info "Component packages built."
 
 section "Step 4: Building distribution package"
 
 cp "$COMPONENT_PKG" "$RESOURCES_DIR/${APP_NAME}_component.pkg"
+cp "$UNINSTALL_COMPONENT_PKG" "$RESOURCES_DIR/${APP_NAME}_uninstall_component.pkg"
 
 if [ -n "$SIGNING_IDENTITY" ]; then
     info "Signing with: $SIGNING_IDENTITY"
@@ -99,13 +113,13 @@ else
 fi
 
 rm -f "$RESOURCES_DIR/${APP_NAME}_component.pkg"
+rm -f "$RESOURCES_DIR/${APP_NAME}_uninstall_component.pkg"
 
 info "Distribution package built: $OUTPUT_PKG"
 
 section "Step 5: Cleaning up"
 
-rm -rf "$PAYLOAD_DIR"
-rm -rf "$BUILD_DIR"
+rm -rf "$PAYLOAD_DIR" "$EMPTY_PAYLOAD_DIR" "$BUILD_DIR"
 info "Cleanup complete."
 
 echo ""

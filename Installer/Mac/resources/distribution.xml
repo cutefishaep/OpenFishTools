@@ -1,46 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-    OpenFishTools Distribution XML
-    Used by productbuild to assemble the final .pkg installer.
-    This defines the installer wizard appearance and package requirements.
--->
 <installer-gui-script minSpecVersion="2">
 
-    <!-- ── Metadata ─────────────────────────────────────────── -->
     <title>OpenFishTools</title>
     <organization>com.cutefish</organization>
     <domains enable_localSystem="true" enable_currentUserHome="false" />
-    <options customize="never" require-scripts="true" rootVolumeOnly="true" />
+    <options customize="allow" require-scripts="true" rootVolumeOnly="true" />
 
-    <!-- ── Installer Wizard Pages ────────────────────────────── -->
     <welcome    file="welcome.html"    mime-type="text/html" />
     <license    file="license.html"    mime-type="text/html" />
     <conclusion file="conclusion.html" mime-type="text/html" />
 
-    <!-- ── Requirements ──────────────────────────────────────── -->
-    <!-- Minimum macOS 10.14 (Mojave) -->
     <volume-check>
         <allowed-os-versions>
             <os-version min="10.14" />
         </allowed-os-versions>
     </volume-check>
 
-    <!-- ── Package References ────────────────────────────────── -->
     <pkg-ref id="com.cutefish.tools.pkg">OpenFishTools_component.pkg</pkg-ref>
+    <pkg-ref id="com.cutefish.tools.uninstall.pkg">OpenFishTools_uninstall_component.pkg</pkg-ref>
 
-    <!-- ── Installation Choices ──────────────────────────────── -->
     <choices-outline>
-        <line choice="com.cutefish.tools.choice" />
+        <line choice="choice_install" />
+        <line choice="choice_uninstall" />
     </choices-outline>
 
     <choice
-        id="com.cutefish.tools.choice"
-        title="OpenFishTools"
-        description="Installs the OpenFishTools CEP Extension for Adobe After Effects."
+        id="choice_install"
+        title="Install OpenFishTools"
+        description="Installs the OpenFishTools CEP extension and enables PlayerDebugMode."
         start_selected="true"
-        start_enabled="true"
-        start_visible="true">
+        start_enabled="true">
         <pkg-ref id="com.cutefish.tools.pkg" />
+    </choice>
+
+    <choice
+        id="choice_uninstall"
+        title="Uninstall OpenFishTools"
+        description="Removes OpenFishTools extension files from your system."
+        start_selected="false"
+        start_enabled="true">
+        <pkg-ref id="com.cutefish.tools.uninstall.pkg" />
     </choice>
 
 </installer-gui-script>
