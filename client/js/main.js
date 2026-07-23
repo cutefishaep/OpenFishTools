@@ -422,6 +422,12 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("AutoSaveModule init error", e); }
         }
 
+        if (window.AeToAmModule) {
+            try {
+                window.AeToAmModule.init();
+            } catch (e) { console.error("AeToAmModule init error", e); }
+        }
+
         if (window.TextAnimateModule) {
             try {
                 window.TextAnimateModule.init();

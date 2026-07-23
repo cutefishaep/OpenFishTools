@@ -1,0 +1,26 @@
+#!/bin/bash
+# =============================================================================
+# OpenFishTools CEP Extension — Mac Preinstall Script
+# Removes any existing installation before the new package is installed.
+# =============================================================================
+
+EXTENSION_NAME="OpenFishTools"
+SYSTEM_CEP_PATH="/Library/Application Support/Adobe/CEP/extensions"
+USER_CEP_PATH="$HOME/Library/Application Support/Adobe/CEP/extensions"
+
+echo "==> OpenFishTools Preinstall: Checking for existing installation..."
+
+# Remove from system-wide CEP path
+if [ -d "$SYSTEM_CEP_PATH/$EXTENSION_NAME" ]; then
+    echo "==> Removing existing system installation at: $SYSTEM_CEP_PATH/$EXTENSION_NAME"
+    rm -rf "$SYSTEM_CEP_PATH/$EXTENSION_NAME"
+fi
+
+# Remove from user CEP path (legacy location)
+if [ -d "$USER_CEP_PATH/$EXTENSION_NAME" ]; then
+    echo "==> Removing existing user installation at: $USER_CEP_PATH/$EXTENSION_NAME"
+    rm -rf "$USER_CEP_PATH/$EXTENSION_NAME"
+fi
+
+echo "==> Preinstall complete."
+exit 0

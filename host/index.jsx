@@ -10,4 +10,5 @@
 #include "modules/graph.jsx"
 #include "modules/misc.jsx"
 #include "modules/bubbletext.jsx"
+#include "modules/aetoam.jsx"
 #include "modules/api.jsx"

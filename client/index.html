@@ -191,12 +191,17 @@
                         Auto Save
                         <span id="autosave-status" class="autosave-status-text">Disabled</span>
                     </h3>
-                    <label class="switch-container" style="margin:0;">
-                        <span class="switch">
-                            <input type="checkbox" id="autosave-toggle">
-                            <span class="slider"></span>
-                        </span>
-                    </label>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button id="btn-autosave-folder" class="icon-btn" title="Open Auto Save Folder">
+                            <span class="material-icons">folder_open</span>
+                        </button>
+                        <label class="switch-container" style="margin:0;">
+                            <span class="switch">
+                                <input type="checkbox" id="autosave-toggle">
+                                <span class="slider"></span>
+                            </span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="autosave-progress-track" id="autosave-progress-track">
@@ -222,6 +227,33 @@
                 <div style="padding-top:2px;">
                     <span id="autosave-last-saved" style="font-size:9px; color:var(--text-dim); letter-spacing:0.02em;">Last saved: —</span>
                 </div>
+            </div>
+
+            <div class="card" id="card-aetoam">
+                <div class="card-header">
+                    <h3>Ae &gt; Am Converter</h3>
+                </div>
+                <div class="settings-row" style="border:none; padding:6px 0 4px;">
+                    <span class="status-label">BAKE EXPRESSIONS</span>
+                    <label class="switch-container" style="margin:0;">
+                        <span class="switch">
+                            <input type="checkbox" id="aetoam-bake-toggle" checked>
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                </div>
+                <div class="settings-row" style="border:none; padding:4px 0 8px;">
+                    <span class="status-label">IMPORT ADJUSTMENT LAYERS</span>
+                    <label class="switch-container" style="margin:0;">
+                        <span class="switch">
+                            <input type="checkbox" id="aetoam-adj-toggle">
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                </div>
+                <button id="btn-aetoam-run" class="btn-primary" style="width:100%;">
+                    <span class="material-icons" style="font-size:13px; vertical-align:middle; margin-right:4px;">swap_horiz</span>Convert
+                </button>
             </div>
 
             <div class="card">
@@ -1047,6 +1079,7 @@
     <script src="./js/modules/cardnav.js"></script>
     <script src="./js/modules/tts.js"></script>
     <script src="./js/modules/autosave.js"></script>
+    <script src="./js/modules/aetoam.js"></script>
     <script src="./js/modules/textanimate.js"></script>
     <script src="./js/main.js"></script>
     <div id="custom-tooltip"></div>

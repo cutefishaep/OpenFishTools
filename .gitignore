@@ -1,3 +1,10 @@
 .DS_Store
 **/.DS_Store
 deploy.tool
+
+# Installer build artifacts (generated, not source)
+Installer/Mac/payload/
+Installer/Mac/build/
+Installer/Mac/resources/*_component.pkg
+Installer/Mac/*.pkg
+Installer/Windows/Output/

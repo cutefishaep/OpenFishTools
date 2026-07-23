@@ -314,6 +314,9 @@ function _PRECOMP_AUTOCROP() {
             var cl = comp.layer(i);
             if (cl.source instanceof CompItem && cl.source.id === preComp.id) {
                 cl.startTime = earliestStartTime;
+                var xf = cl.property("ADBE Transform Group");
+                xf.property("ADBE Anchor Point").setValue([0, 0]);
+                xf.property("ADBE Position").setValue([minX, minY]);
                 break;
             }
         }
@@ -624,17 +627,35 @@ function _CUT(type) {
     app.beginUndoGroup("Cut " + type);
     try {
         var curTime = comp.time;
+
+        var layerData = [];
         for (var i = 0; i < selectedLayers.length; i++) {
-            var layer = selectedLayers[i];
+            layerData.push({
+                layer:    selectedLayers[i],
+                inPoint:  selectedLayers[i].inPoint,
+                outPoint: selectedLayers[i].outPoint
+            });
+        }
+
+        for (var i = 0; i < layerData.length; i++) {
+            var data  = layerData[i];
+            var layer = data.layer;
+
             if (type === 'FRONT') {
-                layer.inPoint = curTime;
+                if (curTime > data.inPoint && curTime < data.outPoint) {
+                    layer.inPoint = curTime;
+                }
             } else if (type === 'BACK') {
-                layer.outPoint = curTime;
+                if (curTime > data.inPoint && curTime < data.outPoint) {
+                    layer.outPoint = curTime;
+                }
             } else if (type === 'MID') {
+                if (curTime <= data.inPoint || curTime >= data.outPoint) continue;
                 var newLayer = layer.duplicate();
-                layer.outPoint = curTime;
-                newLayer.inPoint = curTime;
-                newLayer.moveBefore(layer);
+                layer.outPoint    = curTime;
+                newLayer.inPoint  = curTime;
+                newLayer.outPoint = data.outPoint;
+                newLayer.moveAfter(layer);
             }
         }
         return true;

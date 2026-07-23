@@ -244,34 +244,39 @@ window.AutoSaveModule = (function () {
             _isSaving = true;
             _setState(STATE.SAVING);
 
-            var saveScript = [
-                '(function(){',
-                '  try {',
-                '    if (!app.project || !app.project.file) { return "no_file"; }',
-                '    var rendering = false;',
-                '    try {',
-                '      if (typeof app.isRenderEngineRunning === "function") {',
-                '        rendering = app.isRenderEngineRunning();',
-                '      }',
-                '    } catch(re) {}',
-                '    if (rendering) { return "rendering"; }',
-                '    var dirty = true;',
-                '    try { dirty = !!app.project.dirty; } catch(de) {}',
-                '    if (!dirty) { return "clean"; }',
-                '    var saved = false;',
-                '    try {',
-                '      var cmdId = 0;',
-                '      try { cmdId = app.findMenuCommandId("Save"); } catch(fe) {}',
-                '      if (cmdId > 0) {',
-                '        app.executeCommand(cmdId);',
-                '        saved = true;',
-                '      }',
-                '    } catch(ce) {}',
-                '    if (!saved) { app.project.save(); }',
-                '    return "ok";',
-                '  } catch(e) { return "err:" + e.message; }',
-                '})()'
-            ].join('');
+            var dataDir = (window.FileStore && window.FileStore.getDataDir())
+                ? window.FileStore.getDataDir().replace(/\\/g, '/')
+                : '';
+            var autoSavePath = dataDir ? dataDir + '/Auto Save' : '';
+
+            var saveScript = '(function(){' +
+                '  try {' +
+                '    if (!app.project || !app.project.file) { return "no_file"; }' +
+                '    var rendering = false;' +
+                '    try { if (typeof app.isRenderEngineRunning === "function") { rendering = app.isRenderEngineRunning(); } } catch(re) {}' +
+                '    if (rendering) { return "rendering"; }' +
+                '    var dirty = true;' +
+                '    try { dirty = !!app.project.dirty; } catch(de) {}' +
+                '    if (!dirty) { return "clean"; }' +
+                '    var originalFile = app.project.file;' +
+                '    var autoSaveDir = "' + autoSavePath.replace(/"/g, '\\"') + '";' +
+                '    if (autoSaveDir && autoSaveDir.length > 0) {' +
+                '      var folder = new Folder(autoSaveDir);' +
+                '      if (!folder.exists) folder.create();' +
+                '      function _p(n) { return n < 10 ? "0" + n : "" + n; }' +
+                '      var d = new Date();' +
+                '      var pname = originalFile.name.replace(/\\.[^\\.]+$/, "");' +
+                '      var timeStr = _p(d.getHours()) + "." + _p(d.getMinutes()) + "." + _p(d.getSeconds());' +
+                '      var dateStr = _p(d.getDate()) + "-" + _p(d.getMonth()+1) + "-" + d.getFullYear();' +
+                '      var backupName = pname + " [" + timeStr + "] [" + dateStr + "].aep";' +
+                '      app.project.save(new File(autoSaveDir + "/" + backupName));' +
+                '      app.project.save(originalFile);' +
+                '    } else {' +
+                '      app.project.save(originalFile);' +
+                '    }' +
+                '    return "ok";' +
+                '  } catch(e) { return "err:" + e.message; }' +
+                '})()';
 
             window.csInterface.evalScript(saveScript, function (result) {
                 _isSaving = false;
@@ -443,6 +448,24 @@ window.AutoSaveModule = (function () {
                 _saveSettings();
                 if (_enabled && _isDirty) {
                     _startProgressBar();
+                }
+            });
+        }
+
+        var btnFolder = document.getElementById('btn-autosave-folder');
+        if (btnFolder) {
+            btnFolder.addEventListener('click', function () {
+                var dataDir = window.FileStore ? window.FileStore.getDataDir() : null;
+                if (!dataDir) {
+                    if (window.ModalModule) window.ModalModule.warn('Auto Save folder is not available yet.', 'Auto Save');
+                    return;
+                }
+                var autoSaveDir = dataDir.replace(/\\/g, '/') + '/Auto Save';
+                if (window.cep && window.cep.fs) {
+                    window.cep.fs.makedir(autoSaveDir);
+                }
+                if (window.csInterface) {
+                    window.csInterface.openURLInDefaultBrowser('file:///' + autoSaveDir);
                 }
             });
         }

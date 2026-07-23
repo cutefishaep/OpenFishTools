@@ -1,0 +1,162 @@
+name: 🚀 Build & Release
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers when you push a version tag like:  git tag v1.0.8 && git push --tags
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  APP_NAME: OpenFishTools
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 1 — Build Mac .pkg (runs on macOS runner, uses pkgbuild + productbuild)
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+  build-mac:
+    name: 🍎 Build Mac .pkg
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "TAG=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          echo "Building version: $VERSION (tag: $GITHUB_REF_NAME)"
+
+      - name: Build Mac .pkg installer
+        env:
+          APP_VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          cd Installer/Mac
+          chmod +x build_pkg.sh
+          ./build_pkg.sh
+
+      - name: Verify .pkg was created
+        run: |
+          PKG=$(ls Installer/Mac/*.pkg 2>/dev/null | head -n 1)
+          if [ -z "$PKG" ]; then
+            echo "❌ ERROR: No .pkg file found in Installer/Mac/"
+            exit 1
+          fi
+          echo "✅ Found: $PKG"
+          echo "PKG_PATH=$PKG" >> "$GITHUB_ENV"
+
+      - name: Upload Mac installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-installer
+          path: Installer/Mac/${{ env.APP_NAME }}.pkg
+          if-no-files-found: error
+          retention-days: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 2 — Build Windows Setup.exe (runs on Windows runner, uses Inno Setup 6)
+# ─────────────────────────────────────────────────────────────────────────────
+  build-windows:
+    name: 🪟 Build Windows Setup.exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building version: $VERSION"
+
+      - name: Install Inno Setup 6
+        run: choco install innosetup --no-progress -y
+
+      - name: Build Windows Setup.exe
+        shell: cmd
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\iscc.exe" /DMyAppVersion=${{ steps.version.outputs.VERSION }} "Installer\Windows\OpenFishTools_Setup.iss"
+
+      - name: Verify .exe was created
+        shell: bash
+        run: |
+          EXE=$(ls Installer/Windows/*.exe 2>/dev/null | head -n 1)
+          if [ -z "$EXE" ]; then
+            echo "❌ ERROR: No .exe file found in Installer/Windows/"
+            exit 1
+          fi
+          echo "✅ Found: $EXE"
+
+      - name: Upload Windows installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: Installer/Windows/${{ env.APP_NAME }}_Setup.exe
+          if-no-files-found: error
+          retention-days: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 3 — Create GitHub Release (waits for both builds, attaches both files)
+# ─────────────────────────────────────────────────────────────────────────────
+  release:
+    name: 📦 Publish GitHub Release
+    needs: [build-mac, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # Required to create releases
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "TAG=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          BUILD_DATE=$(date -u +"%Y-%m-%d")
+          {
+            echo "**Version:** $VERSION"
+            echo "**Built:** $BUILD_DATE"
+          } > release_notes.md
+
+      - name: Download Mac installer
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-installer
+          path: dist/
+
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/
+
+      - name: List release assets
+        run: |
+          echo "Assets to release:"
+          ls -lh dist/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.TAG }}
+          name: "OpenFishTools v${{ steps.version.outputs.VERSION }}"
+          body_path: release_notes.md
+          files: dist/*
+          draft: false
+          prerelease: false
+          make_latest: true

@@ -2,7 +2,14 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.0.8] - 2026-07-23
+### Fixed
+- **Cut Front / Back**: Added boundary guard so the cut only applies when the playhead is strictly inside the layer's in/out range, preventing accidental trims when the playhead is outside the layer. Snapshot layer references before the loop to avoid stale references after layer operations.
+- **Cut Middle**: Fixed layer ordering — the back portion now correctly lands *below* the front portion in the layer stack (`moveAfter` instead of `moveBefore`). Added boundary guard and saved `outPoint` before splitting so the duplicate always has the correct end time.
+- **Precomp Auto-crop (right-click)**: After the precomp is resized to its bounding box, the precomp layer's anchor point is now reset to `[0, 0]` and its position set to `[minX, minY]`, preserving the original visual position in the parent comp. Previously the anchor remained at the center of the old comp size, causing the layer to visually jump to the center after precomping.
+
 ## [1.0.7] - 2026-06-05
+
 ### Added
 - **Text Animate Trash Button**: Added a trash icon button to the Text Animate card header to quickly clear all FishTools-applied animators, dynamic slider controls, and markers (`IN`/`OUT`) from the selected layer.
 
