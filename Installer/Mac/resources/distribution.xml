@@ -4,7 +4,7 @@
     <title>OpenFishTools</title>
     <organization>com.cutefish</organization>
     <domains enable_localSystem="true" enable_currentUserHome="false" />
-    <options customize="allow" require-scripts="true" rootVolumeOnly="true" />
+    <options customize="always" require-scripts="true" rootVolumeOnly="true" />
 
     <welcome    file="welcome.html"    mime-type="text/html" />
     <license    file="license.html"    mime-type="text/html" />
