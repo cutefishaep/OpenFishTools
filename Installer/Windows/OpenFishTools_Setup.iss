@@ -56,26 +56,29 @@ Source: "{#MySourceRoot}\data\*";   DestDir: "{app}\data";   Flags: recursesubdi
 Source: "{#MySourceRoot}\Logo.svg"; DestDir: "{app}";         Flags: ignoreversion
 
 [Registry]
-Root: HKCU; Subkey: "Software\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
-Root: HKCU; Subkey: "Software\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
-Root: HKCU; Subkey: "Software\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
-Root: HKCU; Subkey: "Software\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
+Root: HKCU; Subkey: "Software\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 
 Root: HKLM; Subkey: "Software\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 
-Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
-Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
-Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
-Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist uninsdeletevalue
+Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 
 [Code]
+var
+  RemoveDebugMode: Boolean;
+
 function InitializeSetup(): Boolean;
 begin
   Result := True;
@@ -90,15 +93,64 @@ begin
   end;
 end;
 
+function InitializeUninstall(): Boolean;
+begin
+  Result := True;
+  if MsgBox(
+    'Do you want to remove Adobe CEP PlayerDebugMode settings from the registry?' + #13#10 +
+    'Select "Yes" to remove it (this may affect other custom or unsigned CEP extensions).' + #13#10 +
+    'Select "No" to only remove OpenFishTools and keep PlayerDebugMode enabled.',
+    mbConfirmation,
+    MB_YESNO or MB_DEFBUTTON2
+  ) = idYes then begin
+    RemoveDebugMode := True;
+  end else begin
+    RemoveDebugMode := False;
+  end;
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
+  if CurUninstallStep = usUninstall then begin
+    if RemoveDebugMode then begin
+      RegDeleteValue(HKCU, 'Software\Adobe\CSXS.9', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Adobe\CSXS.10', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Adobe\CSXS.11', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Adobe\CSXS.12', 'PlayerDebugMode');
+      
+      RegDeleteValue(HKLM, 'Software\Adobe\CSXS.9', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Adobe\CSXS.10', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Adobe\CSXS.11', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Adobe\CSXS.12', 'PlayerDebugMode');
+      
+      RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.9', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.10', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.11', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.12', 'PlayerDebugMode');
+      
+      RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.9', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.10', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.11', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.12', 'PlayerDebugMode');
+    end;
+  end;
+  
   if CurUninstallStep = usPostUninstall then begin
-    MsgBox(
-      'OpenFishTools has been uninstalled.' + #13#10#13#10 +
-      'Note: PlayerDebugMode registry values have been removed.' + #13#10 +
-      'If you have other unsigned CEP extensions, you may need to re-enable PlayerDebugMode manually.',
-      mbInformation,
-      MB_OK
-    );
+    if RemoveDebugMode then begin
+      MsgBox(
+        'OpenFishTools has been uninstalled.' + #13#10#13#10 +
+        'Note: PlayerDebugMode registry values have been removed.' + #13#10 +
+        'If you have other unsigned CEP extensions, you may need to re-enable PlayerDebugMode manually.',
+        mbInformation,
+        MB_OK
+      );
+    end else begin
+      MsgBox(
+        'OpenFishTools has been uninstalled.' + #13#10#13#10 +
+        'PlayerDebugMode registry values were kept intact.',
+        mbInformation,
+        MB_OK
+      );
+    end;
   end;
 end;

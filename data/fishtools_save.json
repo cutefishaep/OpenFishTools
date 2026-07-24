@@ -4,10 +4,13 @@
   "uiStyle": "material",
   "config": {
     "tipsEnabled": true,
-    "lastTab": "tools",
-    "theme": "forest",
-    "uiStyle": "capsule",
+    "lastTab": "main",
+    "theme": "dark",
+    "uiStyle": "simple",
     "animEnabled": true,
+    "snapScroll": false,
+    "showIntro": true,
+    "elevenLabsApiKey": "",
     "beatMaker": {
       "threshold": "50",
       "channel": "Both Channels",
@@ -41,7 +44,23 @@
         "y1": 0,
         "x2": 0.25,
         "y2": 1
+      },
+      {
+        "name": "Overlap",
+        "x1": 0.4,
+        "y1": -0.5,
+        "x2": 0.8,
+        "y2": -0.5
       }
     ]
+  },
+  "aetoam": {
+    "bakeExpr": true,
+    "importAdj": false
+  },
+  "autosave": {
+    "enabled": false,
+    "interval": 25,
+    "lastSaved": null
   }
 }

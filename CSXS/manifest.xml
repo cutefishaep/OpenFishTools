@@ -2,7 +2,7 @@
 <ExtensionManifest Version="7.0" ExtensionBundleId="com.cutefish.tools" ExtensionBundleVersion="1.0.95"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ExtensionList>
-            <Extension Id="com.cutefish.tools.panel" Version="1.0.95" />
+                            <Extension Id="com.cutefish.tools.panel" Version="1.0.95" />
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>

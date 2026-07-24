@@ -655,7 +655,7 @@ function _CUT(type) {
                 layer.outPoint    = curTime;
                 newLayer.inPoint  = curTime;
                 newLayer.outPoint = data.outPoint;
-                newLayer.moveAfter(layer);
+                newLayer.moveBefore(layer);
             }
         }
         return true;

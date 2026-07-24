@@ -53,6 +53,52 @@ var FileStore = (function () {
         }
     }
 
+    function _loadDefaultSaveData(extDataDir) {
+        if (_hasCepFs()) {
+            var pathsToTry = [];
+            if (extDataDir) pathsToTry.push(extDataDir + '/fishtools_save.json');
+            if (window.csInterface && typeof SystemPath !== 'undefined') {
+                try {
+                    var extPath = window.csInterface.getSystemPath(SystemPath.EXTENSION);
+                    if (extPath) pathsToTry.push(extPath.replace(/\\/g, '/') + '/data/fishtools_save.json');
+                } catch (e) {}
+            }
+            for (var i = 0; i < pathsToTry.length; i++) {
+                var filePath = pathsToTry[i];
+                var stat = window.cep.fs.stat(filePath);
+                if (stat.err === 0) {
+                    var readRes = window.cep.fs.readFile(filePath);
+                    if (readRes.err === 0 && readRes.data) {
+                        try {
+                            var parsed = JSON.parse(readRes.data);
+                            if (parsed && typeof parsed === 'object') {
+                                _cache = parsed;
+                                save();
+                                return true;
+                            }
+                        } catch (e) {}
+                    }
+                }
+            }
+        }
+
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '../data/fishtools_save.json', false);
+            xhr.send(null);
+            if ((xhr.status === 200 || xhr.status === 0) && xhr.responseText) {
+                var parsedXHR = JSON.parse(xhr.responseText);
+                if (parsedXHR && typeof parsedXHR === 'object') {
+                    _cache = parsedXHR;
+                    save();
+                    return true;
+                }
+            }
+        } catch (e) {}
+
+        return false;
+    }
+
     function init(extensionPath, userDataPath) {
         _useLocalStorage = false;
         _filePath = null;
@@ -67,11 +113,6 @@ var FileStore = (function () {
             return;
         }
 
-        
-        
-        
-        
-        
         var targetUserDir = userDataPath ? (userDataPath + '/Adobe/com.cutefish.tools') : null;
         var extDataDir = extensionPath ? (extensionPath + '/data') : null;
 
@@ -79,22 +120,10 @@ var FileStore = (function () {
             _dataDir = targetUserDir;
             _filePath = _dataDir + '/fishtools_save.json';
 
-            
             var userFileStat = window.cep.fs.stat(_filePath);
-            if (userFileStat.err !== 0 && extDataDir) {
-                var extFile = extDataDir + '/fishtools_save.json';
-                var extFileStat = window.cep.fs.stat(extFile);
-                if (extFileStat.err === 0) {
-                    
-                    var readRes = window.cep.fs.readFile(extFile);
-                    if (readRes.err === 0 && readRes.data) {
-                        try {
-                            _cache = JSON.parse(readRes.data) || {};
-                            
-                            save();
-                            return;
-                        } catch (e) {}
-                    }
+            if (userFileStat.err !== 0) {
+                if (_loadDefaultSaveData(extDataDir)) {
+                    return;
                 }
             }
 
@@ -102,7 +131,6 @@ var FileStore = (function () {
             return;
         }
 
-        
         if (extDataDir && _isWritable(extDataDir)) {
             _dataDir = extDataDir;
             _filePath = _dataDir + '/fishtools_save.json';
@@ -110,7 +138,6 @@ var FileStore = (function () {
             return;
         }
 
-        
         _useLocalStorage = true;
         _loadFromLocalStorage();
     }
@@ -118,8 +145,15 @@ var FileStore = (function () {
     function _loadFromLocalStorage() {
         try {
             var raw = localStorage.getItem('fishToolsFileStore');
-            if (raw) _cache = JSON.parse(raw);
-        } catch (e) { _cache = {}; }
+            if (raw) {
+                _cache = JSON.parse(raw);
+            } else {
+                _loadDefaultSaveData();
+            }
+        } catch (e) {
+            _cache = {};
+            _loadDefaultSaveData();
+        }
     }
 
     function load() {
@@ -137,14 +171,17 @@ var FileStore = (function () {
                     _cache = {};
                 }
             } else if (result.err !== 0) {
-                
                 _loadFromLocalStorage();
             }
         } catch (e) {
-            
             _useLocalStorage = true;
             _filePath = null;
             _loadFromLocalStorage();
+        }
+
+        if (!Object.keys(_cache).length) {
+            var extDataDir = _filePath ? _filePath.substring(0, _filePath.lastIndexOf('/')) : null;
+            _loadDefaultSaveData(extDataDir);
         }
     }
 

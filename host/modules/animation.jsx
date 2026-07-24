@@ -451,17 +451,18 @@ function _MIDWAVE() {
         mt.property("ADBE Tile-0001").setValue([comp.width / 2, comp.height / 2]);
         mt.property("ADBE Tile-0002").setValue(100);
         mt.property("ADBE Tile-0003").setValue(100);
-        mt.property("ADBE Tile-0004").setValue(300);
-        mt.property("ADBE Tile-0005").setValue(300);
+        mt.property("ADBE Tile-0004").setValue(150);
+        mt.property("ADBE Tile-0005").setValue(150);
         mt.property("ADBE Tile-0006").setValue(1);
         mt.property("ADBE Tile-0007").setValue(0);
         mt.property("ADBE Tile-0008").setValue(0);
         var ww1 = adj.property("ADBE Effect Parade").addProperty("ADBE Wave Warp");
         ww1.property("ADBE Wave Warp-0001").setValue(1);
-        ww1.property("ADBE Wave Warp-0003").setValue(800);
+        ww1.property("ADBE Wave Warp-0003").setValue(1200);
         ww1.property("ADBE Wave Warp-0004").setValue(45);
-        ww1.property("ADBE Wave Warp-0005").setValue(2);
+        ww1.property("ADBE Wave Warp-0005").setValue(1.3);
         ww1.property("ADBE Wave Warp-0006").setValue(1);
+        ww1.property("ADBE Wave Warp-0007").setValue(90);
         ww1.property("ADBE Wave Warp-0008").setValue(1);
         var wh1 = ww1.property("ADBE Wave Warp-0002");
         wh1.setValueAtTime(t1, 0);
@@ -470,10 +471,11 @@ function _MIDWAVE() {
         _applyMidWaveEase(wh1);
         var ww2 = adj.property("ADBE Effect Parade").addProperty("ADBE Wave Warp");
         ww2.property("ADBE Wave Warp-0001").setValue(1);
-        ww2.property("ADBE Wave Warp-0003").setValue(800);
+        ww2.property("ADBE Wave Warp-0003").setValue(1200);
         ww2.property("ADBE Wave Warp-0004").setValue(-45);
-        ww2.property("ADBE Wave Warp-0005").setValue(2);
+        ww2.property("ADBE Wave Warp-0005").setValue(1.3);
         ww2.property("ADBE Wave Warp-0006").setValue(1);
+        ww2.property("ADBE Wave Warp-0007").setValue(90);
         ww2.property("ADBE Wave Warp-0008").setValue(1);
         var wh2 = ww2.property("ADBE Wave Warp-0002");
         wh2.setValueAtTime(t1, 0);
@@ -557,47 +559,39 @@ function _OSCILLATE() {
         var decayCtrl = fx.addProperty("ADBE Slider Control");
         decayCtrl.name = "Decay";
         decayCtrl.property("ADBE Slider Control-0001").setValue(2.7);
-        
-        
-        
+        var attackCtrl = fx.addProperty("ADBE Slider Control");
+        attackCtrl.name = "Attack";
+        attackCtrl.property("ADBE Slider Control-0001").setValue(40);
         
         var posExpr = [
             "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
             "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
             "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "attack = effect(\"Attack\")(\"ADBE Slider Control-0001\");",
             "",
-            "m = thisComp.marker;",
+            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
             "",
-            "if (time < inPoint || time > outPoint){",
+            "if (time < inPoint || time > outPoint || !m || m.numKeys === 0){",
             "    value;",
             "}else{",
-            "",
             "    n = 0;",
-            "",
             "    if (m.numKeys > 0){",
             "        n = m.nearestKey(time).index;",
             "        if (m.key(n).time > time) n--;",
             "    }",
             "",
             "    if (n > 0){",
-            "",
             "        markerTime = m.key(n).time;",
-            "",
             "        if (markerTime >= inPoint && markerTime <= outPoint){",
-            "",
             "            t = time - markerTime;",
-            "            currAmp = amp / Math.exp(t * decay);",
-            "",
-            "            // Start at default(0,0), go right->down->left->up",
+            "            env = (attack > 0) ? (1 - Math.exp(-t * attack)) : 1;",
+            "            currAmp = amp * env / Math.exp(t * decay);",
             "            x = Math.sin(t * freq * Math.PI * 2) * currAmp;",
             "            y = (1 - Math.cos(t * freq * Math.PI * 2)) * currAmp;",
-            "",
             "            value + [x, y];",
-            "",
             "        }else{",
             "            value;",
             "        }",
-            "",
             "    }else{",
             "        value;",
             "    }",
@@ -742,6 +736,209 @@ function _X_BEAT() {
         app.endUndoGroup();
     }
 }
+function _X_FLIP() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    app.beginUndoGroup("X Flip");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "X FLIP";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+        targetLayer.parent = nullLayer;
+
+        var fx = nullLayer.property("ADBE Effect Parade");
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(500);
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(20);
+
+        // ─── X FLIP expression ─────────────────────────────────────────────────
+        // • Beat 1 (odd):  direction LEFT  (-amp)
+        // • Beat 2 (even): direction RIGHT (+amp), alternating
+        // • WITHIN each beat: val1 (decay from beat) AND val2 (anticipation toward
+        //   next beat) BOTH use the CURRENT beat's direction → creates X-BEAT-style
+        //   bounce that stays on the SAME side (kiri→tengah→kiri, or kanan→tengah→kanan)
+        // • 1 frame before next beat: TELEPORT to opposite side to set up next beat
+        var posExpr = [
+            "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+            "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "",
+            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
+            "",
+            "if (time < inPoint || time > outPoint || !m || m.numKeys === 0){",
+            "    value;",
+            "}else{",
+            "    // Find last beat index (n) at or before current time",
+            "    n = m.nearestKey(time).index;",
+            "    if (m.key(n).time > time) n = n - 1;",
+            "",
+            "    if (n <= 0){",
+            "        // Before first beat: pre-position to LEFT (beat 1 is LEFT)",
+            "        value + [-amp, 0];",
+            "    }else{",
+            "        t1 = m.key(n).time;",
+            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
+            "        oneFrame = 1 / thisComp.frameRate;",
+            "",
+            "        // Odd beat (1,3,5…) = LEFT (-1), Even (2,4,6…) = RIGHT (+1)",
+            "        dir = (n % 2 === 1) ? -1 : 1;",
+            "",
+            "        if (n < m.numKeys && time >= t2 - oneFrame){",
+            "            // 1 frame before next beat → teleport to opposite side",
+            "            val = -dir * amp;",
+            "        }else{",
+            "            // X BEAT formula but BOTH val1 and val2 use the SAME direction",
+            "            // → bounce stays on current side (left bounce stays left, right stays right)",
+            "            val1 = dir * amp / Math.exp((time - t1) * decay);",
+            "            val2 = dir * amp / Math.exp((t2 - time) * decay);",
+            "            val = (Math.abs(val1) > Math.abs(val2)) ? val1 : val2;",
+            "        }",
+            "        value + [val, 0];",
+            "    }",
+            "}"
+        ].join("\n");
+
+        var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
+        positionProp.expression = posExpr;
+
+        // ─── Scale X flip expression (-100 / 100) ─────────────────────────────
+        var scaleExpr = [
+            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
+            "if (!m || m.numKeys === 0){",
+            "    value;",
+            "}else{",
+            "    n = m.nearestKey(time).index;",
+            "    if (m.key(n).time > time) n = n - 1;",
+            "    if (n <= 0){",
+            "        [-100, 100];",
+            "    }else{",
+            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
+            "        oneFrame = 1 / thisComp.frameRate;",
+            "        beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
+            "        sX = (beatIdx % 2 === 1) ? -100 : 100;",
+            "        [sX, 100];",
+            "    }",
+            "}"
+        ].join("\n");
+        var scaleProp = nullLayer.property("ADBE Transform Group").property("ADBE Scale");
+        scaleProp.expression = scaleExpr;
+
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+function _Y_FLIP() {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    app.beginUndoGroup("Y Flip");
+    try {
+        var targetLayer = comp.selectedLayers[0];
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = "Y FLIP";
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+        targetLayer.parent = nullLayer;
+
+        var fx = nullLayer.property("ADBE Effect Parade");
+        var ampCtrl = fx.addProperty("ADBE Slider Control");
+        ampCtrl.name = "Amp";
+        ampCtrl.property("ADBE Slider Control-0001").setValue(500);
+        var decayCtrl = fx.addProperty("ADBE Slider Control");
+        decayCtrl.name = "Decay";
+        decayCtrl.property("ADBE Slider Control-0001").setValue(20);
+
+        // ─── Y FLIP expression ─────────────────────────────────────────────────
+        // • Beat 1 (odd):  direction UP   (-amp)
+        // • Beat 2 (even): direction DOWN (+amp), alternating
+        // • WITHIN each beat: val1 (decay from beat) AND val2 (anticipation toward
+        //   next beat) BOTH use the CURRENT beat's direction → creates Y-BEAT-style
+        //   bounce that stays on the SAME side (atas→tengah→atas, or bawah→tengah→bawah)
+        // • 1 frame before next beat: TELEPORT to opposite side to set up next beat
+        var posExpr = [
+            "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
+            "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
+            "",
+            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
+            "",
+            "if (time < inPoint || time > outPoint || !m || m.numKeys === 0){",
+            "    value;",
+            "}else{",
+            "    n = m.nearestKey(time).index;",
+            "    if (m.key(n).time > time) n = n - 1;",
+            "",
+            "    if (n <= 0){",
+            "        // Before first beat: pre-position to UP (beat 1 is UP)",
+            "        value + [0, -amp];",
+            "    }else{",
+            "        t1 = m.key(n).time;",
+            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
+            "        oneFrame = 1 / thisComp.frameRate;",
+            "",
+            "        // Odd beat (1,3,5…) = UP (-1), Even (2,4,6…) = DOWN (+1)",
+            "        dir = (n % 2 === 1) ? -1 : 1;",
+            "",
+            "        if (n < m.numKeys && time >= t2 - oneFrame){",
+            "            // 1 frame before next beat → teleport to opposite side",
+            "            val = -dir * amp;",
+            "        }else{",
+            "            val1 = dir * amp / Math.exp((time - t1) * decay);",
+            "            val2 = dir * amp / Math.exp((t2 - time) * decay);",
+            "            val = (Math.abs(val1) > Math.abs(val2)) ? val1 : val2;",
+            "        }",
+            "        value + [0, val];",
+            "    }",
+            "}"
+        ].join("\n");
+
+        var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
+        positionProp.expression = posExpr;
+
+        // ─── Scale Y flip expression (100 / -100) ─────────────────────────────
+        var scaleExpr = [
+            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
+            "if (!m || m.numKeys === 0){",
+            "    value;",
+            "}else{",
+            "    n = m.nearestKey(time).index;",
+            "    if (m.key(n).time > time) n = n - 1;",
+            "    if (n <= 0){",
+            "        [100, -100];",
+            "    }else{",
+            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
+            "        oneFrame = 1 / thisComp.frameRate;",
+            "        beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
+            "        sY = (beatIdx % 2 === 1) ? -100 : 100;",
+            "        [100, sY];",
+            "    }",
+            "}"
+        ].join("\n");
+        var scaleProp = nullLayer.property("ADBE Transform Group").property("ADBE Scale");
+        scaleProp.expression = scaleExpr;
+
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
 function _SCALE_BEAT() {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
@@ -831,6 +1028,22 @@ function _SCALE_OVERLAP() {
         overshootCtrl.name = "Overshoot";
         overshootCtrl.property("ADBE Slider Control-0001").setValue(20);
         var scaleExpr = [
+            "function bezier(x1, y1, x2, y2, t) {",
+            "    if (t <= 0) return 0;",
+            "    if (t >= 1) return 1;",
+            "    var p = t;",
+            "    for (var i = 0; i < 8; i++) {",
+            "        var omP = 1 - p;",
+            "        var f = 3 * omP * omP * p * x1 + 3 * omP * p * p * x2 + p * p * p - t;",
+            "        var df = 3 * omP * omP * x1 + 6 * omP * p * (x2 - x1) + 3 * p * p * (1 - x2);",
+            "        if (Math.abs(df) < 1e-6) break;",
+            "        p -= f / df;",
+            "        p = Math.max(0, Math.min(1, p));",
+            "    }",
+            "    var omP = 1 - p;",
+            "    return 3 * omP * omP * p * y1 + 3 * omP * p * p * y2 + p * p * p;",
+            "}",
+            "",
             "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
             "scaleIn = effect(\"Scale In\")(\"ADBE Slider Control-0001\");",
             "scaleOut = effect(\"Scale Out\")(\"ADBE Slider Control-0001\");",
@@ -855,8 +1068,8 @@ function _SCALE_OVERLAP() {
             "        ",
             "        t = time - t1;",
             "        progress = Math.max(0, Math.min(1, t / dur));",
-            "        s = overshoot / 10;",
-            "        eased = progress * progress * ((s + 1) * progress - s);",
+            "        yMult = overshoot / 20;",
+            "        eased = bezier(0.4, -0.5 * yMult, 0.8, -0.5 * yMult, progress);",
             "        val = startVal + (endVal - startVal) * eased;",
             "        value + [val, val];",
             "    } else if (n >= m.numKeys) {",
@@ -1258,7 +1471,9 @@ tools.MIDWAVE = function () { return _MIDWAVE(); };
 tools.HUESPIN = function () { return _HUESPIN(); };
 tools.OSCILLATE = function () { return _OSCILLATE(); };
 tools.Y_BEAT = function () { return _Y_BEAT(); };
+tools.Y_FLIP = function () { return _Y_FLIP(); };
 tools.X_BEAT = function () { return _X_BEAT(); };
+tools.X_FLIP = function () { return _X_FLIP(); };
 tools.SCALE_BEAT = function () { return _SCALE_BEAT(); };
 tools.SCALE_OVERLAP = function () { return _SCALE_OVERLAP(); };
 tools.SWING = function () { return _SWING(); };

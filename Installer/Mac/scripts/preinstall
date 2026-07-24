@@ -6,9 +6,8 @@
 
 EXTENSION_NAME="OpenFishTools"
 SYSTEM_CEP_PATH="/Library/Application Support/Adobe/CEP/extensions"
-USER_CEP_PATH="$HOME/Library/Application Support/Adobe/CEP/extensions"
 
-echo "==> OpenFishTools Preinstall: Checking for existing installation..."
+echo "==> OpenFishTools Preinstall: Cleaning up previous installation..."
 
 # Remove from system-wide CEP path
 if [ -d "$SYSTEM_CEP_PATH/$EXTENSION_NAME" ]; then
@@ -16,11 +15,27 @@ if [ -d "$SYSTEM_CEP_PATH/$EXTENSION_NAME" ]; then
     rm -rf "$SYSTEM_CEP_PATH/$EXTENSION_NAME"
 fi
 
-# Remove from user CEP path (legacy location)
-if [ -d "$USER_CEP_PATH/$EXTENSION_NAME" ]; then
-    echo "==> Removing existing user installation at: $USER_CEP_PATH/$EXTENSION_NAME"
-    rm -rf "$USER_CEP_PATH/$EXTENSION_NAME"
+# Detect logged-in user home directory
+REAL_USER=$(stat -f "%Su" /dev/console 2>/dev/null)
+if [ -z "$REAL_USER" ] || [ "$REAL_USER" = "root" ]; then
+    REAL_USER=$(ls -la /dev/console | awk '{print $3}')
 fi
 
-echo "==> Preinstall complete."
+if [ -n "$REAL_USER" ] && [ "$REAL_USER" != "root" ]; then
+    USER_HOME=$(dscl . -read "/Users/$REAL_USER" NFSHomeDirectory 2>/dev/null | awk '{print $2}')
+    if [ -n "$USER_HOME" ] && [ -d "$USER_HOME/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME" ]; then
+        echo "==> Removing existing user installation at: $USER_HOME/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME"
+        rm -rf "$USER_HOME/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME"
+    fi
+fi
+
+# Clean up legacy installations across user home directories
+for u_home in /Users/*; do
+    if [ -d "$u_home/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME" ]; then
+        echo "==> Removing legacy installation at: $u_home/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME"
+        rm -rf "$u_home/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME"
+    fi
+done
+
+echo "==> Preinstall complete. Previous installation removed successfully."
 exit 0
