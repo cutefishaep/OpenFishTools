@@ -810,20 +810,24 @@ function _X_FLIP() {
 
         // ─── Scale X flip expression (-100 / 100) ─────────────────────────────
         var scaleExpr = [
-            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
-            "if (!m || m.numKeys === 0){",
-            "    value;",
+            "if (time < inPoint || time > outPoint){",
+            "    [100, 100];",
             "}else{",
-            "    n = m.nearestKey(time).index;",
-            "    if (m.key(n).time > time) n = n - 1;",
-            "    if (n <= 0){",
-            "        [-100, 100];",
+            "    m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
+            "    if (!m || m.numKeys === 0){",
+            "        value;",
             "    }else{",
-            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
-            "        oneFrame = 1 / thisComp.frameRate;",
-            "        beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
-            "        sX = (beatIdx % 2 === 1) ? -100 : 100;",
-            "        [sX, 100];",
+            "        n = m.nearestKey(time).index;",
+            "        if (m.key(n).time > time) n = n - 1;",
+            "        if (n <= 0){",
+            "            [-100, 100];",
+            "        }else{",
+            "            t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
+            "            oneFrame = 1 / thisComp.frameRate;",
+            "            beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
+            "            sX = (beatIdx % 2 === 1) ? -100 : 100;",
+            "            [sX, 100];",
+            "        }",
             "    }",
             "}"
         ].join("\n");
@@ -910,20 +914,24 @@ function _Y_FLIP() {
 
         // ─── Scale Y flip expression (100 / -100) ─────────────────────────────
         var scaleExpr = [
-            "m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
-            "if (!m || m.numKeys === 0){",
-            "    value;",
+            "if (time < inPoint || time > outPoint){",
+            "    [100, 100];",
             "}else{",
-            "    n = m.nearestKey(time).index;",
-            "    if (m.key(n).time > time) n = n - 1;",
-            "    if (n <= 0){",
-            "        [100, -100];",
+            "    m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
+            "    if (!m || m.numKeys === 0){",
+            "        value;",
             "    }else{",
-            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
-            "        oneFrame = 1 / thisComp.frameRate;",
-            "        beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
-            "        sY = (beatIdx % 2 === 1) ? -100 : 100;",
-            "        [100, sY];",
+            "        n = m.nearestKey(time).index;",
+            "        if (m.key(n).time > time) n = n - 1;",
+            "        if (n <= 0){",
+            "            [100, -100];",
+            "        }else{",
+            "            t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
+            "            oneFrame = 1 / thisComp.frameRate;",
+            "            beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
+            "            sY = (beatIdx % 2 === 1) ? -100 : 100;",
+            "            [100, sY];",
+            "        }",
             "    }",
             "}"
         ].join("\n");
@@ -1158,6 +1166,118 @@ function _SWING() {
         ].join("\n");
         var rotationProp = nullLayer.property("ADBE Transform Group").property("ADBE Rotate Z");
         rotationProp.expression = rotExpr;
+        for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
+        nullLayer.selected = true;
+        return true;
+    } catch (e) {
+        return "ERROR:" + e.toString();
+    } finally {
+        app.endUndoGroup();
+    }
+}
+function _createPanningEffect(type) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+
+    var title = "Panning Effect";
+    var nullName = "PANNING";
+    var hasPos = (type === "POS" || type === "MIX_PR" || type === "MIX_ALL");
+    var hasRot = (type === "ROT" || type === "MIX_PR" || type === "MIX_ALL");
+    var hasScale = (type === "SCALE" || type === "MIX_ALL");
+
+    if (type === "POS") { title = "Panning Position"; nullName = "PANNING Position"; }
+    else if (type === "ROT") { title = "Panning Rotation"; nullName = "PANNING Rotation"; }
+    else if (type === "SCALE") { title = "Panning Scale"; nullName = "PANNING Scale"; }
+    else if (type === "MIX_PR") { title = "Panning Mix PR"; nullName = "PANNING Mix PR"; }
+    else if (type === "MIX_ALL") { title = "Panning Mix All"; nullName = "PANNING Mix All"; }
+
+    app.beginUndoGroup(title);
+    try {
+        var targetLayer = comp.selectedLayers[0];
+        var nullLayer = comp.layers.addNull();
+        nullLayer.name = nullName;
+        nullLayer.label = 1;
+        nullLayer.inPoint = targetLayer.inPoint;
+        nullLayer.outPoint = targetLayer.outPoint;
+        try { nullLayer.moveBefore(targetLayer); } catch (e) { }
+        targetLayer.parent = nullLayer;
+
+        var defaultFreq = (type === "MIX_PR") ? 7 : 1.5;
+        var defaultPos = (type === "MIX_PR") ? 10 : 30;
+        var defaultRot = (type === "MIX_PR") ? 1 : 5;
+        var defaultScale = 10;
+
+        var fx = nullLayer.property("ADBE Effect Parade");
+
+        var freqCtrl = fx.addProperty("ADBE Slider Control");
+        freqCtrl.name = "Freq";
+        freqCtrl.property("ADBE Slider Control-0001").setValue(defaultFreq);
+
+        if (hasPos) {
+            var posCtrl = fx.addProperty("ADBE Slider Control");
+            posCtrl.name = "Position";
+            posCtrl.property("ADBE Slider Control-0001").setValue(defaultPos);
+        }
+
+        if (hasRot) {
+            var rotCtrl = fx.addProperty("ADBE Slider Control");
+            rotCtrl.name = "Rotation";
+            rotCtrl.property("ADBE Slider Control-0001").setValue(defaultRot);
+        }
+
+        if (hasScale) {
+            var scaleCtrl = fx.addProperty("ADBE Slider Control");
+            scaleCtrl.name = "Scale";
+            scaleCtrl.property("ADBE Slider Control-0001").setValue(defaultScale);
+        }
+
+        if (hasPos) {
+            var posExpr = [
+                "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+                "posAmp = effect(\"Position\")(\"ADBE Slider Control-0001\");",
+                "if (time < inPoint || time > outPoint){",
+                "    value;",
+                "}else{",
+                "    t = time * freq;",
+                "    x = (Math.sin(t * 1.2) * 0.7 + Math.sin(t * 2.3) * 0.3) * posAmp;",
+                "    y = (Math.cos(t * 0.9) * 0.7 + Math.sin(t * 1.7) * 0.3) * posAmp;",
+                "    value + [x, y];",
+                "}"
+            ].join("\n");
+            nullLayer.property("ADBE Transform Group").property("ADBE Position").expression = posExpr;
+        }
+
+        if (hasRot) {
+            var rotExpr = [
+                "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+                "rotAmp = effect(\"Rotation\")(\"ADBE Slider Control-0001\");",
+                "if (time < inPoint || time > outPoint){",
+                "    value;",
+                "}else{",
+                "    t = time * freq;",
+                "    r = (Math.sin(t * 0.8 + 1.5) * 0.7 + Math.cos(t * 1.5) * 0.3) * rotAmp;",
+                "    value + r;",
+                "}"
+            ].join("\n");
+            nullLayer.property("ADBE Transform Group").property("ADBE Rotate Z").expression = rotExpr;
+        }
+
+        if (hasScale) {
+            var scaleExpr = [
+                "freq = effect(\"Freq\")(\"ADBE Slider Control-0001\");",
+                "scaleAmp = effect(\"Scale\")(\"ADBE Slider Control-0001\");",
+                "if (time < inPoint || time > outPoint){",
+                "    value;",
+                "}else{",
+                "    t = time * freq;",
+                "    s = (Math.sin(t * 1.1) * 0.7 + Math.cos(t * 2.1) * 0.3) * scaleAmp;",
+                "    value + [s, s];",
+                "}"
+            ].join("\n");
+            nullLayer.property("ADBE Transform Group").property("ADBE Scale").expression = scaleExpr;
+        }
+
         for (var i = 1; i <= comp.numLayers; i++) comp.layer(i).selected = false;
         nullLayer.selected = true;
         return true;
@@ -1476,7 +1596,12 @@ tools.X_BEAT = function () { return _X_BEAT(); };
 tools.X_FLIP = function () { return _X_FLIP(); };
 tools.SCALE_BEAT = function () { return _SCALE_BEAT(); };
 tools.SCALE_OVERLAP = function () { return _SCALE_OVERLAP(); };
-tools.SWING = function () { return _SWING(); };
+tools.PANNING = function () { return _createPanningEffect("MIX_ALL"); };
+tools.PANNING_POS = function () { return _createPanningEffect("POS"); };
+tools.PANNING_ROT = function () { return _createPanningEffect("ROT"); };
+tools.PANNING_SCALE = function () { return _createPanningEffect("SCALE"); };
+tools.PANNING_MIX_PR = function () { return _createPanningEffect("MIX_PR"); };
+tools.PANNING_MIX_ALL = function () { return _createPanningEffect("MIX_ALL"); };
 tools.FISHEYE = function () { return _FISHEYE(); };
 tools.CF_COLORIZE = function() { return _CF_COLORIZE(); };
 tools.CF_SCANLINE = function() { return _CF_SCANLINE(); };

@@ -2,6 +2,18 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.1.0] - 2026-07-25
+### Added
+- **Panning Beat Effect Suite**: Added a dedicated **Panning** section in Beat Effects featuring 5 tool buttons: `POSITION`, `ROTATION`, `SCALE`, `MIX PR`, and `MIX ALL`. Generates a parent Null layer powered by organic multi-frequency sine wave expressions with customizable `Freq` (frequency/speed) and `Amp` slider controls.
+- **Mix PR Tuned Defaults**: Configured `Mix PR` mode default slider parameters to `Freq: 7`, `Position: 10`, and `Rotation: 1`.
+- **Y FLIP Beat Effect**: Added `Y_FLIP` tool in Beat Continuous section with alternating vertical bounces and instantaneous teleportation 1 frame prior to the next beat marker.
+
+### Fixed
+- **X FLIP & Y FLIP Scale Bounds**: Added `inPoint`/`outPoint` time guards to scale flip expressions, ensuring scale stays at normal `[100, 100]` outside the null layer's timeline range.
+- **Oscillate Smooth Attack Envelope**: Eliminated abrupt initial velocity jerk at beat markers by applying a smooth ramp-in attack envelope `(1 - Math.exp(-t * attack))` and introducing an `Attack` control slider (default `40`).
+- **MID-WAVE Preset Tuning**: Updated default MID-WAVE properties to `Tile Output Height/Width: 150`, `Wave Width: 1200`, `Wave Speed: 1.3`, and `Phase: 90°`.
+- **GitHub Action Release Versioning**: Fixed whitespace accumulation bug in `scripts/update_version.sh` regex when updating `CSXS/manifest.xml` Version tag.
+
 ## [1.0.9] - 2026-07-23
 ### Added
 - **AE to AM Converter Dashboard Card**: Added a dedicated "Ae > Am Converter" card on the dashboard featuring toggles for "Bake Expressions" (enabled by default) and "Import Adjustment Layers". Runs clean, comment-free ExtendScript with a lightweight non-modal status window titled `Ae > Am Converter`.

@@ -25,7 +25,7 @@ echo "🔄 Updating version to: $NEW_VER"
 MANIFEST="$ROOT_DIR/CSXS/manifest.xml"
 if [ -f "$MANIFEST" ]; then
     perl -pi -e "s/ExtensionBundleVersion=\"[^\"]+\"/ExtensionBundleVersion=\"$NEW_VER\"/g" "$MANIFEST"
-    perl -pi -e "s/(<Extension Id=\"com\.cutefish\.tools\.panel\" Version=\")[^\"]+(\")/ \${1}$NEW_VER\${2}/g" "$MANIFEST"
+    perl -pi -e "s/(<Extension Id=\"com\.cutefish\.tools\.panel\" Version=\")[^\"]+(\")/\${1}$NEW_VER\${2}/g" "$MANIFEST"
     echo "  ✅ Updated CSXS/manifest.xml"
 fi
 
