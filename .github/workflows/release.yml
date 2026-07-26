@@ -134,7 +134,7 @@ jobs:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: '16ae4ab4-7257-4337-b89e-43385d8e39aa'
           project-slug: 'OpenFishTools'
-          signing-policy-slug: 'test-signing-policy'
+          signing-policy-slug: 'Release_Policy'
           github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           wait-for-completion: 'true'
