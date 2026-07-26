@@ -122,29 +122,11 @@ jobs:
           fi
           echo "✅ Found: $EXE"
 
-      - name: Sign Windows Installer with SignPath PowerShell Module
-        shell: pwsh
-        env:
-          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      - name: Prepare Windows installer output
+        shell: bash
         run: |
-          try {
-            Install-Module -Name SignPath -Scope CurrentUser -Force -ErrorAction Stop
-            Submit-SigningRequest `
-              -InputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
-              -ApiToken "$env:SIGNPATH_API_TOKEN" `
-              -OrganizationId "16ae4ab4-7257-4337-b89e-43385d8e39aa" `
-              -ProjectSlug "OpenFishTools" `
-              -SigningPolicySlug "Release_Policy" `
-              -OutputArtifactPath "Installer\Windows\OpenFishTools.exe" `
-              -WaitForCompletion `
-              -Force `
-              -ErrorAction Stop
-            Write-Host "✅ Windows installer signed successfully!"
-          } catch {
-            Write-Host "⚠️ SignPath API signing skipped or failed: $_"
-            Copy-Item "Installer\Windows\OpenFishTools_Setup.exe" "Installer\Windows\OpenFishTools.exe" -Force
-            Write-Host "📦 Using built installer: OpenFishTools.exe"
-          }
+          cp Installer/Windows/OpenFishTools_Setup.exe Installer/Windows/OpenFishTools.exe
+          echo "✅ Prepared Installer/Windows/OpenFishTools.exe"
 
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
