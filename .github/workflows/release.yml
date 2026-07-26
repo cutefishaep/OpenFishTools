@@ -133,7 +133,8 @@ jobs:
             -ProjectSlug "OpenFishTools" `
             -SigningPolicySlug "Release_Policy" `
             -OutputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
-            -WaitForCompletion
+            -WaitForCompletion `
+            -Force
 
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
