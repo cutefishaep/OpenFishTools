@@ -1,6 +1,6 @@
 #define MyAppName       "OpenFishTools"
 #ifndef MyAppVersion
-  #define MyAppVersion  "1.1.0"
+  #define MyAppVersion  "1.1.1"
 #endif
 #define MyAppPublisher  "cutefishaep"
 #define MyAppURL        "https://github.com/cutefishaep/OpenFishTools"
@@ -24,9 +24,15 @@ DefaultGroupName={#MyAppName}
 OutputDir=.
 OutputBaseFilename={#MyAppName}_Setup
 SetupIconFile=
-Compression=lzma2/ultra64
-SolidCompression=yes
+Compression=lzma2/max
+SolidCompression=no
 LZMANumBlockThreads=4
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} CEP Extension Installer
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCopyright=Copyright (c) 2026 {#MyAppPublisher}
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#MyAppVersion}
 PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=
 UninstallDisplayName={#MyAppName} v{#MyAppVersion}

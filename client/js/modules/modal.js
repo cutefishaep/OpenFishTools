@@ -59,13 +59,22 @@ var ModalModule = (function () {
         activeCallback = null;
     }
 
-    function alertFn(msg, title, type) {
+    function alertFn(msg, title, type, options) {
         resetModal();
+        if (options && options.customClass) {
+            modal.classList.add(options.customClass);
+        }
         modal.classList.add('modal-type-' + (type || 'info'));
         titleEl.innerHTML = '<span class="material-icons" style="font-size: 16px;">' + getIcon(type) + '</span> ' + (title || 'Notice');
-        contentEl.innerText = msg;
+        
+        if (options && options.isHTML) {
+            contentEl.innerHTML = msg;
+        } else {
+            contentEl.innerText = msg;
+        }
 
-        var btn = createBtn('OK', 'primary-btn', close);
+        var btnText = (options && options.btnText) || 'OK';
+        var btn = createBtn(btnText, 'primary-btn', close);
         btn.style.background = getThemeColor(type);
         btn.style.color = (type === 'error' || type === 'warning') ? '#fff' : 'var(--bg)';
         footerEl.appendChild(btn);
@@ -75,10 +84,18 @@ var ModalModule = (function () {
 
     function confirm(msg, title, callback, options) {
         resetModal();
+        if (options && options.customClass) {
+            modal.classList.add(options.customClass);
+        }
         modal.classList.add('modal-type-info');
         modal.classList.add('is-required');
         titleEl.innerHTML = '<span class="material-icons" style="font-size: 16px;">help_outline</span> ' + (title || 'Confirm');
-        contentEl.innerText = msg;
+
+        if (options && options.isHTML) {
+            contentEl.innerHTML = msg;
+        } else {
+            contentEl.innerText = msg;
+        }
 
         var cancelText = (options && options.cancelText) || 'Cancel';
         var confirmText = (options && options.confirmText) || 'Continue';

@@ -1036,10 +1036,19 @@
             </div>
 
             <div class="card">
-                <h3>Debug</h3>
-                <div class="row-between mb-8">
+                <h3>Debug & Testing</h3>
+                <div class="row-between mb-8" style="gap: 4px;">
                     <button id="btn-debug-all" class="btn-secondary flex-1">EFFECTS</button>
                     <button id="btn-debug-clear" class="btn-secondary dim">CLEAR</button>
+                </div>
+                <div style="font-size: 10px; text-transform: uppercase; font-weight: 800; color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.5px;">Modal Triggers</div>
+                <div class="toolbox-grid col-2 mb-8">
+                    <button id="btn-test-update-modal" class="btn-secondary" title="Test Update Release Notes Popup"><span class="material-icons" style="font-size:12px; margin-right:4px;">system_update</span> UPDATE</button>
+                    <button id="btn-test-confirm-modal" class="btn-secondary" title="Test Confirm Popup"><span class="material-icons" style="font-size:12px; margin-right:4px;">help_outline</span> CONFIRM</button>
+                    <button id="btn-test-info-modal" class="btn-secondary" title="Test Info Popup"><span class="material-icons" style="font-size:12px; margin-right:4px;">info</span> INFO</button>
+                    <button id="btn-test-prompt-modal" class="btn-secondary" title="Test Input Prompt Popup"><span class="material-icons" style="font-size:12px; margin-right:4px;">edit</span> PROMPT</button>
+                    <button id="btn-test-error-modal" class="btn-secondary" title="Test Error Popup"><span class="material-icons" style="font-size:12px; margin-right:4px;">error_outline</span> ERROR</button>
+                    <button id="btn-test-warn-modal" class="btn-secondary" title="Test Warning Popup"><span class="material-icons" style="font-size:12px; margin-right:4px;">warning_amber</span> WARN</button>
                 </div>
                 <textarea id="debug-output" class="mono-area" placeholder="Debug output..."></textarea>
             </div>

@@ -2,7 +2,7 @@
 set -e
 
 APP_NAME="OpenFishTools"
-APP_VERSION="${APP_VERSION:-1.1.0}"
+APP_VERSION="${APP_VERSION:-1.1.1}"
 BUNDLE_ID="com.cutefish.tools"
 EXTENSION_FOLDER_NAME="OpenFishTools"
 

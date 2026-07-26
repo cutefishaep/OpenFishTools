@@ -2,6 +2,19 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.1.1] - 2026-07-26
+### Added
+- **Rich Release Notes Auto-Formatter**: Added automatic Markdown-to-HTML parsing in the update module (`update.js`). Dynamically converts GitHub Release notes into styled version headers, color-coded section badges (`ADDED`, `FIXED`, `CHANGED`, `REMOVED`), highlighted bold titles, and inline code tags.
+- **SignPath Open Source Code Signing**: Integrated SignPath.io code signing pipeline into `.github/workflows/release.yml` using `signpath/github-action-submit-signing-request@v1` for automated Windows installer signing in GitHub Actions.
+- **Debug Card Modal Triggers**: Added a dedicated "Modal Triggers" section to the Debug card in settings featuring one-click test triggers for `UPDATE` (with rich release notes), `CONFIRM`, `INFO`, `PROMPT`, `WARN`, and `ERROR` popups.
+
+### Changed
+- **Inno Setup False Positive Optimization**: Optimized `Installer/Windows/OpenFishTools_Setup.iss` compression settings from `lzma2/ultra64` to `lzma2/max` with `SolidCompression=no` and added complete `VersionInfo` metadata (company, description, product name, copyright) to prevent false positive detections on VirusTotal.
+- **Update Modal Header Polish**: Simplified update popup title to `UPDATE AVAILABLE` to prevent duplicate version number displays between modal header and release notes body.
+
+### Fixed
+- **Modal Scrollbar & Body Overflow**: Enhanced `ModalModule` and CSS with auto-scrolling body max-height, custom scrollbar styling, and responsive modal width (`modal-update`) for long release notes.
+
 ## [1.1.0] - 2026-07-25
 ### Added
 - **Panning Beat Effect Suite**: Added a dedicated **Panning** section in Beat Effects featuring 5 tool buttons: `POSITION`, `ROTATION`, `SCALE`, `MIX PR`, and `MIX ALL`. Generates a parent Null layer powered by organic multi-frequency sine wave expressions with customizable `Freq` (frequency/speed) and `Amp` slider controls.

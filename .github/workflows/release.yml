@@ -108,6 +108,17 @@ jobs:
           fi
           echo "✅ Found: $EXE"
 
+      - name: Sign Windows Installer with SignPath
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: '16ae4ab4-7257-4337-b89e-43385d8e39aa'
+          project-slug: 'OpenFishTools'
+          signing-policy-slug: 'test-signing-policy'
+          artifact-path: 'Installer/Windows/OpenFishTools_Setup.exe'
+          output-artifact-directory: 'Installer/Windows'
+          wait-for-completion: true
+
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
@@ -137,15 +148,30 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "TAG=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: Generate release notes
+      - name: Generate release notes from changelog
         id: changelog
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          BUILD_DATE=$(date -u +"%Y-%m-%d")
-          {
-            echo "**Version:** $VERSION"
-            echo "**Built:** $BUILD_DATE"
-          } > release_notes.md
+          python3 -c "
+          import re, datetime
+          version = '$VERSION'
+          build_date = datetime.datetime.utcnow().strftime('%Y-%m-%d')
+          fallback = f'**Version:** {version}\n**Built:** {build_date}'
+          
+          try:
+              with open('changelog.md', 'r', encoding='utf-8') as f:
+                  text = f.read()
+              pattern = r'(##\s*\[?' + re.escape(version) + r'\]?[\s\S]*?)(?=\n##\s*\[|\Z)'
+              match = re.search(pattern, text)
+              notes = match.group(1).strip() if match else fallback
+          except Exception:
+              notes = fallback
+          
+          with open('release_notes.md', 'w', encoding='utf-8') as out:
+              out.write(notes)
+          "
+          echo "Generated release_notes.md:"
+          cat release_notes.md
 
       - name: Download Mac installer
         uses: actions/download-artifact@v4
