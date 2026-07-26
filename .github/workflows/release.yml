@@ -125,7 +125,7 @@ jobs:
       - name: Sign Windows Installer with SignPath PowerShell Module
         shell: pwsh
         run: |
-          Install-Module -Name SignPath.Client -Scope CurrentUser -Force
+          Install-Module -Name SignPath -Scope CurrentUser -Force
           Submit-SigningRequest `
             -InputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
             -ApiToken "${{ secrets.SIGNPATH_API_TOKEN }}" `
