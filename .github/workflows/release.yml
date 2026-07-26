@@ -108,6 +108,15 @@ jobs:
           fi
           echo "✅ Found: $EXE"
 
+      - name: Upload unsigned installer for SignPath
+        id: upload-unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-windows-installer
+          path: Installer/Windows/${{ env.APP_NAME }}_Setup.exe
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Sign Windows Installer with SignPath
         uses: signpath/github-action-submit-signing-request@v1
         with:
@@ -115,9 +124,10 @@ jobs:
           organization-id: '16ae4ab4-7257-4337-b89e-43385d8e39aa'
           project-slug: 'OpenFishTools'
           signing-policy-slug: 'test-signing-policy'
-          artifact-path: 'Installer/Windows/OpenFishTools_Setup.exe'
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-for-completion: 'true'
           output-artifact-directory: 'Installer/Windows'
-          wait-for-completion: true
 
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
