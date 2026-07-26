@@ -10,6 +10,11 @@ on:
       - '*.*.*'
       - '[0-9]*'
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Publish as official GitHub Release?'
+        type: boolean
+        default: false
 
 env:
   APP_NAME: OpenFishTools
@@ -30,6 +35,9 @@ jobs:
         id: version
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+ ]]; then
+            VERSION="1.1.1"
+          fi
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "TAG=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
           echo "Building version: $VERSION (tag: $GITHUB_REF_NAME)"
@@ -81,6 +89,9 @@ jobs:
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+ ]]; then
+            VERSION="1.1.1"
+          fi
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Building version: $VERSION"
 
@@ -143,6 +154,7 @@ jobs:
   release:
     name: 📦 Publish GitHub Release
     needs: [build-mac, build-windows]
+    if: startsWith(github.ref, 'refs/tags/') || inputs.create_release == true
     runs-on: ubuntu-latest
     permissions:
       contents: write   # Required to create releases
