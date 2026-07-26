@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 DefaultGroupName={#MyAppName}
 OutputDir=.
 OutputBaseFilename={#MyAppName}_Setup
-SetupIconFile=
+SetupIconFile=SetupIcon.ico
 Compression=lzma2/max
 SolidCompression=no
 LZMANumBlockThreads=4
@@ -36,7 +36,7 @@ PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=
 UninstallDisplayName={#MyAppName} v{#MyAppVersion}
 CreateUninstallRegKey=yes
-UninstallDisplayIcon={app}\client\assets\Logo.svg
+UninstallDisplayIcon={app}\SetupIcon.ico
 LicenseFile=..\..\LICENSE
 WizardStyle=modern
 WizardResizable=no
@@ -59,6 +59,7 @@ Source: "{#MySourceRoot}\client\*"; DestDir: "{app}\client"; Flags: recursesubdi
 Source: "{#MySourceRoot}\host\*";   DestDir: "{app}\host";   Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "{#MySourceRoot}\data\*";   DestDir: "{app}\data";   Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "{#MySourceRoot}\Logo.svg"; DestDir: "{app}";         Flags: ignoreversion
+Source: "SetupIcon.ico";            DestDir: "{app}";         Flags: ignoreversion
 
 [Registry]
 Root: HKCU; Subkey: "Software\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist

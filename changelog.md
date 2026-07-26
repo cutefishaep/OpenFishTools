@@ -5,8 +5,10 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 ## [1.1.1] - 2026-07-26
 ### Added
 - **Rich Release Notes Auto-Formatter**: Added automatic Markdown-to-HTML parsing in the update module (`update.js`). Dynamically converts GitHub Release notes into styled version headers, color-coded section badges (`ADDED`, `FIXED`, `CHANGED`, `REMOVED`), highlighted bold titles, and inline code tags.
-- **SignPath Open Source Code Signing**: Integrated SignPath.io code signing pipeline into `.github/workflows/release.yml` using `signpath/github-action-submit-signing-request@v1` for automated Windows installer signing in GitHub Actions.
+- **SignPath Code Signing Integration**: Integrated official `SignPath` PowerShell module (`Submit-SigningRequest` with `-Force` overwrite) in `.github/workflows/release.yml` for automated Windows setup executable digital signing in GitHub Actions.
+- **Windows Installer & Uninstaller Branding**: Converted `Logo.svg` into high-resolution `SetupIcon.ico` (256x256) and configured `SetupIconFile` & `UninstallDisplayIcon` in Inno Setup (`OpenFishTools_Setup.iss`), ensuring the OpenFishTools logo icon is displayed in Windows Explorer, installer wizards, and Windows Control Panel (*Add or Remove Programs*).
 - **Debug Card Modal Triggers**: Added a dedicated "Modal Triggers" section to the Debug card in settings featuring one-click test triggers for `UPDATE` (with rich release notes), `CONFIRM`, `INFO`, `PROMPT`, `WARN`, and `ERROR` popups.
+- **Manual Workflow Release Toggle**: Added a `create_release` toggle input to `workflow_dispatch` in GitHub Actions, allowing manual test builds without creating public GitHub Releases.
 
 ### Changed
 - **Inno Setup False Positive Optimization**: Optimized `Installer/Windows/OpenFishTools_Setup.iss` compression settings from `lzma2/ultra64` to `lzma2/max` with `SolidCompression=no` and added complete `VersionInfo` metadata (company, description, product name, copyright) to prevent false positive detections on VirusTotal.
