@@ -124,11 +124,13 @@ jobs:
 
       - name: Sign Windows Installer with SignPath PowerShell Module
         shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
         run: |
           Install-Module -Name SignPath -Scope CurrentUser -Force
           Submit-SigningRequest `
             -InputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
-            -ApiToken "${{ secrets.SIGNPATH_API_TOKEN }}" `
+            -ApiToken "$env:SIGNPATH_API_TOKEN" `
             -OrganizationId "16ae4ab4-7257-4337-b89e-43385d8e39aa" `
             -ProjectSlug "OpenFishTools" `
             -SigningPolicySlug "Release_Policy" `
