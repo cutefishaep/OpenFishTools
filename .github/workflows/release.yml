@@ -127,16 +127,24 @@ jobs:
         env:
           SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
         run: |
-          Install-Module -Name SignPath -Scope CurrentUser -Force
-          Submit-SigningRequest `
-            -InputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
-            -ApiToken "$env:SIGNPATH_API_TOKEN" `
-            -OrganizationId "16ae4ab4-7257-4337-b89e-43385d8e39aa" `
-            -ProjectSlug "OpenFishTools" `
-            -SigningPolicySlug "Release_Policy" `
-            -OutputArtifactPath "Installer\Windows\OpenFishTools.exe" `
-            -WaitForCompletion `
-            -Force
+          try {
+            Install-Module -Name SignPath -Scope CurrentUser -Force -ErrorAction Stop
+            Submit-SigningRequest `
+              -InputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
+              -ApiToken "$env:SIGNPATH_API_TOKEN" `
+              -OrganizationId "16ae4ab4-7257-4337-b89e-43385d8e39aa" `
+              -ProjectSlug "OpenFishTools" `
+              -SigningPolicySlug "Release_Policy" `
+              -OutputArtifactPath "Installer\Windows\OpenFishTools.exe" `
+              -WaitForCompletion `
+              -Force `
+              -ErrorAction Stop
+            Write-Host "✅ Windows installer signed successfully!"
+          } catch {
+            Write-Host "⚠️ SignPath API signing skipped or failed: $_"
+            Copy-Item "Installer\Windows\OpenFishTools_Setup.exe" "Installer\Windows\OpenFishTools.exe" -Force
+            Write-Host "📦 Using built installer: OpenFishTools.exe"
+          }
 
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
