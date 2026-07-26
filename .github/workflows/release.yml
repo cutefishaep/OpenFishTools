@@ -122,26 +122,18 @@ jobs:
           fi
           echo "✅ Found: $EXE"
 
-      - name: Upload unsigned installer for SignPath
-        id: upload-unsigned
-        uses: actions/upload-artifact@v4
-        with:
-          name: unsigned-windows-installer
-          path: Installer/Windows/${{ env.APP_NAME }}_Setup.exe
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Sign Windows Installer with SignPath
-        uses: signpath/github-action-submit-signing-request@v1
-        with:
-          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
-          organization-id: '16ae4ab4-7257-4337-b89e-43385d8e39aa'
-          project-slug: 'OpenFishTools'
-          signing-policy-slug: 'Release_Policy'
-          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-for-completion: 'true'
-          output-artifact-directory: 'Installer/Windows'
+      - name: Sign Windows Installer with SignPath PowerShell Module
+        shell: pwsh
+        run: |
+          Install-Module -Name SignPath.Client -Scope CurrentUser -Force
+          Submit-SigningRequest `
+            -InputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
+            -ApiToken "${{ secrets.SIGNPATH_API_TOKEN }}" `
+            -OrganizationId "16ae4ab4-7257-4337-b89e-43385d8e39aa" `
+            -ProjectSlug "OpenFishTools" `
+            -SigningPolicySlug "Release_Policy" `
+            -OutputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
+            -WaitForCompletion
 
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
