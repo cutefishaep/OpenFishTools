@@ -4,7 +4,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 
 ## [1.1.2] - 2026-07-26
 ### Fixed
-- **SWING Beat Expression Error**: Fixed `TypeError: undefined is not an object (Line 12)` in `_SWING()` by implementing smart marker detection (`thisComp.layer(index + 1).marker` with fallback to `thisComp.marker`) and adding non-null check guards.
+- **SWING Tool Handler Registration**: Fixed `TypeError: undefined is not an object (Line 12)` by registering `tools.SWING = function () { return _SWING(); };` in `host/modules/animation.jsx`.
 
 ## [1.1.1] - 2026-07-26
 ### Added

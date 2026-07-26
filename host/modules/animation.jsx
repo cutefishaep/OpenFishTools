@@ -1596,6 +1596,7 @@ tools.X_BEAT = function () { return _X_BEAT(); };
 tools.X_FLIP = function () { return _X_FLIP(); };
 tools.SCALE_BEAT = function () { return _SCALE_BEAT(); };
 tools.SCALE_OVERLAP = function () { return _SCALE_OVERLAP(); };
+tools.SWING = function () { return _SWING(); };
 tools.PANNING = function () { return _createPanningEffect("MIX_ALL"); };
 tools.PANNING_POS = function () { return _createPanningEffect("POS"); };
 tools.PANNING_ROT = function () { return _createPanningEffect("ROT"); };
