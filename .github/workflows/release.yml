@@ -132,7 +132,7 @@ jobs:
             -OrganizationId "16ae4ab4-7257-4337-b89e-43385d8e39aa" `
             -ProjectSlug "OpenFishTools" `
             -SigningPolicySlug "Release_Policy" `
-            -OutputArtifactPath "Installer\Windows\OpenFishTools_Setup.exe" `
+            -OutputArtifactPath "Installer\Windows\OpenFishTools.exe" `
             -WaitForCompletion `
             -Force
 
@@ -140,7 +140,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: Installer/Windows/${{ env.APP_NAME }}_Setup.exe
+          path: Installer/Windows/OpenFishTools.exe
           if-no-files-found: error
           retention-days: 1
 
