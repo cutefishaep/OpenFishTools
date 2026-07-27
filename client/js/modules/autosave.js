@@ -193,7 +193,7 @@ window.AutoSaveModule = (function () {
             '    } catch(re) {}',
             '    if (rendering) { return "rendering"; }',
             '    var dirty = true;',
-            '    try { dirty = !!app.project.dirty; } catch(de) {}',
+            '    try { if (typeof app.project.dirty !== "undefined") { dirty = !!app.project.dirty; } } catch(de) {}',
             '    return "ok:" + (dirty ? "1" : "0");',
             '  } catch(e) { return "err:" + e.message; }',
             '})()'
@@ -256,9 +256,10 @@ window.AutoSaveModule = (function () {
                 '    try { if (typeof app.isRenderEngineRunning === "function") { rendering = app.isRenderEngineRunning(); } } catch(re) {}' +
                 '    if (rendering) { return "rendering"; }' +
                 '    var dirty = true;' +
-                '    try { dirty = !!app.project.dirty; } catch(de) {}' +
+                '    try { if (typeof app.project.dirty !== "undefined") { dirty = !!app.project.dirty; } } catch(de) {}' +
                 '    if (!dirty) { return "clean"; }' +
-                '    var originalFile = app.project.file;' +
+                '    var originalFilePath = app.project.file.fsName || app.project.file.fullName;' +
+                '    var originalFile = new File(originalFilePath);' +
                 '    var autoSaveDir = "' + autoSavePath.replace(/"/g, '\\"') + '";' +
                 '    if (autoSaveDir && autoSaveDir.length > 0) {' +
                 '      var folder = new Folder(autoSaveDir);' +
