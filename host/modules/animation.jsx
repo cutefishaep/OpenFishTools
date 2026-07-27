@@ -1,8 +1,8 @@
 function _applyTransition(propName, directionType) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Transition","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length == 0) return "Please select at least one layer.";
+    if (selectedLayers.length == 0) return '{"error":true,"tool":"Transition","type":"warn","message":"Please select at least one layer to apply a transition."}';
     app.beginUndoGroup("Apply Transition: " + directionType);
     var dur = 15 * comp.frameDuration;
     for (var i = 0; i < selectedLayers.length; i++) {
@@ -78,7 +78,8 @@ function _applyTransition(propName, directionType) {
 }
 function _TWIX() {
     var comp = app.project.activeItem;
-    if (!comp || comp.selectedLayers.length === 0) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Twixtor","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Twixtor","type":"warn","message":"Please select a layer to apply Twixtor velocity effect."}';
     var layer = comp.selectedLayers[0];
     app.beginUndoGroup("Apply Twixtor Velocity");
     try {
@@ -122,7 +123,8 @@ function _TWIX() {
 }
 function _TMRE() {
     var comp = app.project.activeItem;
-    if (!comp || comp.selectedLayers.length === 0) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Time Remap","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Time Remap","type":"warn","message":"Please select a layer to apply Time Remap velocity effect."}';
     var layer = comp.selectedLayers[0];
     app.beginUndoGroup("Time Remap Velocity");
     try {
@@ -159,7 +161,7 @@ function _TMRE() {
 }
 function _GHST() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Ghost","type":"warn","message":"Please open a composition first."}';
     var layer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
     app.beginUndoGroup("Ghost Effect");
     try {
@@ -384,7 +386,7 @@ function _SHAKE() {
 }
 function _WARP() {
     var comp = app.project.activeItem;
-    if (!comp) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Wave Warp","type":"warn","message":"Please open a composition first."}';
     app.beginUndoGroup("Warp Effect");
     try {
         var curTime = comp.time;
@@ -429,7 +431,7 @@ function _WARP() {
 }
 function _MIDWAVE() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Mid-Wave","type":"warn","message":"Please open a composition first."}';
     app.beginUndoGroup("Mid-Wave Effect");
     try {
         var curTime = comp.time;
@@ -495,7 +497,7 @@ function _MIDWAVE() {
 }
 function _HUESPIN() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Hue Spin","type":"warn","message":"Please open a composition first."}';
     app.beginUndoGroup("Hue Spin Effect");
     try {
         var curTime = comp.time;
@@ -537,8 +539,8 @@ function _HUESPIN() {
 }
 function _OSCILLATE() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Oscillate","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Oscillate","type":"warn","message":"Please select a layer to apply Oscillate. The effect reads beat markers from the layer above it."}';
     app.beginUndoGroup("Oscillate");
     try {
         var targetLayer = comp.selectedLayers[0];
@@ -610,8 +612,8 @@ function _OSCILLATE() {
 }
 function _Y_BEAT() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Y Beat","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Y Beat","type":"warn","message":"Please select a layer. Y Beat reads beat markers from the layer or composition. Use Beat Maker first to add markers."}';
     app.beginUndoGroup("Y Beat");
     try {
         var targetLayer = comp.selectedLayers[0];
@@ -674,8 +676,8 @@ function _Y_BEAT() {
 }
 function _X_BEAT() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"X Beat","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"X Beat","type":"warn","message":"Please select a layer. X Beat reads beat markers from the layer or composition. Use Beat Maker first to add markers."}';
     app.beginUndoGroup("X Beat");
     try {
         var targetLayer = comp.selectedLayers[0];
@@ -738,8 +740,8 @@ function _X_BEAT() {
 }
 function _X_FLIP() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"X Flip","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"X Flip","type":"warn","message":"Please select a layer. X Flip reads beat markers from the layer or composition. Use Beat Maker first to add markers."}';
     app.beginUndoGroup("X Flip");
     try {
         var targetLayer = comp.selectedLayers[0];
@@ -845,8 +847,8 @@ function _X_FLIP() {
 }
 function _Y_FLIP() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Y Flip","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Y Flip","type":"warn","message":"Please select a layer. Y Flip reads beat markers from the layer or composition. Use Beat Maker first to add markers."}';
     app.beginUndoGroup("Y Flip");
     try {
         var targetLayer = comp.selectedLayers[0];
@@ -949,8 +951,8 @@ function _Y_FLIP() {
 }
 function _SCALE_BEAT() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Scale Beat","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Scale Beat","type":"warn","message":"Please select a layer. Scale Beat reads beat markers from the layer or composition. Use Beat Maker first to add markers."}';
     app.beginUndoGroup("Scale Beat");
     try {
         var targetLayer = comp.selectedLayers[0];
@@ -1103,8 +1105,8 @@ function _SCALE_OVERLAP() {
 }
 function _SWING() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Swing","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Swing","type":"warn","message":"Please select a layer. Swing reads beat markers from the layer or composition. Use Beat Maker first to add markers."}';
     app.beginUndoGroup("Swing");
     try {
         var targetLayer = comp.selectedLayers[0];
@@ -1177,8 +1179,8 @@ function _SWING() {
 }
 function _createPanningEffect(type) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "Please select a composition.";
-    if (comp.selectedLayers.length === 0) return "Please select a layer.";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Panning","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Panning","type":"warn","message":"Please select a layer to apply the Panning effect."}';
 
     var title = "Panning Effect";
     var nullName = "PANNING";
@@ -1289,7 +1291,7 @@ function _createPanningEffect(type) {
 }
 function _FISHEYE() {
     var comp = app.project.activeItem;
-    if (!comp) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Fish Eye","type":"warn","message":"Please open a composition first."}';
     app.beginUndoGroup("Fish Eye Ripple");
     try {
         var curTime = comp.time;
@@ -1376,6 +1378,8 @@ function _createStyleLayer(type, name) {
 function _CF_COLORIZE() {
     app.beginUndoGroup("CF Colorize");
     try {
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Colorize","type":"warn","message":"Please open a composition first."}';
         var layer = _createStyleLayer("ADJ", "CF Colorize");
         var effects = _getEffectGroup(layer);
         var tint = effects.addProperty("ADBE Tint");
@@ -1390,6 +1394,8 @@ function _CF_COLORIZE() {
 function _CF_SCANLINE() {
     app.beginUndoGroup("CF Scanline");
     try {
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Scanline","type":"warn","message":"Please open a composition first."}';
         var layer = _createStyleLayer("ADJ", "CF Scanline");
         var effects = _getEffectGroup(layer);
         var tv = effects.addProperty("S_TVDamage");
@@ -1410,6 +1416,8 @@ function _CF_SCANLINE() {
 function _CF_MONO() {
     app.beginUndoGroup("CF Mono");
     try {
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Mono","type":"warn","message":"Please open a composition first."}';
         var layer = _createStyleLayer("ADJ", "CF Mono");
         var effects = _getEffectGroup(layer);
         try {
@@ -1424,6 +1432,8 @@ function _CF_MONO() {
 function _CF_STARBURST() {
     app.beginUndoGroup("CF Starburst");
     try {
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Starburst","type":"warn","message":"Please open a composition first."}';
         var layer = _createStyleLayer("SOLID", "CF Starburst");
         var effects = _getEffectGroup(layer);
         var starburst = effects.addProperty("CC Star Burst");
@@ -1445,9 +1455,10 @@ function _CF_STARBURST() {
 function _CF_GRID() {
     app.beginUndoGroup("CF Grid");
     try {
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Grid","type":"warn","message":"Please open a composition first."}';
         var layer = _createStyleLayer("SOLID", "CF Grid");
         var effects = _getEffectGroup(layer);
-        var comp = app.project.activeItem;
         var grid = effects.addProperty("ADBE Grid");
         grid.property("ADBE Grid-0001").setValue([comp.width / 2, comp.height / 2]); 
         grid.property("ADBE Grid-0002").setValue(1);  
@@ -1463,6 +1474,8 @@ function _CF_GRID() {
 function _CF_RADIO() {
     app.beginUndoGroup("CF Radio");
     try {
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Radio","type":"warn","message":"Please open a composition first."}';
         var layer = _createStyleLayer("SOLID", "CF Radio");
         layer.blendingMode = BlendingMode.SCREEN;
         var effects = _getEffectGroup(layer);

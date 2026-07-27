@@ -75,8 +75,7 @@ var ModalModule = (function () {
 
         var btnText = (options && options.btnText) || 'OK';
         var btn = createBtn(btnText, 'primary-btn', close);
-        btn.style.background = getThemeColor(type);
-        btn.style.color = (type === 'error' || type === 'warning') ? '#fff' : 'var(--bg)';
+        if (options && options.dangerBtn) btn.classList.add('danger');
         footerEl.appendChild(btn);
 
         open();
@@ -151,7 +150,6 @@ var ModalModule = (function () {
 
     function getThemeColor(type) {
         if (type === 'error') return 'var(--danger)';
-        if (type === 'warning') return '#ffbb33'; 
         return 'var(--accent)';
     }
 
@@ -179,7 +177,9 @@ var ModalModule = (function () {
         alert: alertFn,
         confirm: confirm,
         prompt: prompt,
-        error: function (msg, title) { alertFn(msg, title || 'System Error', 'error'); },
+        error: function (msg, title) {
+            alertFn(msg, title || 'Error', 'error', { btnText: 'OK', dangerBtn: true });
+        },
         warn: function (msg, title) { alertFn(msg, title || 'Warning', 'warning'); },
         info: function (msg, title) { alertFn(msg, title || 'Information', 'info'); }
     };

@@ -2,7 +2,34 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.1.3] - 2026-07-27
+### Added
+- **Comprehensive Button Validation & Guidance**: All tool buttons now show a clear warning modal when required conditions are not met — users will no longer experience silent failures. Implemented across all host ExtendScript modules:
+  - **Layer Tools** (`FRZ`, `FIT`, `DSH`, `MIR`, `ADJ`, `SHA`, `SOL`, `NUL`, `CAM`, `PRECOMP`, `PRECOMP_AUTOCROP`, `CENTERINCOMP`, `ALIGN_*`, `setAnchorPoint`, `CUT_*`): Return a structured JSON warning when no composition is open or no layer is selected.
+  - **Effect Tools** (`HUE`, `FILL`, `TINT`, `BLUR`, `LUM`, `CURV`): Return a structured JSON warning when no composition is open or no layer is selected.
+  - **OVERLAP**: Added specific keyframe check — now returns a warning if the selected layer has fewer than 2 keyframes on Position, Scale, or Rotation, explaining exactly what is needed.
+  - **Animation/Beat Tools** (`TWIX`, `TMRE`, `GHST`, `WARP`, `MIDWAVE`, `HUESPIN`, `FISHEYE`, `OSCILLATE`, `Y_BEAT`, `X_BEAT`, `Y_FLIP`, `X_FLIP`, `SCALE_BEAT`, `SWING`, all Panning tools, all Transition tools, all Cutefish Style tools): Return structured JSON warnings with contextual guidance (e.g. beat marker tools include a tip to use Beat Maker first).
+  - **Beat Tap**: Now shows a warning modal if clicked when no composition is open.
+  - **Auto Beat Detect**: Now validates for active composition, selected layer, and audio presence separately — each with a specific error message.
+  - **Clear Beats**: Shows a warning if no composition is open.
+  - **Graph Editor (Read/Apply Ease, Read Velocity, Apply Velocity)**: Now show contextual warning modals when no keyframe is selected or operation fails.
+- **Enhanced `_runTool()` response handler** (`tools.js`): Improved to additionally catch plain `ERROR:` string prefixes from ExtendScript (legacy format) and display them as error modals.
+
+### Changed
+- **Modal Theme Consistency**: Overhauled `modal.js` and `style.css` to remove all hardcoded colors from modal components. All modal types now fully follow the active theme using CSS custom properties:
+  - **Warning** modal: border, title, and button now use `var(--accent)` instead of hardcoded `#ffbb33` (yellow).
+  - **Error** modal: button now uses `var(--danger)` via a `.danger` CSS class instead of inline styles.
+  - **Primary button** text color changed from hardcoded `#000` to `var(--bg)` — adapts correctly to light/dark themes.
+  - **Secondary (Cancel) button** redesigned from flat `--surface2` background to transparent with `--border` outline — visually distinct and consistent across all themes.
+  - Button typography updated: `text-transform: uppercase`, `font-weight: 700`, `letter-spacing: 0.5px` — consistent with the rest of the UI.
+
+### Fixed
+- **PRECOMP_AUTOCROP Anchor Centering**: Updated `_PRECOMP_AUTOCROP` in `host/modules/layers.jsx` so that the newly created cropped precomp layer's anchor point is placed directly in the center `[width / 2, height / 2]` instead of top-left `[0, 0]`, with position offset dynamically maintained so visual placement remains unchanged.
+- **Center in Comp 3D Layer Offset**: Fixed `_CENTERINCOMP` in `host/modules/layers.jsx` by utilizing AE's native `Center In View` command (`app.findMenuCommandId("Center In View")`) with complete script fallback handling 3D layers, separated position dimensions, and parent transformation space (`fromComp`).
+
 ## [1.1.2] - 2026-07-26
+
+
 ### Fixed
 - **SWING Tool Handler Registration**: Fixed `TypeError: undefined is not an object (Line 12)` by registering `tools.SWING = function () { return _SWING(); };` in `host/modules/animation.jsx`.
 

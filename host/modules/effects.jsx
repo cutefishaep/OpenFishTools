@@ -1,8 +1,8 @@
 function _HUE() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Hue/Saturation","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length == 0) return false;
+    if (selectedLayers.length == 0) return '{"error":true,"tool":"Hue/Saturation","type":"warn","message":"Please select at least one layer to add Hue/Saturation."}';
     app.beginUndoGroup("Add Hue/Saturation");
     for (var i = 0; i < selectedLayers.length; i++) {
         selectedLayers[i].Effects.addProperty("ADBE HUE SATURATION");
@@ -13,9 +13,9 @@ function _HUE() {
 
 function _FILL() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Fill","type":"warn","message":"Please open a composition first."}';
     var sel = comp.selectedLayers;
-    if (sel.length == 0) return false;
+    if (sel.length == 0) return '{"error":true,"tool":"Fill","type":"warn","message":"Please select at least one layer to add a Fill effect."}';
     app.beginUndoGroup("Add Fill Effect");
     for (var i = 0; i < sel.length; i++) sel[i].Effects.addProperty("ADBE Fill");
     app.endUndoGroup();
@@ -24,9 +24,9 @@ function _FILL() {
 
 function _TINT() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Tint","type":"warn","message":"Please open a composition first."}';
     var sel = comp.selectedLayers;
-    if (sel.length == 0) return false;
+    if (sel.length == 0) return '{"error":true,"tool":"Tint","type":"warn","message":"Please select at least one layer to add a Tint effect."}';
     app.beginUndoGroup("Add Tint Effect");
     for (var i = 0; i < sel.length; i++) sel[i].Effects.addProperty("ADBE Tint");
     app.endUndoGroup();
@@ -35,9 +35,9 @@ function _TINT() {
 
 function _BLUR(alter) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Blur","type":"warn","message":"Please open a composition first."}';
     var sel = comp.selectedLayers;
-    if (sel.length == 0) return false;
+    if (sel.length == 0) return '{"error":true,"tool":"Blur","type":"warn","message":"Please select at least one layer to add a Blur effect."}';
     app.beginUndoGroup("Add Blur");
     for (var i = 0; i < sel.length; i++) {
         sel[i].Effects.addProperty(alter ? "ADBE Camera Lens Blur" : "ADBE Gaussian Blur 2");
@@ -48,9 +48,9 @@ function _BLUR(alter) {
 
 function _LUM() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Lumetri","type":"warn","message":"Please open a composition first."}';
     var sel = comp.selectedLayers;
-    if (sel.length == 0) return false;
+    if (sel.length == 0) return '{"error":true,"tool":"Lumetri","type":"warn","message":"Please select at least one layer to add Lumetri Color."}';
     app.beginUndoGroup("Add Lumetri Color");
     for (var i = 0; i < sel.length; i++) sel[i].Effects.addProperty("ADBE Lumetri");
     app.endUndoGroup();
@@ -59,9 +59,9 @@ function _LUM() {
 
 function _CURV() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Curves","type":"warn","message":"Please open a composition first."}';
     var sel = comp.selectedLayers;
-    if (sel.length == 0) return false;
+    if (sel.length == 0) return '{"error":true,"tool":"Curves","type":"warn","message":"Please select at least one layer to add a Curves effect."}';
     app.beginUndoGroup("Add Curves");
     for (var i = 0; i < sel.length; i++) sel[i].Effects.addProperty("ADBE CurvesCustom");
     app.endUndoGroup();

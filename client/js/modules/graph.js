@@ -378,9 +378,13 @@ var GraphModule = (function () {
         var cs = new CSInterface();
         cs.evalScript('FishTools.readEase()', function (res) {
             try {
-                if (!res || res === 'false') return;
+                if (!res || res === 'false') {
+                    if (window.ModalModule) window.ModalModule.warn('Please select a keyframe with an easing curve to read from.', 'Graph Editor');
+                    return;
+                }
                 var data = JSON.parse(res);
                 if (data.error) {
+                    if (window.ModalModule) window.ModalModule.warn(data.message || 'Please select a keyframe to read the ease from.', 'Graph Editor');
                     return;
                 }
                 cp1 = { x: data.x1, y: data.y1 };
@@ -399,7 +403,15 @@ var GraphModule = (function () {
         };
 
         var cs = new CSInterface();
-        cs.evalScript("FishTools.applyEase(" + JSON.stringify(args) + ")");
+        cs.evalScript("FishTools.applyEase(" + JSON.stringify(args) + ")", function (res) {
+            if (!res) return;
+            try {
+                var data = JSON.parse(res);
+                if (data && data.error && window.ModalModule) {
+                    window.ModalModule.warn(data.message || 'Please select one or more keyframes to apply easing.', 'Graph Editor');
+                }
+            } catch (e) { }
+        });
     }
 
     function copyEaseValue() {
@@ -670,8 +682,15 @@ var GraphModule = (function () {
         var cs = new CSInterface();
         cs.evalScript('FishTools.readVelocity()', function (res) {
             try {
+                if (!res || res === 'false' || res === 'null') {
+                    if (window.ModalModule) window.ModalModule.warn('Please select a keyframe to read the velocity from.', 'Velocity Editor');
+                    return;
+                }
                 var data = JSON.parse(res);
-                if (data.error) return;
+                if (data.error) {
+                    if (window.ModalModule) window.ModalModule.warn(data.message || 'Please select a keyframe to read the velocity from.', 'Velocity Editor');
+                    return;
+                }
                 document.getElementById('input-vel-in-speed').value = Math.round(data.inSpeed);
                 document.getElementById('input-vel-in-infl').value = Math.round(data.inInflu);
                 document.getElementById('input-vel-out-speed').value = Math.round(data.outSpeed);

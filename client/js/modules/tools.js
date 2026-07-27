@@ -43,6 +43,11 @@
                     return;
                 }
             } catch (e) { }
+            // Handle legacy plain-string errors (e.g. "Please select a composition.")
+            if (typeof res === 'string' && res !== 'true' && res !== 'false' && res.indexOf('ERROR:') === 0) {
+                ModalModule.error(res.replace('ERROR:', '').trim(), toolName);
+                return;
+            }
             if (res === "false" || res === false) {
                 console.warn("FishTools: Tool '" + toolName + "' returned false.");
             }

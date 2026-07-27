@@ -123,13 +123,19 @@ BeatMakerModule.prototype.tap = function (e) {
     var self = this;
     var tapBtn = document.getElementById(this.tapBtnId);
 
-    tapBtn.classList.add('pulse');
-    setTimeout(function () { 
-        tapBtn.classList.remove('pulse');
-    }, 300);
-
     if (self.cs) {
-        self.cs.evalScript('executeTool("BEATMARK")', function () { });
+        self.cs.evalScript('executeTool("BEATMARK")', function (res) {
+            if (res === 'NO_COMP') {
+                if (window.ModalModule) {
+                    window.ModalModule.warn('Please open a composition first before tapping beats.', 'Beat Maker');
+                }
+                return;
+            }
+            tapBtn.classList.add('pulse');
+            setTimeout(function () {
+                tapBtn.classList.remove('pulse');
+            }, 300);
+        });
     }
 };
 
@@ -137,11 +143,17 @@ BeatMakerModule.prototype.autoDetect = function (threshold, channel) {
     var self = this;
     if (!self.cs) return;
 
-    self.cs.evalScript('app.project.activeItem && app.project.activeItem.selectedLayers.length > 0', function (res) {
-        if (res === "false" || res === "0") {
-            if (window.ModalModule) {
-                window.ModalModule.error("Please select an audio layer first!", "Auto Beat");
-            }
+    self.cs.evalScript('(function(){ var c = app.project.activeItem; if (!c || !(c instanceof CompItem)) return "NO_COMP"; if (c.selectedLayers.length === 0) return "NO_LAYER"; if (!c.selectedLayers[0].hasAudio) return "NO_AUDIO"; return "OK"; })()', function (res) {
+        if (res === 'NO_COMP') {
+            if (window.ModalModule) window.ModalModule.warn('Please open a composition first.', 'Auto Beat Detect');
+            return;
+        }
+        if (res === 'NO_LAYER') {
+            if (window.ModalModule) window.ModalModule.warn('Please select an audio layer in the composition.', 'Auto Beat Detect');
+            return;
+        }
+        if (res === 'NO_AUDIO') {
+            if (window.ModalModule) window.ModalModule.warn('The selected layer has no audio. Please select an audio layer.', 'Auto Beat Detect');
             return;
         }
 
@@ -156,6 +168,12 @@ BeatMakerModule.prototype.autoDetect = function (threshold, channel) {
 BeatMakerModule.prototype.clearAll = function () {
     var self = this;
     if (self.cs) {
-        self.cs.evalScript('executeTool("CLEARBEATS")', function () { });
+        self.cs.evalScript('executeTool("CLEARBEATS")', function (res) {
+            if (res === 'NO_COMP') {
+                if (window.ModalModule) {
+                    window.ModalModule.warn('Please open a composition first to clear beat markers.', 'Beat Maker');
+                }
+            }
+        });
     }
 };

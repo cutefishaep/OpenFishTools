@@ -1,7 +1,8 @@
 function _FRZ() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Freeze Frame","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
+    if (selectedLayers.length === 0) return '{"error":true,"tool":"Freeze Frame","type":"warn","message":"Please select at least one layer to freeze."}';
     app.beginUndoGroup("Freeze Frame");
     var currentTime = comp.time;
     for (var i = 0; i < selectedLayers.length; i++) {
@@ -19,8 +20,8 @@ function _FRZ() {
 function _FIT(alter) {
     alter = alter === undefined ? false : alter;
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
-    if (comp.selectedLayers.length == 0) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Fit to Comp","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length == 0) return '{"error":true,"tool":"Fit to Comp","type":"warn","message":"Please select at least one layer to fit."}';
     app.beginUndoGroup("Fit to Comp");
     alter ? app.executeCommand(2733) : app.executeCommand(2732);
     app.endUndoGroup();
@@ -29,8 +30,8 @@ function _FIT(alter) {
 
 function _DSH() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
-    if (comp.selectedLayers.length == 0) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Drop Shadow","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length == 0) return '{"error":true,"tool":"Drop Shadow","type":"warn","message":"Please select at least one layer to add a drop shadow."}';
     app.beginUndoGroup("Add Drop Shadow");
     var selectedLayers = comp.selectedLayers;
     for (var i = 0; i < selectedLayers.length; i++) {
@@ -45,8 +46,8 @@ function _DSH() {
 function _MIR(alter) {
     alter = alter === undefined ? false : alter;
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
-    if (comp.selectedLayers.length == 0) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Mirror","type":"warn","message":"Please open a composition first."}';
+    if (comp.selectedLayers.length == 0) return '{"error":true,"tool":"Mirror","type":"warn","message":"Please select at least one layer to mirror."}';
     app.beginUndoGroup("Mirror");
     alter ? app.executeCommand(3767) : app.executeCommand(3766);
     app.endUndoGroup();
@@ -55,7 +56,8 @@ function _MIR(alter) {
 
 function _ADJ() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Adjustment Layer","type":"warn","message":"Please open a composition first."}';
+
     var hasSelection = comp.selectedLayers.length > 0;
     var targetLayer = hasSelection ? comp.selectedLayers[0] : null;
     app.beginUndoGroup("Create Adjustment Layer");
@@ -73,7 +75,8 @@ function _ADJ() {
 
 function _SHA() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Shape Layer","type":"warn","message":"Please open a composition first."}';
+
     var hasSelection = comp.selectedLayers.length > 0;
     var targetLayer = hasSelection ? comp.selectedLayers[0] : null;
     app.beginUndoGroup("Create Shape Layer");
@@ -91,7 +94,8 @@ function _SHA() {
 
 function _SOL(alter) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Solid Layer","type":"warn","message":"Please open a composition first."}';
+
     var hasSelection = comp.selectedLayers.length > 0;
     var targetLayer = hasSelection ? comp.selectedLayers[0] : null;
     app.beginUndoGroup("Create Solid Layer");
@@ -111,7 +115,8 @@ function _SOL(alter) {
 
 function _NUL(alter) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Null Object","type":"warn","message":"Please open a composition first."}';
+
     var selectedLayers = [];
     for (var i = 0; i < comp.selectedLayers.length; i++) {
         selectedLayers.push(comp.selectedLayers[i]);
@@ -146,7 +151,8 @@ function _NUL(alter) {
 
 function _CAM() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Camera","type":"warn","message":"Please open a composition first."}';
+
     var hasSelection = comp.selectedLayers.length > 0;
     var targetLayer = hasSelection ? comp.selectedLayers[0] : null;
     app.beginUndoGroup("Create Camera");
@@ -165,9 +171,9 @@ function _CAM() {
 
 function _PRECOMP() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Precomp","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length === 0) return false;
+    if (selectedLayers.length === 0) return '{"error":true,"tool":"Precomp","type":"warn","message":"Please select one or more layers to precompose."}';
     app.beginUndoGroup("Pre-compose");
     try {
         var earliestStartTime = Number.MAX_VALUE;
@@ -206,9 +212,10 @@ function _PRECOMP() {
 
 function _PRECOMP_AUTOCROP() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Precomp Auto Crop","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length === 0) return false;
+    if (selectedLayers.length === 0) return '{"error":true,"tool":"Precomp Auto Crop","type":"warn","message":"Please select one or more layers to precompose."}';
+
 
     app.beginUndoGroup("Pre-compose Auto Crop");
     try {
@@ -315,8 +322,17 @@ function _PRECOMP_AUTOCROP() {
             if (cl.source instanceof CompItem && cl.source.id === preComp.id) {
                 cl.startTime = earliestStartTime;
                 var xf = cl.property("ADBE Transform Group");
-                xf.property("ADBE Anchor Point").setValue([0, 0]);
-                xf.property("ADBE Position").setValue([minX, minY]);
+                var halfW = newW / 2;
+                var halfH = newH / 2;
+                xf.property("ADBE Anchor Point").setValue([halfW, halfH]);
+                var posProp = xf.property("ADBE Position");
+                if (cl.threeDLayer) {
+                    var curZ = 0;
+                    try { curZ = posProp.value[2]; } catch(e) {}
+                    posProp.setValue([minX + halfW, minY + halfH, curZ]);
+                } else {
+                    posProp.setValue([minX + halfW, minY + halfH]);
+                }
                 break;
             }
         }
@@ -396,28 +412,59 @@ function _DUP(newName) {
 
 function _CENTERINCOMP() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Center In Comp","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length === 0) return false;
+    if (selectedLayers.length === 0) return '{"error":true,"tool":"Center In Comp","type":"warn","message":"Please select at least one layer to center."}';
     app.beginUndoGroup("Center In Composition");
     try {
-        var compWidth = comp.width;
-        var compHeight = comp.height;
-        var currentTime = comp.time;
-        for (var i = 0; i < selectedLayers.length; i++) {
-            var layer = selectedLayers[i];
-            if (layer instanceof CameraLayer || layer instanceof LightLayer || layer.nullLayer) continue;
-            var position = layer.property("ADBE Transform Group").property("ADBE Position");
-            if (position.canVaryOverTime) {
-                var newPosition = [compWidth / 2, compHeight / 2];
+        var cmdId = app.findMenuCommandId("Center In View");
+        if (cmdId && cmdId !== 0) {
+            app.executeCommand(cmdId);
+        } else {
+            var compWidth = comp.width;
+            var compHeight = comp.height;
+            var currentTime = comp.time;
+            for (var i = 0; i < selectedLayers.length; i++) {
+                var layer = selectedLayers[i];
+                if (layer instanceof CameraLayer || layer instanceof LightLayer || layer.nullLayer) continue;
+                
+                var transform = layer.property("ADBE Transform Group");
+                var posProp = transform.property("ADBE Position");
+                
+                var targetWorld = [compWidth / 2, compHeight / 2];
                 if (layer.threeDLayer) {
-                    var currentPos = position.valueAtTime(currentTime, true);
-                    newPosition.push(currentPos[2]);
+                    var curZ = 0;
+                    try {
+                        if (posProp && posProp.isSeparated) {
+                            curZ = transform.property("ADBE Position Z").valueAtTime(currentTime, true);
+                        } else if (posProp) {
+                            curZ = posProp.valueAtTime(currentTime, true)[2];
+                        }
+                    } catch(e) {}
+                    targetWorld.push(curZ);
                 }
-                if (position.numKeys > 0) {
-                    position.setValueAtTime(currentTime, newPosition);
-                } else {
-                    position.setValue(newPosition);
+                
+                var finalPos = targetWorld;
+                if (layer.parent) {
+                    try {
+                        finalPos = layer.parent.fromComp(targetWorld);
+                    } catch(e) {}
+                }
+                
+                if (posProp && posProp.isSeparated) {
+                    var xProp = transform.property("ADBE Position X");
+                    var yProp = transform.property("ADBE Position Y");
+                    if (xProp) {
+                        if (xProp.numKeys > 0) xProp.setValueAtTime(currentTime, finalPos[0]);
+                        else xProp.setValue(finalPos[0]);
+                    }
+                    if (yProp) {
+                        if (yProp.numKeys > 0) yProp.setValueAtTime(currentTime, finalPos[1]);
+                        else yProp.setValue(finalPos[1]);
+                    }
+                } else if (posProp && posProp.canVaryOverTime) {
+                    if (posProp.numKeys > 0) posProp.setValueAtTime(currentTime, finalPos);
+                    else posProp.setValue(finalPos);
                 }
             }
         }
@@ -431,9 +478,10 @@ function _CENTERINCOMP() {
 
 function _ALIGN(type) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Align","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length === 0) return false;
+    if (selectedLayers.length === 0) return '{"error":true,"tool":"Align","type":"warn","message":"Please select at least one layer to align."}';
+
 
     app.beginUndoGroup("Align " + type);
     try {
@@ -494,9 +542,9 @@ function _ALIGN(type) {
 
 function _setAnchorPoint(pos) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Anchor Point","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length === 0) return false;
+    if (selectedLayers.length === 0) return '{"error":true,"tool":"Anchor Point","type":"warn","message":"Please select at least one layer to set the anchor point."}';
     app.beginUndoGroup("Set Anchor Point");
     try {
         for (var i = 0; i < selectedLayers.length; i++) {
@@ -620,9 +668,10 @@ tools.ALIGN_BOTTOM = function () { return _ALIGN('BOTTOM') };
 
 function _CUT(type) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return false;
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Cut","type":"warn","message":"Please open a composition first."}';
     var selectedLayers = comp.selectedLayers;
-    if (selectedLayers.length === 0) return false;
+    if (selectedLayers.length === 0) return '{"error":true,"tool":"Cut","type":"warn","message":"Please select at least one layer to cut."}';
+
 
     app.beginUndoGroup("Cut " + type);
     try {
