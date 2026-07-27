@@ -6,6 +6,7 @@ All notable changes to the **Fish Tools** Adobe After Effects extension will be 
 ### Fixed
 - **X FLIP & Y FLIP Expression Compatibility**: Fixed an expression error on Adobe After Effects CC 2018 (and Legacy ExtendScript expression engine) where `thisComp.frameRate` caused `property or method named 'frameRate' in Class 'Comp' is missing or does not exist`. Replaced `1 / thisComp.frameRate` with `thisComp.frameDuration` in both `_X_FLIP` and `_Y_FLIP` expression generators in `host/modules/animation.jsx`.
 - **Auto Save Compatibility on CC 2018**: Fixed an issue where Auto Save failed to run on Adobe After Effects CC 2018. The `app.project.dirty` property does not exist (`undefined`) in CC 2018 ExtendScript, which evaluated `!!app.project.dirty` to `false` and caused dirty checks to falsely report "no changes". Added fallback handling for `undefined` dirty properties in `client/js/modules/autosave.js` and ensured project file paths are cloned safely before saving backup copies.
+- **AE to AM Converter Progress Window**: Fixed an issue on Windows AE CC 2018 where the converter progress window got stuck on screen at "Done" (100%) and could not be closed. In Windows ScriptUI, calling `.close()` on a modeless palette window without calling `.hide()` first leaves the OS window rendered on screen while blocking ScriptUI message destruction. Updated `host/modules/aetoam.jsx` to call `progWin.hide()` prior to `.close()` and added an `onClose` window handler.
 
 ## [1.1.3] - 2026-07-27
 ### Added

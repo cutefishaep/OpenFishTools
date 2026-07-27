@@ -22,6 +22,15 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
     progBar.preferredSize.width = 360;
     var progPercentText = progBarRow.add("statictext", undefined, "0%");
     progPercentText.preferredSize.width = 40;
+
+    function closeProgWin() {
+        try { progWin.hide(); } catch (e) {}
+        try { progWin.close(); } catch (e) {}
+    }
+    progWin.onClose = function () {
+        try { progWin.hide(); } catch (e) {}
+    };
+
     try { progWin.center(); } catch (e) {}
     try { progWin.show(); } catch (e) {}
 
@@ -68,7 +77,7 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
 
     setProgress(70, "Saving XML file...");
     var xmlFile = File.saveDialog("Save Alight Motion Project", "Alight Motion XML (*.xml):*.xml");
-    if (!xmlFile) { try { progWin.close(); } catch (e) {} return false; }
+    if (!xmlFile) { closeProgWin(); return false; }
 
     var now = new Date();
     var exportDateStr = now.getFullYear() + '-' +
@@ -112,8 +121,8 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
     xmlFile.close();
 
     setProgress(100, "Done.");
-    try { $.sleep(400); } catch (e) {}
-    try { progWin.close(); } catch (e) {}
+    try { $.sleep(200); } catch (e) {}
+    closeProgWin();
 
     alert("Export complete.\nExpressions baked: " + totalBaked + ".");
     return true;
