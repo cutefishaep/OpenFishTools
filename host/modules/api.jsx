@@ -3,5 +3,6 @@ $.global.FishTools = {
     readEase: _readEase,
     applyEase: _applyEase,
     readVelocity: _readVelocity,
-    applyVelocity: _applyVelocity
+    applyVelocity: _applyVelocity,
+    debugProps: _debugProps
 };

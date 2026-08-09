@@ -391,16 +391,14 @@ function _WARP() {
     try {
         var curTime = comp.time;
         var duration = 8 * comp.frameDuration;
+        var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
         var adj = comp.layers.addSolid([0, 0, 0], "Warp Effect", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.startTime = curTime;
         adj.outPoint = curTime + duration;
         adj.label = 5;
-        var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
         if (selectedLayer) {
-            try {
-                if (adj.index !== selectedLayer.index - 1) adj.moveBefore(selectedLayer);
-            } catch (e) { }
+            try { adj.moveBefore(selectedLayer); } catch (e) { }
         }
         var warp = adj.Effects.addProperty("ADBE Wave Warp");
         if (!warp) {
@@ -439,11 +437,12 @@ function _MIDWAVE() {
         var t1 = curTime - (15 * fd);
         var t2 = curTime;
         var t3 = curTime + (20 * fd);
+        var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
         var adj = comp.layers.addSolid([1, 1, 1], "Mid-Wave", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.label = 5;
-        if (comp.selectedLayers.length > 0 && comp.selectedLayers[0].index !== adj.index) {
-            adj.moveBefore(comp.selectedLayers[0]);
+        if (selectedLayer) {
+            try { adj.moveBefore(selectedLayer); } catch(e) {}
         }
         adj.inPoint = t1;
         adj.outPoint = t3 + fd;
@@ -503,15 +502,14 @@ function _HUESPIN() {
         var curTime = comp.time;
         var fd = comp.frameDuration;
         var duration = 25 * fd;
-        var selectedLayer = null;
-        if (comp.selectedLayers.length > 0) selectedLayer = comp.selectedLayers[0];
+        var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
         var adj = comp.layers.addSolid([1, 1, 1], "Hue Spin", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.label = 5;
         adj.startTime = curTime;
         adj.outPoint = curTime + duration;
-        if (selectedLayer && selectedLayer.index !== adj.index) {
-            adj.moveBefore(selectedLayer);
+        if (selectedLayer) {
+            try { adj.moveBefore(selectedLayer); } catch(e) {}
         }
         var hue = adj.property("ADBE Effect Parade").addProperty("ADBE HUE SATURATION");
         var channelRange = hue.property("ADBE HUE SATURATION-0003");
@@ -1296,13 +1294,13 @@ function _FISHEYE() {
     try {
         var curTime = comp.time;
         var fd = comp.frameDuration;
+        var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
         var adj = comp.layers.addSolid([0, 0, 0], "Fish Eye Ripple", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.label = 5;
         adj.startTime = curTime - (2.5 * fd);
         adj.inPoint = curTime - (2 * fd);
         adj.outPoint = curTime + (3 * fd);
-        var selectedLayer = comp.selectedLayers.length > 0 ? comp.selectedLayers[0] : null;
         if (selectedLayer) {
             try { adj.moveBefore(selectedLayer); } catch(e){}
         }

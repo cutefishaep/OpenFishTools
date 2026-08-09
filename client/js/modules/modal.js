@@ -73,6 +73,11 @@ var ModalModule = (function () {
             contentEl.innerText = msg;
         }
 
+        if (options && options.copyable) {
+            contentEl.style.userSelect = 'text';
+            contentEl.style.cursor = 'text';
+        }
+
         var btnText = (options && options.btnText) || 'OK';
         var btn = createBtn(btnText, 'primary-btn', close);
         if (options && options.dangerBtn) btn.classList.add('danger');
@@ -178,7 +183,7 @@ var ModalModule = (function () {
         confirm: confirm,
         prompt: prompt,
         error: function (msg, title) {
-            alertFn(msg, title || 'Error', 'error', { btnText: 'OK', dangerBtn: true });
+            alertFn(msg, title || 'Error', 'error', { btnText: 'OK', dangerBtn: true, copyable: true });
         },
         warn: function (msg, title) { alertFn(msg, title || 'Warning', 'warning'); },
         info: function (msg, title) { alertFn(msg, title || 'Information', 'info'); }

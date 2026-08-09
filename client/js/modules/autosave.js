@@ -10,7 +10,7 @@ window.AutoSaveModule = (function () {
     var _pollTimer     = null;
     var _isDirty       = false;
 
-    var POLL_MS  = 4000;
+    var POLL_MS  = 10000;
     var MIN_SEC  = 5;
     var MAX_SEC  = 60;
     var STEP_SEC = 5;
@@ -379,6 +379,15 @@ window.AutoSaveModule = (function () {
         if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
     }
 
+    function _onVisibilityChange() {
+        if (!_enabled) return;
+        if (document.hidden) {
+            _stopPoll();
+        } else {
+            _startPoll();
+        }
+    }
+
     function _stopAllTimers() {
         _stopPoll();
         _stopProgressBar();
@@ -474,6 +483,8 @@ window.AutoSaveModule = (function () {
         if (_enabled) {
             _onEnable();
         }
+
+        document.addEventListener('visibilitychange', _onVisibilityChange);
     }
 
     return { init: init };

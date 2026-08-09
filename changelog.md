@@ -2,6 +2,15 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.1.5] - 2026-08-08
+### Fixed
+- **Speed Graph Handle Mapping**: Fixed speed graph handle x-extent to use half-scale (`influence / 200`), matching After Effects' derivative-based speed graph behavior. Previously, speed handles meeting in the middle produced value graph handles that also met in the middle; now they correctly produce fully crossed value handles as in AE.
+- **Speed Graph Drag Detection**: Added pointer capture support on the speed graph canvas so handle dragging continues to work reliably when the cursor moves outside the canvas area during a drag operation.
+- **Speed Graph Tab Tooltip**: Updated the navigation bar tab tooltip from "Value Graph" to "Graph" to match the visible label.
+
+### Changed
+- **Speed Graph Handle Visuals**: Replaced dim dashed connection lines with solid accent-colored lines and redesigned knob handles (white fill, accent border, radius 9) so handles are clearly visible and distinguishable from the background.
+
 ## [1.1.4] - 2026-07-27
 ### Fixed
 - **X FLIP & Y FLIP Expression Compatibility**: Fixed an expression error on Adobe After Effects CC 2018 (and Legacy ExtendScript expression engine) where `thisComp.frameRate` caused `property or method named 'frameRate' in Class 'Comp' is missing or does not exist`. Replaced `1 / thisComp.frameRate` with `thisComp.frameDuration` in both `_X_FLIP` and `_Y_FLIP` expression generators in `host/modules/animation.jsx`.

@@ -58,13 +58,31 @@ function detectExtensionVersion() {
 function loadSystemInfo() {
     if (!window.csInterface) return;
 
-    setInterval(function () {
+    var _clockTimer = null;
+
+    function _tickClock() {
         var now = new Date();
         var timeStr = String(now.getHours()).padStart(2, '0') + ":" +
             String(now.getMinutes()).padStart(2, '0');
         var el = document.getElementById("info-time");
         if (el) el.textContent = timeStr;
-    }, 1000);
+    }
+
+    function _startClock() {
+        if (_clockTimer) return;
+        _tickClock();
+        _clockTimer = setInterval(_tickClock, 1000);
+    }
+
+    function _stopClock() {
+        if (_clockTimer) { clearInterval(_clockTimer); _clockTimer = null; }
+    }
+
+    _startClock();
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) { _stopClock(); } else { _startClock(); }
+    });
 
     csInterface.evalScript("app.version", function (res) {
         var el = document.getElementById("info-ae-ver");

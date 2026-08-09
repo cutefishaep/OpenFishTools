@@ -10,13 +10,14 @@ var GraphModule = (function () {
     var cp1 = { x: 0.33, y: 0 };
     var cp2 = { x: 0.67, y: 1 };
     var isDragging = null;
+    var isFlipped = false;
     var isSnapEnabled = false;
     var isOvershootEnabled = false;
     var isAutoApplyEnabled = false;
     var autoApplyTimer = null;
 
     var btnSnap, btnOvershoot, btnRead, btnApply, btnSavePreset, presetList, btnAuto, btnCopy, btnPaste;
-    var speedCanvas, isDraggingSpeed = null;
+    var speedCanvas, isDraggingSpeed = null, speedPointerId = null;
     var velPresets = [];
     var isVelSnapEnabled = false, isVelAutoEnabled = false;
     var btnVelSnap, btnVelAuto, btnVelCopy, btnVelPaste;
@@ -155,14 +156,18 @@ var GraphModule = (function () {
     function getScreenPos(nx, ny) {
         var layout = getLayout();
         var sx = layout.offsetX + (nx * layout.size);
-        var sy = (height - layout.offsetY) - (ny * layout.size);
+        var sy = isFlipped
+            ? layout.offsetY + (ny * layout.size)
+            : (height - layout.offsetY) - (ny * layout.size);
         return { x: sx, y: sy };
     }
 
     function getNormPos(sx, sy) {
         var layout = getLayout();
         var nx = (sx - layout.offsetX) / layout.size;
-        var ny = ((height - layout.offsetY) - sy) / layout.size;
+        var ny = isFlipped
+            ? (sy - layout.offsetY) / layout.size
+            : ((height - layout.offsetY) - sy) / layout.size;
         return { x: nx, y: ny };
     }
 
@@ -202,6 +207,8 @@ var GraphModule = (function () {
     }
 
     function onMouseMove(e) {
+        if (!isDragging && e.target !== canvas) return;
+
         var rect = canvas.getBoundingClientRect();
         var mx = e.clientX - rect.left;
         var my = e.clientY - rect.top;
@@ -235,6 +242,14 @@ var GraphModule = (function () {
 
         if (!isOvershootEnabled) {
             nPos.y = clamp(nPos.y, 0, 1);
+        }
+
+        var selfScreen = getScreenPos(nPos.x, nPos.y);
+        var otherPos = (isDragging === 'cp1') ? cp2 : cp1;
+        var otherScreen = getScreenPos(otherPos.x, otherPos.y);
+        if (Math.hypot(selfScreen.x - otherScreen.x, selfScreen.y - otherScreen.y) < 20) {
+            nPos.x = otherPos.x;
+            nPos.y = otherPos.y;
         }
 
         if (isDragging === 'cp1') {
@@ -290,9 +305,12 @@ var GraphModule = (function () {
         var offsetY = Math.floor(layout.offsetY);
 
         function toScreen(nx, ny) {
+            var sy = (isMain && isFlipped)
+                ? offsetY + (ny * size)
+                : (h - offsetY) - (ny * size);
             return {
                 x: offsetX + (nx * size),
-                y: (h - offsetY) - (ny * size)
+                y: sy
             };
         }
 
@@ -317,7 +335,7 @@ var GraphModule = (function () {
             }
 
             context.strokeStyle = clrBox;
-            context.strokeRect(start.x, end.y, size, size);
+            context.strokeRect(offsetX, offsetY, size, size);
 
             context.strokeStyle = clrDash;
             context.lineWidth = 2;
@@ -379,18 +397,20 @@ var GraphModule = (function () {
         cs.evalScript('FishTools.readEase()', function (res) {
             try {
                 if (!res || res === 'false') {
-                    if (window.ModalModule) window.ModalModule.warn('Please select a keyframe with an easing curve to read from.', 'Graph Editor');
+                    if (window.ModalModule) window.ModalModule.error('No keyframes selected. Select 2 adjacent keyframes first.', 'Graph Editor');
                     return;
                 }
                 var data = JSON.parse(res);
                 if (data.error) {
-                    if (window.ModalModule) window.ModalModule.warn(data.message || 'Please select a keyframe to read the ease from.', 'Graph Editor');
+                    if (window.ModalModule) window.ModalModule.error('No keyframes selected. Select 2 adjacent keyframes first.', 'Graph Editor');
                     return;
                 }
-                cp1 = { x: data.x1, y: data.y1 };
-                cp2 = { x: data.x2, y: data.y2 };
+                isFlipped = !!data.flip;
+                cp1 = { x: data.x1, y: isFlipped ? 1 - data.y1 : data.y1 };
+                cp2 = { x: data.x2, y: isFlipped ? 1 - data.y2 : data.y2 };
                 render();
             } catch (e) {
+                if (window.ModalModule) window.ModalModule.error('No keyframes selected. Select 2 adjacent keyframes first.', 'Graph Editor');
             }
         });
     }
@@ -407,15 +427,14 @@ var GraphModule = (function () {
             if (!res) return;
             try {
                 var data = JSON.parse(res);
-                if (data && data.error && window.ModalModule) {
-                    window.ModalModule.warn(data.message || 'Please select one or more keyframes to apply easing.', 'Graph Editor');
-                }
-            } catch (e) { }
+                if (data.ok) return;
+            } catch (e) {}
+            if (window.ModalModule) window.ModalModule.error('No keyframes selected. Select 2 adjacent keyframes first.', 'Graph Editor');
         });
     }
 
     function copyEaseValue() {
-        var value = cp1.x + "," + cp1.y + ";" + cp2.x + "," + cp2.y;
+        var value = cp1.x + "," + (isFlipped ? 1 - cp1.y : cp1.y) + ";" + cp2.x + "," + (isFlipped ? 1 - cp2.y : cp2.y);
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(value).then(function() {
                 if (window.ModalModule) window.ModalModule.info("Ease value copied to clipboard!", "Copied");
@@ -448,6 +467,10 @@ var GraphModule = (function () {
             cp2.x = clamp(parseFloat(p2[0]), 0, 1);
             cp2.y = parseFloat(p2[1]);
             if (isNaN(cp1.x) || isNaN(cp1.y) || isNaN(cp2.x) || isNaN(cp2.y)) throw new Error("Invalid numbers");
+            if (isFlipped) {
+                cp1.y = 1 - cp1.y;
+                cp2.y = 1 - cp2.y;
+            }
             render();
             if (window.ModalModule) window.ModalModule.info("Ease value applied!", "Success");
         } catch (e) {
@@ -538,8 +561,8 @@ var GraphModule = (function () {
     function performSave(name) {
         var data = {
             name: name,
-            x1: cp1.x, y1: cp1.y,
-            x2: cp2.x, y2: cp2.y
+            x1: cp1.x, y1: isFlipped ? 1 - cp1.y : cp1.y,
+            x2: cp2.x, y2: isFlipped ? 1 - cp2.y : cp2.y
         };
 
         if (window.settings) {
@@ -649,8 +672,8 @@ var GraphModule = (function () {
         btn.appendChild(lbl);
 
         btn.addEventListener('click', function () {
-            cp1 = { x: p.x1, y: p.y1 };
-            cp2 = { x: p.x2, y: p.y2 };
+            cp1 = { x: p.x1, y: isFlipped ? 1 - p.y1 : p.y1 };
+            cp2 = { x: p.x2, y: isFlipped ? 1 - p.y2 : p.y2 };
             render();
         });
 
@@ -683,12 +706,12 @@ var GraphModule = (function () {
         cs.evalScript('FishTools.readVelocity()', function (res) {
             try {
                 if (!res || res === 'false' || res === 'null') {
-                    if (window.ModalModule) window.ModalModule.warn('Please select a keyframe to read the velocity from.', 'Velocity Editor');
+                    if (window.ModalModule) window.ModalModule.error('Please select a keyframe to read the velocity from.', 'Velocity Editor');
                     return;
                 }
                 var data = JSON.parse(res);
                 if (data.error) {
-                    if (window.ModalModule) window.ModalModule.warn(data.message || 'Please select a keyframe to read the velocity from.', 'Velocity Editor');
+                    if (window.ModalModule) window.ModalModule.error(data.message || 'Please select a keyframe to read the velocity from.', 'Velocity Editor');
                     return;
                 }
                 document.getElementById('input-vel-in-speed').value = Math.round(data.inSpeed);
@@ -696,7 +719,9 @@ var GraphModule = (function () {
                 document.getElementById('input-vel-out-speed').value = Math.round(data.outSpeed);
                 document.getElementById('input-vel-out-infl').value = Math.round(data.outInflu);
                 renderSpeedPreview();
-            } catch (e) { }
+            } catch (e) {
+                if (window.ModalModule) window.ModalModule.error('Failed to parse response: ' + res, 'Velocity Editor');
+            }
         });
     }
 
@@ -728,7 +753,7 @@ var GraphModule = (function () {
             var clrGridMid = getCSSVar('--graph-grid-mid') || 'rgba(255,255,255,0.1)';
             cx.lineWidth = 1;
             for (var i = 0; i <= 4; i++) {
-                cx.strokeStyle = (i === 2 || i === 4) ? clrGridMid : clrGrid;
+                cx.strokeStyle = (i === 0 || i === 4) ? clrGridMid : clrGrid;
                 var y = padY + (i / 4) * pos.graphH;
                 cx.beginPath(); cx.moveTo(padX, y); cx.lineTo(w - padX, y); cx.stroke();
             }
@@ -740,70 +765,91 @@ var GraphModule = (function () {
         }
 
         var accent = getCSSVar('--accent') || '#ffb400';
-        var points = [];
-        var steps = 100;
+        var steps = 150;
         
-        var totalInf = outInf + inInf;
         var i1 = outInf / 100, i2 = inInf / 100;
-        if (totalInf > 100) {
-            i1 *= (100 / totalInf);
-            i2 *= (100 / totalInf);
-        }
         var s1 = outSpd, s2 = inSpd;
         var dv = 100;
         
         var p1x = i1, p1y = (s1 * i1) / dv;
         var p2x = 1 - i2, p2y = 1 - (s2 * i2) / dv;
 
+        var rawPoints = [];
+        var peakSpeed = 1;
         for (var s = 0; s <= steps; s++) {
             var t = s / steps;
-            var dxdt = 3 * Math.pow(1-t, 2) * (p1x) + 6 * (1-t) * t * (p2x - p1x) + 3 * Math.pow(t, 2) * (1 - p2x);
-            var dydt = 3 * Math.pow(1-t, 2) * (p1y) + 6 * (1-t) * t * (p2y - p1y) + 3 * Math.pow(t, 2) * (1 - p2y);
-            
+            var dxdt = 3 * (1-t) * (1-t) * p1x + 6 * (1-t) * t * (p2x - p1x) + 3 * t * t * (1 - p2x);
+            var dydt = 3 * (1-t) * (1-t) * p1y + 6 * (1-t) * t * (p2y - p1y) + 3 * t * t * (1 - p2y);
             var vel = (dxdt < 0.001) ? (t < 0.5 ? s1 : s2) : (dydt / dxdt) * dv;
-            var xPos = (3 * Math.pow(1-t, 2) * t * p1x + 3 * (1-t) * Math.pow(t, 2) * p2x + Math.pow(t, 3));
-            
-            var y = (h - padY) - (Math.abs(vel) / pos.maxSpeed) * graphH;
-            points.push({ x: padX + (xPos * graphW), y: y });
+            var xPos = 3 * (1-t) * (1-t) * t * p1x + 3 * (1-t) * t * t * p2x + t * t * t;
+            rawPoints.push({ t: t, vel: vel, x: xPos });
+            if (Math.abs(vel) > peakSpeed) peakSpeed = Math.abs(vel);
+        }
+
+        var baseLine = h - padY;
+        var maxSpeed = peakSpeed * 1.05;
+        function getY(speed) { return baseLine - (Math.abs(speed) / maxSpeed) * graphH; }
+
+        var points = [];
+        for (var j = 0; j < rawPoints.length; j++) {
+            var rp = rawPoints[j];
+            points.push({ x: padX + rp.x * graphW, y: getY(rp.vel) });
         }
 
         points.sort(function(a, b) { return a.x - b.x; });
 
         cx.beginPath();
+        cx.moveTo(points[0].x, baseLine);
+        cx.lineTo(points[0].x, points[0].y);
+        for (var i = 1; i < points.length - 2; i++) {
+            var xc = (points[i].x + points[i + 1].x) / 2;
+            var yc = (points[i].y + points[i + 1].y) / 2;
+            cx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+        }
+        if (points.length > 2) {
+            cx.quadraticCurveTo(points[points.length - 2].x, points[points.length - 2].y, points[points.length - 1].x, points[points.length - 1].y);
+        }
+        cx.lineTo(points[points.length - 1].x, baseLine);
+        cx.closePath();
+        cx.fillStyle = accent + '18';
+        cx.fill();
+
+        cx.beginPath();
         cx.moveTo(points[0].x, points[0].y);
-        for (var i = 1; i < points.length; i++) {
-            cx.lineTo(points[i].x, points[i].y);
+        for (var i = 1; i < points.length - 2; i++) {
+            var xc = (points[i].x + points[i + 1].x) / 2;
+            var yc = (points[i].y + points[i + 1].y) / 2;
+            cx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+        }
+        if (points.length > 2) {
+            cx.quadraticCurveTo(points[points.length - 2].x, points[points.length - 2].y, points[points.length - 1].x, points[points.length - 1].y);
         }
         cx.strokeStyle = accent;
-        cx.lineWidth = isFull ? 4 : 2; 
+        cx.lineWidth = isFull ? 3 : 2; 
         cx.lineCap = 'round';
         cx.lineJoin = 'round';
         cx.stroke();
         
         if (isFull) {
+            var clrHandle = getCSSVar('--graph-handle') || '#ffffff';
+
+            cx.strokeStyle = accent;
+            cx.lineWidth = 2.5;
+            cx.lineCap = 'round';
             cx.beginPath();
             cx.moveTo(padX, startY); cx.lineTo(cp1X, cp1Y);
             cx.moveTo(w - padX, endY); cx.lineTo(cp2X, cp2Y);
-            var clrDim = getCSSVar('--text-mut') || 'rgba(255,255,255,0.2)';
-            cx.strokeStyle = clrDim;
-            cx.lineWidth = 1.5;
-            cx.setLineDash([2, 2]);
             cx.stroke();
-            cx.setLineDash([]);
 
             cx.fillStyle = accent;
             cx.fillRect(padX - 4, startY - 4, 8, 8);
             cx.fillRect(w - padX - 4, endY - 4, 8, 8);
-            
-            var clrHandle = getCSSVar('--graph-handle') || '#ffffff';
-            cx.fillStyle = clrHandle;
-            
-            cx.beginPath(); cx.arc(cp1X, cp1Y, 11, 0, Math.PI*2); cx.fill();
-            cx.beginPath(); cx.arc(cp2X, cp2Y, 11, 0, Math.PI*2); cx.fill();
 
-            cx.strokeStyle = 'rgba(0,0,0,0.2)';
-            cx.lineWidth = 1;
-            cx.stroke();
+            cx.fillStyle = clrHandle;
+            cx.strokeStyle = accent;
+            cx.lineWidth = 2;
+            cx.beginPath(); cx.arc(cp1X, cp1Y, 9, 0, Math.PI * 2); cx.fill(); cx.stroke();
+            cx.beginPath(); cx.arc(cp2X, cp2Y, 9, 0, Math.PI * 2); cx.fill(); cx.stroke();
         }
     }
 
@@ -812,18 +858,35 @@ var GraphModule = (function () {
         var padY = 15;
         var graphW = w - padX * 2;
         var graphH = h - padY * 2;
-        var maxSpeed = Math.max(Math.abs(inSpd), Math.abs(outSpd), 500);
+        var maxSpeed = 1;
+        var dv = 100;
+        var i1 = outInf / 100, i2 = inInf / 100;
+        var p1x = i1, p1y = (outSpd * i1) / dv;
+        var p2x = 1 - i2, p2y = 1 - (inSpd * i2) / dv;
+        for (var s = 0; s <= 50; s++) {
+            var t = s / 50;
+            var dxdt = 3*(1-t)*(1-t)*p1x + 6*(1-t)*t*(p2x-p1x) + 3*t*t*(1-p2x);
+            var dydt = 3*(1-t)*(1-t)*p1y + 6*(1-t)*t*(p2y-p1y) + 3*t*t*(1-p2y);
+            var vel = (dxdt < 0.001) ? (t < 0.5 ? outSpd : inSpd) : (dydt / dxdt) * dv;
+            if (Math.abs(vel) > maxSpeed) maxSpeed = Math.abs(vel);
+        }
+        maxSpeed *= 1.15;
         function getY(speed) { return (h - padY) - (Math.abs(speed) / maxSpeed) * graphH; }
         
         return {
-            cp1X: padX + graphW * (outInf / 100), cp1Y: getY(outSpd),
-            cp2X: (w - padX) - graphW * (inInf / 100), cp2Y: getY(inSpd),
+            cp1X: padX + graphW * (outInf / 100) * 0.5, cp1Y: getY(outSpd),
+            cp2X: (w - padX) - graphW * (inInf / 100) * 0.5, cp2Y: getY(inSpd),
             maxSpeed: maxSpeed, padX: padX, padY: padY, graphW: graphW, graphH: graphH
         };
     }
 
     function onSpeedMouseDown(e) {
         if (!speedCanvas) return;
+        e.preventDefault();
+        if (typeof e.pointerId === 'number' && speedCanvas.setPointerCapture) {
+            speedPointerId = e.pointerId;
+            try { speedCanvas.setPointerCapture(e.pointerId); } catch (err) {}
+        }
         var rect = speedCanvas.getBoundingClientRect();
         var scaleX = speedCanvas.width / rect.width;
         var scaleY = speedCanvas.height / rect.height;
@@ -846,6 +909,7 @@ var GraphModule = (function () {
     }
 
     function onSpeedMouseMove(e) {
+        if (!isDraggingSpeed && e.target !== speedCanvas) return;
         if (!speedCanvas) return;
         var rect = speedCanvas.getBoundingClientRect();
         var scaleX = speedCanvas.width / rect.width;
@@ -871,14 +935,14 @@ var GraphModule = (function () {
         speedCanvas.style.cursor = 'grabbing';
         
         if (isDraggingSpeed === 'cp1') {
-            var newOutInf = ((mx - pos.padX) / pos.graphW) * 100;
+            var newOutInf = ((mx - pos.padX) / pos.graphW) * 200;
             if (isVelSnapEnabled) newOutInf = Math.round(newOutInf / 5) * 5;
-            newOutInf = Math.max(0.1, Math.min(100 - inInf, newOutInf));
+            newOutInf = Math.max(0.1, Math.min(100, newOutInf));
             document.getElementById('input-vel-out-infl').value = Math.round(newOutInf);
         } else {
-            var newInInf = ((speedCanvas.width - pos.padX - mx) / pos.graphW) * 100;
+            var newInInf = ((speedCanvas.width - pos.padX - mx) / pos.graphW) * 200;
             if (isVelSnapEnabled) newInInf = Math.round(newInInf / 5) * 5;
-            newInInf = Math.max(0.1, Math.min(100 - outInf, newInInf));
+            newInInf = Math.max(0.1, Math.min(100, newInInf));
             document.getElementById('input-vel-in-infl').value = Math.round(newInInf);
         }
 
@@ -892,6 +956,10 @@ var GraphModule = (function () {
 
     function onSpeedMouseUp() {
         isDraggingSpeed = null;
+        if (speedCanvas && speedPointerId !== null && speedCanvas.hasPointerCapture) {
+            try { speedCanvas.releasePointerCapture(speedPointerId); } catch (err) {}
+        }
+        speedPointerId = null;
     }
 
     function loadVelPresets() {
