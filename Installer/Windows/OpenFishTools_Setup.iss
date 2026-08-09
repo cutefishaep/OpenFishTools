@@ -1,6 +1,6 @@
 #define MyAppName       "OpenFishTools"
 #ifndef MyAppVersion
-  #define MyAppVersion  "1.1.5"
+  #define MyAppVersion  "1.1.51"
 #endif
 #define MyAppPublisher  "cutefishaep"
 #define MyAppURL        "https://github.com/cutefishaep/OpenFishTools"

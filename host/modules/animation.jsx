@@ -79,39 +79,39 @@ function _applyTransition(propName, directionType) {
 function _TWIX() {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Twixtor","type":"warn","message":"Please open a composition first."}';
-    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Twixtor","type":"warn","message":"Please select a layer to apply Twixtor velocity effect."}';
-    var layer = comp.selectedLayers[0];
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Twixtor","type":"warn","message":"Please select at least one layer to apply Twixtor velocity effect."}';
+    var layers = comp.selectedLayers;
     app.beginUndoGroup("Apply Twixtor Velocity");
     try {
-        var twix = layer.Effects.addProperty("Twixtor");
-        if (!twix) {
-            alert("Twixtor effect not found. Please make sure it's installed.");
-            return false;
-        }
-        for (var i = 1; i <= twix.numProperties; i++) {
-            var p = twix.property(i);
-            if (p.name === "In FPS is Out FPS") p.setValue(false);
-            if (p.name === "Input: Frame Rate") p.setValue(comp.frameRate);
-        }
-        var speedProp = null;
-        for (var j = 1; j <= twix.numProperties; j++) {
-            if (twix.property(j).name === "Speed %") {
-                speedProp = twix.property(j);
-                break;
+        for (var li = 0; li < layers.length; li++) {
+            var layer = layers[li];
+            var twix = layer.Effects.addProperty("Twixtor");
+            if (!twix) continue;
+            for (var i = 1; i <= twix.numProperties; i++) {
+                var p = twix.property(i);
+                if (p.name === "In FPS is Out FPS") p.setValue(false);
+                if (p.name === "Input: Frame Rate") p.setValue(comp.frameRate);
             }
-        }
-        if (speedProp) {
-            var markers = _getLayerMarkers(layer);
-            if (markers.length > 1) {
-                for (var k = 0; k < markers.length; k++) {
-                    speedProp.setValueAtTime(markers[k], 100);
-                    if (k < markers.length - 1) {
-                        var mid = (markers[k] + markers[k + 1]) / 2;
-                        speedProp.setValueAtTime(mid, 20);
-                    }
+            var speedProp = null;
+            for (var j = 1; j <= twix.numProperties; j++) {
+                if (twix.property(j).name === "Speed %") {
+                    speedProp = twix.property(j);
+                    break;
                 }
-            } else {
-                speedProp.setValue(100);
+            }
+            if (speedProp) {
+                var markers = _getLayerMarkers(layer);
+                if (markers.length > 1) {
+                    for (var k = 0; k < markers.length; k++) {
+                        speedProp.setValueAtTime(markers[k], 100);
+                        if (k < markers.length - 1) {
+                            var mid = (markers[k] + markers[k + 1]) / 2;
+                            speedProp.setValueAtTime(mid, 20);
+                        }
+                    }
+                } else {
+                    speedProp.setValue(100);
+                }
             }
         }
         return true;
@@ -124,34 +124,44 @@ function _TWIX() {
 function _TMRE() {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return '{"error":true,"tool":"Time Remap","type":"warn","message":"Please open a composition first."}';
-    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Time Remap","type":"warn","message":"Please select a layer to apply Time Remap velocity effect."}';
-    var layer = comp.selectedLayers[0];
+    if (comp.selectedLayers.length === 0) return '{"error":true,"tool":"Time Remap","type":"warn","message":"Please select at least one layer to apply Time Remap velocity effect."}';
+    var layers = comp.selectedLayers;
     app.beginUndoGroup("Time Remap Velocity");
     try {
-        layer.timeRemapEnabled = true;
-        var tr = layer.property("ADBE Time Remapping");
-        var markers = _getLayerMarkers(layer);
-        if (markers.length > 0) {
-            for (var i = 0; i < markers.length; i++) {
-                var t = markers[i];
-                var val = tr.valueAtTime(t, true);
-                tr.setValueAtTime(t, val);
+        for (var li = 0; li < layers.length; li++) {
+            var layer = layers[li];
+            try {
+                layer.timeRemapEnabled = true;
+            } catch (enableErr) {
+                continue;
             }
-            for (var j = 1; j < tr.numKeys; j++) {
-                var t1 = tr.keyTime(j);
-                var t2 = tr.keyTime(j + 1);
-                var v1 = tr.keyValue(j);
-                var v2 = tr.keyValue(j + 1);
-                var avgSpeed = Math.abs((v2 - v1) / (t2 - t1));
-                var targetSpeed = avgSpeed * 4;
-                var easeOut = new KeyframeEase(targetSpeed, 20);
-                var easeIn = new KeyframeEase(targetSpeed, 20);
-                tr.setTemporalEaseAtKey(j, tr.keyInTemporalEase(j), [easeOut]);
-                tr.setTemporalEaseAtKey(j + 1, [easeIn], tr.keyOutTemporalEase(j + 1));
+            var tr = layer.property("ADBE Time Remapping");
+            if (!tr) continue;
+            var markers = _getLayerMarkers(layer);
+            if (markers.length > 0) {
+                for (var i = 0; i < markers.length; i++) {
+                    var t = markers[i];
+                    var val = tr.valueAtTime(t, true);
+                    tr.setValueAtTime(t, val);
+                }
+                for (var j = 1; j < tr.numKeys; j++) {
+                    var t1 = tr.keyTime(j);
+                    var t2 = tr.keyTime(j + 1);
+                    var v1 = tr.keyValue(j);
+                    var v2 = tr.keyValue(j + 1);
+                    var avgSpeed = Math.abs((v2 - v1) / (t2 - t1));
+                    var targetSpeed = avgSpeed * 4;
+                    var easeOut = new KeyframeEase(targetSpeed, 20);
+                    var easeIn = new KeyframeEase(targetSpeed, 20);
+                    tr.setTemporalEaseAtKey(j, tr.keyInTemporalEase(j), [easeOut]);
+                    tr.setTemporalEaseAtKey(j + 1, [easeIn], tr.keyOutTemporalEase(j + 1));
+                }
             }
+            try {
+                layer.frameBlended = true;
+                layer.frameBlendType = FrameBlendType.PIXEL_MOTION;
+            } catch (blendErr) {}
         }
-        layer.frameBlended = true;
-        layer.frameBlendType = FrameBlendType.PIXEL_MOTION;
         return true;
     } catch (err) {
         return false;

@@ -2,6 +2,16 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.1.51] - 2026-08-09
+### Added
+- **Velocity Card Multi-Select Support**: Updated **TWIXTOR** (`_TWIX`) and **T-REMAP** (`_TMRE`) buttons on the Velocity card (Tools tab) to support multiple selected layers (`comp.selectedLayers`). Applies velocity effects, time remapping, and keyframe speed curves across all selected layers in a single undo group.
+
+### Fixed
+- **Idle Performance & Lag Optimization**: Resolved performance bottlenecks causing background CPU wakeups and UI micro-freezes:
+  - **AutoSave Polling Overhead**: Increased project status check interval from 4s to 10s and integrated Page Visibility API (`document.hidden`) to pause IPC polling when the extension panel is hidden.
+  - **Clock Timer CPU Wakeup**: Updated `loadSystemInfo` clock updater in `main.js` to pause its 1-second `setInterval` when the panel is hidden.
+  - **Global MouseMove Event Overhead**: Added early-return guards to `onMouseMove` and `onSpeedMouseMove` handlers in `graph.js` so window-wide mouse movement incurs zero CPU cost when not dragging graph handles.
+
 ## [1.1.5] - 2026-08-08
 ### Fixed
 - **Speed Graph Handle Mapping**: Fixed speed graph handle x-extent to use half-scale (`influence / 200`), matching After Effects' derivative-based speed graph behavior. Previously, speed handles meeting in the middle produced value graph handles that also met in the middle; now they correctly produce fully crossed value handles as in AE.
