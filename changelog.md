@@ -2,6 +2,10 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.2.1] - 2026-08-09
+### Fixed
+- **Update Detection (versioning)**: Re-released as 1.2.1 to fix update-checker not detecting the update from the previous misnumbered 1.1.51 build. The numeric segment `6` was less than `51`, so `isNewer()` returned false; bumping to 1.2.1 ensures users on 1.1.51 are correctly prompted to update.
+
 ## [1.1.6] - 2026-08-09
 ### Added
 - **Velocity Card Multi-Select Support**: Updated **TWIXTOR** (`_TWIX`) and **T-REMAP** (`_TMRE`) buttons on the Velocity card (Tools tab) to support multiple selected layers (`comp.selectedLayers`). Applies velocity effects, time remapping, and keyframe speed curves across all selected layers in a single undo group.
