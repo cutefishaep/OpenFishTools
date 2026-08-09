@@ -121,8 +121,18 @@ if not exist "%CEP_DIR%" (
 
 :: Remove old version if exists
 if exist "%TARGET_DIR%" (
-    echo        [*] Removing old version...
+    echo        [*] Removing old version from: %TARGET_DIR%
     rmdir /s /q "%TARGET_DIR%" 2>nul
+)
+if exist "%TARGET_DIR%" (
+    echo        [*] Cleaning remaining files...
+    del /f /q /s "%TARGET_DIR%" >nul 2>&1
+    rmdir /s /q "%TARGET_DIR%" 2>nul
+)
+if exist "%TARGET_DIR%" (
+    echo        [WARNING] Could not completely remove old directory.
+) else (
+    echo        [OK] Old version removed successfully.
 )
 
 echo        [OK] Target directory ready: %TARGET_DIR%
@@ -132,12 +142,13 @@ echo.
 :: ----------------------------------------
 :: Step 3: Copy clean extension files
 :: ----------------------------------------
-echo [3/3] Copying extension files...
+echo [3/3] Copying fresh extension files...
 
-:: Get source directory (go up 2 levels from Installer\Windows to project root)
-set "SOURCE_DIR=%~dp0..\.."
+:: Get source directory (normalized absolute path to project root)
+for %%I in ("%~dp0..\..") do set "SOURCE_DIR=%%~fI"
 
 :: Create target structure
+mkdir "%TARGET_DIR%" 2>nul
 mkdir "%TARGET_DIR%\CSXS" 2>nul
 mkdir "%TARGET_DIR%\client" 2>nul
 mkdir "%TARGET_DIR%\host" 2>nul
@@ -157,7 +168,10 @@ xcopy /e /i /y /q "%SOURCE_DIR%\host" "%TARGET_DIR%\host" >nul
 
 :: Copy data
 echo        [*] Copying data...
-xcopy /e /i /y /q "%SOURCE_DIR%\data" "%TARGET_DIR%\data" >nul
+if exist "%SOURCE_DIR%\data" xcopy /e /i /y /q "%SOURCE_DIR%\data" "%TARGET_DIR%\data" >nul
+
+:: Copy .debug file if present
+if exist "%SOURCE_DIR%\.debug" copy /y "%SOURCE_DIR%\.debug" "%TARGET_DIR%\.debug" >nul
 
 echo        [OK] All files copied successfully!
 

@@ -75,8 +75,6 @@ function _readEase() {
     var props = _findSelectedProps();
     if (!props || props.length === 0) props = _getAllKeyframeProps(comp);
     var x1 = 0.33, y1 = 0, x2 = 0.67, y2 = 1;
-    var found = false;
-    var flip = false;
     for (var i = 0; i < props.length; i++) {
         var prop = props[i];
         try {
@@ -104,26 +102,23 @@ function _readEase() {
             var v1 = (val1 instanceof Array) ? val1[0] : val1;
             var v2 = (val2 instanceof Array) ? val2[0] : val2;
             var dVal = v2 - v1;
-            flip = dVal < 0;
             var avgRate = dVal / dt;
             x1 = easeOut[0].influence / 100;
             x2 = 1 - (easeIn[0].influence / 100);
+            var safeX1 = (x1 <= 0) ? 0.001 : x1;
+            var safeX2 = (x2 >= 1) ? 0.999 : x2;
             if (Math.abs(avgRate) > 0.0001) {
-                y1 = (easeOut[0].speed / avgRate) * x1;
-                y2 = 1 + (easeIn[0].speed / avgRate) * (x2 - 1);
+                y1 = (easeOut[0].speed / avgRate) * safeX1;
+                y2 = 1 + (easeIn[0].speed / avgRate) * (safeX2 - 1);
             } else {
                 y1 = 0; y2 = 1;
             }
-            found = true;
+            break;
         } catch (e) {
             continue;
         }
-        if (found) break;
     }
-    if (!found) {
-        return JSON.stringify({ error: true, message: "No editable keyframes found.\n\nMake sure:\n1. A layer with keyframes is selected\n2. The playhead is between 2 keyframes" });
-    }
-    return JSON.stringify({ x1: x1, y1: y1, x2: x2, y2: y2, flip: flip });
+    return JSON.stringify({ x1: x1, y1: y1, x2: x2, y2: y2 });
 }
 
 function _applyEase(dataObj) {
@@ -137,20 +132,16 @@ function _applyEase(dataObj) {
     if (!props || props.length === 0) props = _getAllKeyframeProps(comp);
     if (!props || props.length === 0) return JSON.stringify({ok:false, err:"No props"});
     var applied = false;
-    var debugLog = [];
     app.beginUndoGroup("Apply Graph Ease");
     try {
         for (var i = 0; i < props.length; i++) {
             var prop = props[i];
-            var propName = "";
-            try { propName = prop.name; } catch(e) {}
             try {
                 var nk = 0;
-                try { nk = prop.numKeys; } catch (e) { debugLog.push(propName+": numKeys fail"); continue; }
-                if (nk < 2) { debugLog.push(propName+": numKeys<2"); continue; }
+                try { nk = prop.numKeys; } catch (e) { continue; }
+                if (nk < 2) continue;
                 var keys = _getKeysForProp(prop, comp);
-                debugLog.push(propName+": keys=" + JSON.stringify(keys));
-                if (!keys || keys.length < 2) { debugLog.push(propName+": no 2 keys"); continue; }
+                if (!keys || keys.length < 2) continue;
                 try {
                     if (prop.expressionEnabled) {
                         prop.expressionEnabled = false;
@@ -166,26 +157,19 @@ function _applyEase(dataObj) {
                         t1 = prop.keyTime(idx1);
                         t2 = prop.keyTime(idx2);
                         dt = t2 - t1;
-                    } catch(e) { debugLog.push(propName+": keyTime fail"); continue; }
+                    } catch(e) { continue; }
                     if (dt <= 0) continue;
-                    var flipY = false;
-                    try {
-                        var kv1 = prop.keyValue(idx1);
-                        var kv2 = prop.keyValue(idx2);
-                        var av1 = (kv1 instanceof Array) ? kv1[0] : kv1;
-                        var av2 = (kv2 instanceof Array) ? kv2[0] : kv2;
-                        flipY = (av2 - av1) < 0;
-                    } catch (e) {}
-                    var yy1 = flipY ? (1 - y1) : y1;
-                    var yy2 = flipY ? (1 - y2) : y2;
+
                     try {
                         prop.setInterpolationTypeAtKey(idx1, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
                         prop.setInterpolationTypeAtKey(idx2, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
-                    } catch(e) { debugLog.push(propName+": setInterp fail: "+e.toString()); continue; }
+                    } catch(e) { continue; }
+
                     var inf1 = x1 * 100;
                     var inf2 = (1 - x2) * 100;
                     inf1 = Math.max(0.1, Math.min(100, inf1));
                     inf2 = Math.max(0.1, Math.min(100, inf2));
+
                     var dim = 1;
                     try {
                         var ce = prop.keyOutTemporalEase(idx1);
@@ -196,68 +180,52 @@ function _applyEase(dataObj) {
                             if (val instanceof Array) dim = val.length;
                         } catch (e2) {}
                     }
+
+                    var safeX1 = (x1 <= 0) ? 0.001 : x1;
+                    var safeX2 = (x2 >= 1) ? 0.999 : x2;
+                    var m1 = y1 / safeX1;
+                    var m2 = (y2 - 1) / (safeX2 - 1);
+
                     var easeOut = [];
                     var easeIn = [];
-                    var canSetEase = true;
-                    var oldOut1 = null, oldIn2 = null;
-                    try { oldOut1 = prop.keyOutTemporalEase(idx1); } catch(e) {}
-                    try { oldIn2 = prop.keyInTemporalEase(idx2); } catch(e) {}
-                    var canReadEase = (oldOut1 && oldOut1.length > 0 && oldIn2 && oldIn2.length > 0);
+
                     for (var d = 0; d < dim; d++) {
-                        var curSpeed1 = 0, curSpeed2 = 0;
-                        if (oldOut1 && oldOut1.length > d) curSpeed1 = oldOut1[d].speed;
-                        if (oldIn2 && oldIn2.length > d) curSpeed2 = oldIn2[d].speed;
-                        var s1, s2;
-                        if (canReadEase) {
-                            var v1 = 0, v2 = 0;
-                            try {
-                                var val1 = prop.keyValue(idx1);
-                                var val2 = prop.keyValue(idx2);
-                                v1 = (dim === 1) ? val1 : val1[d];
-                                v2 = (dim === 1) ? val2 : val2[d];
-                            } catch(e) {}
+                        var avgRate = 0;
+                        try {
+                            var val1 = prop.keyValue(idx1);
+                            var val2 = prop.keyValue(idx2);
+                            var v1 = (dim === 1 || !(val1 instanceof Array)) ? val1 : val1[d];
+                            var v2 = (dim === 1 || !(val2 instanceof Array)) ? val2 : val2[d];
                             var dVal = v2 - v1;
-                            var avgRate = dVal / dt;
-                            var safeX1 = (x1 <= 0) ? 0.001 : x1;
-                            var safeX2 = (x2 >= 1) ? 0.999 : x2;
-                            var m1 = yy1 / safeX1;
-                            var m2 = (yy2 - 1) / (safeX2 - 1);
-                            s1 = (Math.abs(avgRate) > 0.000001) ? m1 * avgRate : 0;
-                            s2 = (Math.abs(avgRate) > 0.000001) ? m2 * avgRate : 0;
-                        } else {
-                            s1 = curSpeed1;
-                            s2 = curSpeed2;
+                            avgRate = dVal / dt;
+                        } catch(e) {}
+
+                        var s1 = 0;
+                        var s2 = 0;
+                        if (Math.abs(avgRate) > 0.000001) {
+                            s1 = m1 * avgRate;
+                            s2 = m2 * avgRate;
                         }
+
                         easeOut.push(new KeyframeEase(s1, inf1));
                         easeIn.push(new KeyframeEase(s2, inf2));
                     }
-                    if (canSetEase) {
-                        var easeApplied = false;
-                        try {
-                            var oldIn1, oldOut2;
-                            try { oldIn1 = prop.keyInTemporalEase(idx1); } catch (e) { oldIn1 = easeOut; }
-                            try { oldOut2 = prop.keyOutTemporalEase(idx2); } catch (e) { oldOut2 = easeIn; }
-                            prop.setTemporalEaseAtKey(idx1, oldIn1, easeOut);
-                            prop.setTemporalEaseAtKey(idx2, easeIn, oldOut2);
-                            easeApplied = true;
-                            debugLog.push(propName+": ease applied OK");
-                        } catch (e) {
-                            debugLog.push(propName+": setTemporalEase fail: " + e.toString());
-                        }
-                        if (easeApplied) applied = true;
-                    } else {
+
+                    try {
+                        prop.setTemporalEaseAtKey(idx1, prop.keyInTemporalEase(idx1), easeOut);
+                        prop.setTemporalEaseAtKey(idx2, easeIn, prop.keyOutTemporalEase(idx2));
                         applied = true;
+                    } catch (e) {
                     }
                 }
             } catch (e) {
-                debugLog.push(propName+": outer error: " + e.toString());
                 continue;
             }
         }
     } finally {
         app.endUndoGroup();
     }
-    return JSON.stringify({ok: applied, debug: debugLog});
+    return JSON.stringify({ok: applied});
 }
 
 function _applyMidWaveEase(prop) {

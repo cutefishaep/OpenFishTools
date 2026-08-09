@@ -10,7 +10,6 @@ var GraphModule = (function () {
     var cp1 = { x: 0.33, y: 0 };
     var cp2 = { x: 0.67, y: 1 };
     var isDragging = null;
-    var isFlipped = false;
     var isSnapEnabled = false;
     var isOvershootEnabled = false;
     var isAutoApplyEnabled = false;
@@ -115,6 +114,27 @@ var GraphModule = (function () {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
+    function hexToRgba(colorStr, alpha) {
+        if (!colorStr) return 'rgba(255, 180, 0, ' + alpha + ')';
+        var hex = colorStr.trim();
+        if (hex.indexOf('rgba') === 0 || hex.indexOf('rgb') === 0) {
+            return hex;
+        }
+        if (hex.charAt(0) === '#') {
+            hex = hex.substring(1);
+        }
+        if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
+        if (hex.length === 6) {
+            var r = parseInt(hex.substring(0, 2), 16);
+            var g = parseInt(hex.substring(2, 4), 16);
+            var b = parseInt(hex.substring(4, 6), 16);
+            return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+        }
+        return colorStr;
+    }
+
     function resize() {
         if (!canvas) return;
         var parent = canvas.parentElement;
@@ -156,18 +176,14 @@ var GraphModule = (function () {
     function getScreenPos(nx, ny) {
         var layout = getLayout();
         var sx = layout.offsetX + (nx * layout.size);
-        var sy = isFlipped
-            ? layout.offsetY + (ny * layout.size)
-            : (height - layout.offsetY) - (ny * layout.size);
+        var sy = (height - layout.offsetY) - (ny * layout.size);
         return { x: sx, y: sy };
     }
 
     function getNormPos(sx, sy) {
         var layout = getLayout();
         var nx = (sx - layout.offsetX) / layout.size;
-        var ny = isFlipped
-            ? (sy - layout.offsetY) / layout.size
-            : ((height - layout.offsetY) - sy) / layout.size;
+        var ny = ((height - layout.offsetY) - sy) / layout.size;
         return { x: nx, y: ny };
     }
 
@@ -305,12 +321,9 @@ var GraphModule = (function () {
         var offsetY = Math.floor(layout.offsetY);
 
         function toScreen(nx, ny) {
-            var sy = (isMain && isFlipped)
-                ? offsetY + (ny * size)
-                : (h - offsetY) - (ny * size);
             return {
                 x: offsetX + (nx * size),
-                y: sy
+                y: (h - offsetY) - (ny * size)
             };
         }
 
@@ -405,9 +418,8 @@ var GraphModule = (function () {
                     if (window.ModalModule) window.ModalModule.error('No keyframes selected. Select 2 adjacent keyframes first.', 'Graph Editor');
                     return;
                 }
-                isFlipped = !!data.flip;
-                cp1 = { x: data.x1, y: isFlipped ? 1 - data.y1 : data.y1 };
-                cp2 = { x: data.x2, y: isFlipped ? 1 - data.y2 : data.y2 };
+                cp1 = { x: data.x1, y: data.y1 };
+                cp2 = { x: data.x2, y: data.y2 };
                 render();
             } catch (e) {
                 if (window.ModalModule) window.ModalModule.error('No keyframes selected. Select 2 adjacent keyframes first.', 'Graph Editor');
@@ -434,7 +446,7 @@ var GraphModule = (function () {
     }
 
     function copyEaseValue() {
-        var value = cp1.x + "," + (isFlipped ? 1 - cp1.y : cp1.y) + ";" + cp2.x + "," + (isFlipped ? 1 - cp2.y : cp2.y);
+        var value = cp1.x + "," + cp1.y + ";" + cp2.x + "," + cp2.y;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(value).then(function() {
                 if (window.ModalModule) window.ModalModule.info("Ease value copied to clipboard!", "Copied");
@@ -467,10 +479,6 @@ var GraphModule = (function () {
             cp2.x = clamp(parseFloat(p2[0]), 0, 1);
             cp2.y = parseFloat(p2[1]);
             if (isNaN(cp1.x) || isNaN(cp1.y) || isNaN(cp2.x) || isNaN(cp2.y)) throw new Error("Invalid numbers");
-            if (isFlipped) {
-                cp1.y = 1 - cp1.y;
-                cp2.y = 1 - cp2.y;
-            }
             render();
             if (window.ModalModule) window.ModalModule.info("Ease value applied!", "Success");
         } catch (e) {
@@ -561,8 +569,8 @@ var GraphModule = (function () {
     function performSave(name) {
         var data = {
             name: name,
-            x1: cp1.x, y1: isFlipped ? 1 - cp1.y : cp1.y,
-            x2: cp2.x, y2: isFlipped ? 1 - cp2.y : cp2.y
+            x1: cp1.x, y1: cp1.y,
+            x2: cp2.x, y2: cp2.y
         };
 
         if (window.settings) {
@@ -584,8 +592,8 @@ var GraphModule = (function () {
             allPresets = [
                 { name: "Linear", x1: 0, y1: 0, x2: 1, y2: 1 },
                 { name: "Ease", x1: 0.8, y1: 0, x2: 0.2, y2: 1 },
-                { name: "Ease In", x1: 0.75, y1: 0, x2: 1, y2: 1 },
-                { name: "Ease Out", x1: 0, y1: 0, x2: 0.25, y2: 1 }
+                { name: "Ease In", x1: 0.33, y1: 0, x2: 0.15, y2: 1 },
+                { name: "Ease Out", x1: 0.85, y1: 0, x2: 0.67, y2: 1 }
             ];
             window.settings.set('presets', allPresets);
         }
@@ -672,8 +680,8 @@ var GraphModule = (function () {
         btn.appendChild(lbl);
 
         btn.addEventListener('click', function () {
-            cp1 = { x: p.x1, y: isFlipped ? 1 - p.y1 : p.y1 };
-            cp2 = { x: p.x2, y: isFlipped ? 1 - p.y2 : p.y2 };
+            cp1 = { x: p.x1, y: p.y1 };
+            cp2 = { x: p.x2, y: p.y2 };
             render();
         });
 
@@ -811,7 +819,7 @@ var GraphModule = (function () {
         }
         cx.lineTo(points[points.length - 1].x, baseLine);
         cx.closePath();
-        cx.fillStyle = accent + '18';
+        cx.fillStyle = hexToRgba(accent, 0.1);
         cx.fill();
 
         cx.beginPath();
