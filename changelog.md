@@ -2,6 +2,10 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.2.4] - 2026-08-11
+### Fixed
+- **Controller Tab Legacy CSS Compatibility**: Replaced all `gap` shorthand on flex containers with the `> * + * { margin }` adjacent-sibling technique, and replaced `gap` on grid containers with `grid-gap`. This ensures the Controller tab layout renders correctly on CC2018 and CC2019, which run on Chromium 61–74 where `gap` on flexbox is not supported (requires Chrome 84+).
+
 ## [1.2.3] - 2026-08-11
 ### Changed
 - **Controller Rotation Axis Visibility**: Rotation X and Y axis buttons on the Controller tab are now only visible when the hovered layer is a 3D layer. For 2D layers, only the Z axis button is shown, and the axis automatically resets to Z if previously set to X or Y.
