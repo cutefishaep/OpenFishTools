@@ -107,6 +107,7 @@ var GraphModule = (function () {
 
         loadPresets();
         loadVelPresets();
+        loadLastGraphValues();
         render();
     }
 
@@ -281,6 +282,7 @@ var GraphModule = (function () {
             }, 50);
         }
 
+        saveLastGraphValues();
         render();
     }
 
@@ -657,15 +659,16 @@ var GraphModule = (function () {
         };
 
         var thumbCanvas = document.createElement('canvas');
-        thumbCanvas.width = 65;
-        thumbCanvas.height = 65;
-        thumbCanvas.style.background = 'var(--graph-thumb-bg)';
+        thumbCanvas.width = 52;
+        thumbCanvas.height = 52;
+        thumbCanvas.style.background = 'var(--graph-bg)';
         thumbCanvas.style.border = '1px solid var(--border)';
         thumbCanvas.style.borderRadius = '4px';
         thumbCanvas.style.marginBottom = '6px';
+        btn.appendChild(thumbCanvas);
 
         var tCtx = thumbCanvas.getContext('2d');
-        drawGraphOnCanvas(tCtx, 65, 65, { x: p.x1, y: p.y1 }, { x: p.x2, y: p.y2 }, null);
+        drawGraphOnCanvas(tCtx, 52, 52, { x: p.x1, y: p.y1 }, { x: p.x2, y: p.y2 }, null);
 
         var lbl = document.createElement('span');
         lbl.innerText = p.name;
@@ -841,8 +844,8 @@ var GraphModule = (function () {
         if (isFull) {
             var clrHandle = getCSSVar('--graph-handle') || '#ffffff';
 
-            cx.strokeStyle = accent;
-            cx.lineWidth = 2.5;
+            cx.strokeStyle = clrHandle;
+            cx.lineWidth = 4;
             cx.lineCap = 'round';
             cx.beginPath();
             cx.moveTo(padX, startY); cx.lineTo(cp1X, cp1Y);
@@ -853,11 +856,17 @@ var GraphModule = (function () {
             cx.fillRect(padX - 4, startY - 4, 8, 8);
             cx.fillRect(w - padX - 4, endY - 4, 8, 8);
 
-            cx.fillStyle = clrHandle;
-            cx.strokeStyle = accent;
-            cx.lineWidth = 2;
-            cx.beginPath(); cx.arc(cp1X, cp1Y, 9, 0, Math.PI * 2); cx.fill(); cx.stroke();
-            cx.beginPath(); cx.arc(cp2X, cp2Y, 9, 0, Math.PI * 2); cx.fill(); cx.stroke();
+            cx.fillStyle = accent;
+            cx.shadowBlur = 4;
+            cx.shadowColor = 'rgba(0,0,0,0.3)';
+            cx.beginPath(); cx.arc(cp1X, cp1Y, 12, 0, Math.PI * 2); cx.fill();
+            cx.beginPath(); cx.arc(cp2X, cp2Y, 12, 0, Math.PI * 2); cx.fill();
+            cx.shadowBlur = 0;
+
+            cx.strokeStyle = 'rgba(0,0,0,0.1)';
+            cx.lineWidth = 1;
+            cx.beginPath(); cx.arc(cp1X, cp1Y, 12, 0, Math.PI * 2); cx.stroke();
+            cx.beginPath(); cx.arc(cp2X, cp2Y, 12, 0, Math.PI * 2); cx.stroke();
         }
     }
 
@@ -959,6 +968,7 @@ var GraphModule = (function () {
             autoApplyTimer = setTimeout(applyVelocity, 50);
         }
 
+        saveLastGraphValues();
         renderSpeedPreview();
     }
 
@@ -1102,6 +1112,41 @@ var GraphModule = (function () {
             if (res !== "true" && window.ModalModule) {
                 window.ModalModule.error("Failed to apply velocity.", "Speed Graph");
             }
+        });
+    }
+
+    function loadLastGraphValues() {
+        if (!window.FileStore) return;
+        var graphData = window.FileStore.get('last_graph_values');
+        if (graphData) {
+            if (graphData.cp1) cp1 = graphData.cp1;
+            if (graphData.cp2) cp2 = graphData.cp2;
+        }
+        var velData = window.FileStore.get('last_vel_values');
+        if (velData) {
+            var elInSpeed = document.getElementById('input-vel-in-speed');
+            var elInInfl = document.getElementById('input-vel-in-infl');
+            var elOutSpeed = document.getElementById('input-vel-out-speed');
+            var elOutInfl = document.getElementById('input-vel-out-infl');
+            if (elInSpeed && velData.inSpeed !== undefined) elInSpeed.value = velData.inSpeed;
+            if (elInInfl && velData.inInfl !== undefined) elInInfl.value = velData.inInfl;
+            if (elOutSpeed && velData.outSpeed !== undefined) elOutSpeed.value = velData.outSpeed;
+            if (elOutInfl && velData.outInfl !== undefined) elOutInfl.value = velData.outInfl;
+        }
+    }
+
+    function saveLastGraphValues() {
+        if (!window.FileStore) return;
+        window.FileStore.set('last_graph_values', { cp1: cp1, cp2: cp2 });
+        var elInSpeed = document.getElementById('input-vel-in-speed');
+        var elInInfl = document.getElementById('input-vel-in-infl');
+        var elOutSpeed = document.getElementById('input-vel-out-speed');
+        var elOutInfl = document.getElementById('input-vel-out-infl');
+        window.FileStore.set('last_vel_values', {
+            inSpeed: elInSpeed ? elInSpeed.value : 0,
+            inInfl: elInInfl ? elInInfl.value : 33,
+            outSpeed: elOutSpeed ? elOutSpeed.value : 0,
+            outInfl: elOutInfl ? elOutInfl.value : 33
         });
     }
 

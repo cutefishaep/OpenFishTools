@@ -5,12 +5,20 @@ setlocal enabledelayedexpansion
 :: OpenFishTools - Deploy to After Effects CEP
 :: ============================================
 
+:: Self-elevate to Administrator (UAC popup)
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Requesting Administrator privileges...
+    powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+    exit /b
+)
+
 set "EXTENSION_NAME=OpenFishTools"
 set "EXTENSION_ID=com.cutefish.tools"
 set "REG_VALUE=PlayerDebugMode"
 
-:: Target paths (user-level, no admin needed)
-set "CEP_DIR=%APPDATA%\Adobe\CEP\extensions"
+:: Target path (system-level, requires admin)
+set "CEP_DIR=%ProgramFiles(x86)%\Common Files\Adobe\CEP\extensions"
 set "TARGET_DIR=%CEP_DIR%\%EXTENSION_NAME%"
 
 echo.

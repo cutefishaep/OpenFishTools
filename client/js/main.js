@@ -130,6 +130,11 @@ function setupTabs() {
                     window.GraphModule.resize();
                 }, 10);
             }
+            if (target === 'graph' && window.ElasticGraphModule) {
+                setTimeout(function () {
+                    window.ElasticGraphModule.resize();
+                }, 10);
+            }
         });
     });
 }
@@ -184,6 +189,13 @@ function setupDonation() {
     if (btnWomtools) {
         btnWomtools.addEventListener('click', function () {
             csInterface.openURLInDefaultBrowser('https://www.tiktok.com/@womxsy');
+        });
+    }
+
+    var btnReportBug = document.getElementById('btn-report-bug');
+    if (btnReportBug) {
+        btnReportBug.addEventListener('click', function () {
+            csInterface.openURLInDefaultBrowser('https://www.cutefish.my.id/#contact');
         });
     }
 }
@@ -414,6 +426,12 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 window.GraphModule.init();
             } catch (e) { console.error("GraphModule init error", e); }
+        }
+
+        if (window.ElasticGraphModule) {
+            try {
+                window.ElasticGraphModule.init();
+            } catch (e) { console.error("ElasticGraphModule init error", e); }
         }
 
         if (window.DebugModule) {

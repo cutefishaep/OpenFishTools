@@ -368,3 +368,184 @@ function _debugProps() {
     }
     return JSON.stringify(info);
 }
+
+function _applyElastic(dataObj) {
+    try {
+        var hx = parseFloat(dataObj.x);
+        var hy = parseFloat(dataObj.y);
+        if (isNaN(hx)) hx = 0.40;
+        if (isNaN(hy)) hy = 0.55;
+
+        var comp = app.project.activeItem;
+        if (!comp || !(comp instanceof CompItem)) return "{ok:false}";
+
+        var props = _findSelectedProps();
+        if (!props || props.length === 0) props = _getAllKeyframeProps(comp);
+        if (!props || props.length === 0) return "{ok:false}";
+
+        var applied = false;
+        app.beginUndoGroup("Apply Elastic Bounce");
+
+        for (var p = 0; p < props.length; p++) {
+            var prop = props[p];
+            try {
+                var nk = 0;
+                try { nk = prop.numKeys; } catch (e) { continue; }
+                if (nk < 2) continue;
+
+                var keys = _getKeysForProp(prop, comp);
+                if (!keys || keys.length < 2) continue;
+                keys.sort(function (a, b) { return a - b; });
+
+                var dim = 1;
+                try {
+                    var sampleVal = prop.keyValue(keys[0]);
+                    if (sampleVal instanceof Array) dim = sampleVal.length;
+                } catch (e) {}
+
+                try {
+                    if (prop.expressionEnabled) prop.expressionEnabled = false;
+                } catch (e) {}
+
+                var targetTrough = Math.max(0.02, hx);
+                var dampingRatio = 0.04 + hy * 0.32;
+                var omega = (2.0 * Math.PI) / targetTrough;
+                var decay = dampingRatio * omega;
+
+                function elasticVal(t) {
+                    if (t <= 0) return 0;
+                    if (t >= 1) return 1;
+                    var fade = Math.pow(1 - t * t, 2);
+                    var env = Math.exp(-decay * t) * fade;
+                    var wave = Math.cos(omega * t);
+                    return 1 - (env * wave);
+                }
+
+                function findExtrema() {
+                    var pts = [{ t: 0, val: 0 }];
+                    var steps = 500;
+                    var prevV = elasticVal(0);
+                    var prevS = 0;
+                    for (var i = 1; i <= steps; i++) {
+                        var t = i / steps;
+                        var curV = elasticVal(t);
+                        var curS = curV - prevV;
+                        if (i > 1 && curS !== 0 && prevS !== 0) {
+                            if ((curS > 0 && prevS < 0) || (curS < 0 && prevS > 0)) {
+                                var pk = ((i - 0.5) / steps);
+                                pts.push({ t: pk, val: elasticVal(pk) });
+                            }
+                        }
+                        prevS = curS;
+                        prevV = curV;
+                    }
+                    pts.push({ t: 1, val: 1 });
+                    return pts;
+                }
+
+                var extrema = findExtrema();
+
+                var allNewTimes = [];
+                var allNewValues = [];
+
+                for (var k = 0; k < keys.length - 1; k++) {
+                    var idx1 = keys[k];
+                    var idx2 = keys[k + 1];
+                    var t1 = prop.keyTime(idx1);
+                    var t2 = prop.keyTime(idx2);
+                    var dt = t2 - t1;
+                    if (dt <= 0) continue;
+
+                    var val1 = prop.keyValue(idx1);
+                    var val2 = prop.keyValue(idx2);
+
+                    for (var e = 0; e < extrema.length; e++) {
+                        if (k > 0 && e === 0) continue;
+
+                        var et = extrema[e].t;
+                        var ev = extrema[e].val;
+
+                        allNewTimes.push(t1 + et * dt);
+
+                        if (dim === 1) {
+                            allNewValues.push(val1 + (val2 - val1) * ev);
+                        } else {
+                            var arr = [];
+                            for (var d = 0; d < dim; d++) {
+                                arr.push(val1[d] + (val2[d] - val1[d]) * ev);
+                            }
+                            allNewValues.push(arr);
+                        }
+                    }
+                }
+
+                var totalKeys = prop.numKeys;
+                for (var kk = totalKeys; kk >= 1; kk--) {
+                    try { prop.removeKey(kk); } catch (e) {}
+                }
+
+                for (var n = 0; n < allNewTimes.length; n++) {
+                    try {
+                        prop.setValueAtTime(allNewTimes[n], allNewValues[n]);
+                    } catch (e) {}
+                }
+
+                var finalNk = prop.numKeys;
+                for (var m = 1; m <= finalNk; m++) {
+                    try {
+                        prop.setInterpolationTypeAtKey(m, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
+                    } catch (e) {}
+                }
+
+                function elasticDeriv(t) {
+                    var h = 0.0001;
+                    var tm = Math.max(0, t - h);
+                    var tp = Math.min(1, t + h);
+                    return (elasticVal(tp) - elasticVal(tm)) / (tp - tm);
+                }
+
+                var influence = 33;
+                for (var m = 1; m <= finalNk; m++) {
+                    try {
+                        var kt = prop.keyTime(m);
+                        var overallT1 = prop.keyTime(1);
+                        var overallT2 = prop.keyTime(finalNk);
+                        var overallDt = overallT2 - overallT1;
+                        if (overallDt <= 0) continue;
+                        var tn = (kt - overallT1) / overallDt;
+                        tn = Math.max(0, Math.min(1, tn));
+                        var deriv = elasticDeriv(tn);
+
+                        var firstVal = prop.keyValue(1);
+                        var lastVal = prop.keyValue(finalNk);
+
+                        if (dim === 1) {
+                            var spd = (lastVal - firstVal) * deriv / overallDt;
+                            var ease = new KeyframeEase(spd, influence);
+                            prop.setTemporalEaseAtKey(m, [ease], [ease]);
+                        } else {
+                            var inArr = [];
+                            var outArr = [];
+                            for (var dd = 0; dd < dim; dd++) {
+                                var dspd = (lastVal[dd] - firstVal[dd]) * deriv / overallDt;
+                                inArr.push(new KeyframeEase(dspd, influence));
+                                outArr.push(new KeyframeEase(dspd, influence));
+                            }
+                            prop.setTemporalEaseAtKey(m, inArr, outArr);
+                        }
+                    } catch (e) {}
+                }
+
+                applied = true;
+            } catch (e) {
+                continue;
+            }
+        }
+
+        app.endUndoGroup();
+        return applied ? "{ok:true}" : "{ok:false}";
+    } catch (e) {
+        try { app.endUndoGroup(); } catch (e2) {}
+        return "{ok:false}";
+    }
+}

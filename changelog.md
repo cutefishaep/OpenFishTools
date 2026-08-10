@@ -2,6 +2,21 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.2.2] - 2026-08-10
+### Added
+- **Elastic Graph Card**: New Elastic Graph card on the Graph tab with interactive canvas, draggable handle for tuning decay/damping, copy/paste values, and Apply/Clear buttons. Generates elastic overshoot keyframes from two selected keyframes using extrema-point sampling and BEZIER interpolation with derivative-based temporal ease.
+- **Elastic Graph Presets**: Built-in presets (Simple Bounce, Advanced Bounce, Slow Bounce, Bouncy, Long Bounce, Elastic Bounce) stored in `fishtools_save.json` with save/load/delete support.
+- **Last Handle Value Persistence**: Value Graph (cp1/cp2), Speed Graph (velocity inputs), and Elastic Graph (handle x/y) now save their last position via FileStore and restore on panel reload.
+- **Report Bug Button**: Settings tab now includes a Report Bug card with a button that opens `cutefish.my.id/#contact` in the default browser.
+
+### Changed
+- **Graph Handle Visuals Unified**: Speed Graph and Elastic Graph handles now match the Value Graph style — white gagang (`clrHandle`, lineWidth 4, `lineCap: 'round'`), accent-filled circle (radius 12, shadow, thin dark border), matching the existing Value Graph `drawPoint` rendering.
+- **Elastic Graph Background**: Changed from `clearRect` (transparent) to fill with `--graph-bg`, matching the Speed Graph background behavior.
+- **Elastic Graph Preset Thumbnail Border**: Changed from hardcoded `rgba(255,180,0,0.3)` to theme-aware `--graph-border` CSS variable.
+
+### Removed
+- **Elastic Graph Keyframe Icons**: Removed extrema-point diamond/square markers from the Elastic Graph canvas for a cleaner look.
+
 ## [1.2.1] - 2026-08-09
 ### Fixed
 - **Update Detection (versioning)**: Re-released as 1.2.1 to fix update-checker not detecting the update from the previous misnumbered 1.1.51 build. The numeric segment `6` was less than `51`, so `isNewer()` returned false; bumping to 1.2.1 ensures users on 1.1.51 are correctly prompted to update.

@@ -328,7 +328,8 @@
                     <button id="btn-graph-apply" class="btn-primary w-full">APPLY</button>
                 </div>
 
-                <div class="presets-section">
+                <div class="presets-section"
+                    style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);">
                     <div class="row-between">
                         <span class="section-label">Presets Library</span>
                         <button id="btn-save-preset" class="icon-btn accent-icon-btn" title="Add Current Curve">
@@ -388,6 +389,51 @@
                             </button>
                         </div>
                         <div id="vel-preset-list" class="presets-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 10px;">
+                <h3>Elastic Graph</h3>
+
+                <div class="velocity-controls" style="margin-top: 8px;">
+                    <div class="graph-wrapper mb-8"
+                        style="background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative;">
+                        <canvas id="elastic-graph-canvas" width="400" height="250"
+                            style="width: 100%; height: auto; display: block; cursor: grab;"></canvas>
+                    </div>
+
+                    <div class="graph-toolbar">
+                        <div class="row-between">
+                            <div class="toggle-group">
+                                <button id="btn-elastic-snap" class="icon-toggle" title="Snap to Grid"><span
+                                        class="material-icons">grid_4x4</span></button>
+                            </div>
+                            <div class="toggle-group">
+                                <button id="btn-elastic-copy" class="icon-toggle"
+                                    title="Copy Elastic Value"><span
+                                        class="material-icons">content_copy</span></button>
+                                <button id="btn-elastic-paste" class="icon-toggle"
+                                    title="Paste Elastic Value"><span
+                                        class="material-icons">content_paste</span></button>
+                            </div>
+                        </div>
+                        <button id="btn-elastic-apply" class="btn-primary w-full">APPLY</button>
+                    </div>
+
+                    <input type="hidden" id="input-elastic-x" value="0.40">
+                    <input type="hidden" id="input-elastic-y" value="0.55">
+
+                    <div class="presets-section"
+                        style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);">
+                        <div class="row-between">
+                            <span class="section-label">Elastic Presets</span>
+                            <button id="btn-save-elastic-preset" class="icon-btn accent-icon-btn"
+                                title="Save Current Preset">
+                                <span class="material-icons">add_circle</span>
+                            </button>
+                        </div>
+                        <div id="elastic-preset-list" class="presets-grid"></div>
                     </div>
                 </div>
             </div>
@@ -957,6 +1003,12 @@
             </div>
 
             <div class="card">
+                <h3>Report Bug</h3>
+                <p class="text-muted mb-8">Found a bug? Let us know so we can fix it.</p>
+                <button id="btn-report-bug" class="btn-secondary w-full"><span class="material-icons">bug_report</span>REPORT BUG</button>
+            </div>
+
+            <div class="card">
                 <h3>Credit</h3>
                 <div class="credit-grid toolbox-grid">
                     <button class="credit-btn" id="btn-yt">
@@ -1097,6 +1149,7 @@
     <script src="./js/modules/modal.js"></script>
     <script src="./js/modules/tools.js"></script>
     <script src="./js/modules/graph.js"></script>
+    <script src="./js/modules/elasticgraph.js"></script>
     <script src="./js/modules/colorpalette.js"></script>
     <script src="./js/modules/dashboard.js"></script>
     <script src="./js/modules/beatmaker.js"></script>

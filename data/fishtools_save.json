@@ -62,5 +62,39 @@
     "enabled": false,
     "interval": 25,
     "lastSaved": null
+  },
+  "elastic_presets": {
+    "presets": [
+      {
+        "name": "Simple Bounce",
+        "x": 0.61,
+        "y": 0.95
+      },
+      {
+        "name": "Advance Bounce",
+        "x": 0.45,
+        "y": 0.07
+      },
+      {
+        "name": "Slow Bounce",
+        "x": 0.84,
+        "y": 0.95
+      },
+      {
+        "name": "Bouncy",
+        "x": 0.64,
+        "y": 0.05
+      },
+      {
+        "name": "Long Bounce",
+        "x": 0.29,
+        "y": 0.05
+      },
+      {
+        "name": "Elastic Bounce",
+        "x": 0.98,
+        "y": 0.95
+      }
+    ]
   }
 }

@@ -141,6 +141,9 @@ SettingsModule.prototype.applySettings = function (skipTabRestore) {
     if (window.GraphModule && typeof window.GraphModule.refresh === 'function') {
         window.GraphModule.refresh();
     }
+    if (window.ElasticGraphModule && typeof window.ElasticGraphModule.refresh === 'function') {
+        window.ElasticGraphModule.refresh();
+    }
 };
 
 SettingsModule.prototype.restoreLastTab = function () {
