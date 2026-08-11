@@ -244,7 +244,6 @@ function _OVERLAP() {
     if (selectedLayers.length === 0) return '{"error":true,"tool":"Overlap","type":"warn","message":"Please select a layer to apply Overlap. The layer must have at least 2 keyframes on Position, Scale, or Rotation."}';
     var layer = selectedLayers[0];
 
-    // Check that the selected layer has at least one animated transform property with 2+ keyframes
     var transform = layer.property("ADBE Transform Group");
     var propNames = ["ADBE Position", "ADBE Scale", "ADBE Rotate Z", "ADBE Rotate X", "ADBE Rotate Y"];
     var hasKeyframes = false;

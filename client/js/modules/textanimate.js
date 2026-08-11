@@ -29,7 +29,6 @@ window.TextAnimateModule = (function () {
         SCALE_POP:    { label:'Scale Pop',    posY: 0,    posX: 0,    scale:[0,0],rotation:null, bounce:true,  freq:3.0, decay:7.0, delay:0.025 },
         TYPEWRITER:   { label:'Typewriter',   posY: 0,    posX: 0,    scale:null, rotation:null, bounce:false, freq:3.0, decay:7.0, delay:0.025, typewriter:true },
         SPIN_IN:      { label:'Spin In',      posY: 0,    posX: 0,    scale:[0,0],rotation:-90,  bounce:false, freq:3.0, decay:7.0, delay:0.025 },
-        // Cutefish Choice Presets
         CF_1:         { label:'Cutefish 1',   posY: -80,  posX: 0,    scale:[0,0],rotation:null, bounce:true,  freq:3.0, decay:7.0, delay:0.020, tracking:20,  cf: 1 },
         CF_2:         { label:'Cutefish 2',   posY: 80,   posX: 0,    scale:[0,0],rotation: 90,  bounce:true,  freq:2.0, decay:9.0, delay:0.033, tracking:20,  cf: 2 },
         CF_3:         { label:'Cutefish 3',   posY: 0,    posX: 0,    scale:[0,0],rotation:-90,  bounce:true,  freq:2.0, decay:8.0, delay:0.060, tracking:20,  cf: 3 },
@@ -147,8 +146,8 @@ window.TextAnimateModule = (function () {
         if (!p) return 'JSON.stringify({error:true,message:"Unknown preset."})';
 
         var delayMult = 1.0;
-        if (basedOnVal === 3) { delayMult = 5.0; }      // Words
-        else if (basedOnVal === 4) { delayMult = 10.0; }    // Lines
+        if (basedOnVal === 3) { delayMult = 5.0; }
+        else if (basedOnVal === 4) { delayMult = 10.0; }
 
         var presetDelay = p.delay || 0.025;
         var finalDelay = presetDelay * delayMult;

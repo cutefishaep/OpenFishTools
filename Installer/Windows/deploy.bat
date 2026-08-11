@@ -6,20 +6,32 @@ setlocal enabledelayedexpansion
 :: ============================================
 
 :: Self-elevate to Administrator (UAC popup)
+if /i "%~1"=="elevated" goto :elevated
+
 net session >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Requesting Administrator privileges...
-    powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b
+if not errorlevel 1 goto :elevated
+
+echo Requesting Administrator privileges...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$p = Start-Process -FilePath '%~f0' -ArgumentList 'elevated' -Verb RunAs -Wait -PassThru; exit $p.ExitCode"
+if errorlevel 1 (
+    echo.
+    echo [ERROR] Administrator elevation was cancelled or failed.
+    echo Press any key to exit...
+    pause >nul
+    exit /b 1
 )
+exit /b 0
+
+:elevated
 
 set "EXTENSION_NAME=OpenFishTools"
 set "EXTENSION_ID=com.cutefish.tools"
 set "REG_VALUE=PlayerDebugMode"
 
 :: Target path (system-level, requires admin)
-set "CEP_DIR=%ProgramFiles(x86)%\Common Files\Adobe\CEP\extensions"
-set "TARGET_DIR=%CEP_DIR%\%EXTENSION_NAME%"
+:: Use an explicit path so parentheses never break batch blocks.
+set "CEP_DIR=%SystemDrive%\Program Files (x86)\Common Files\Adobe\CEP\extensions"
+set "TARGET_DIR=!CEP_DIR!\!EXTENSION_NAME!"
 
 echo.
 echo ========================================
@@ -117,33 +129,36 @@ echo.
 :: ----------------------------------------
 echo [2/3] Preparing target directory...
 
-if not exist "%CEP_DIR%" (
+if not exist "!CEP_DIR!" (
     echo        [*] Creating CEP extensions directory...
-    mkdir "%CEP_DIR%" 2>nul
-    if %errorlevel% neq 0 (
-        echo        [ERROR] Failed to create directory: %CEP_DIR%
-        pause
+    mkdir "!CEP_DIR!" 2>nul
+    if errorlevel 1 (
+        echo        [ERROR] Failed to create directory: !CEP_DIR!
+        echo Press any key to exit...
+        pause >nul
         exit /b 1
     )
 )
 
-:: Remove old version if exists
-if exist "%TARGET_DIR%" (
-    echo        [*] Removing old version from: %TARGET_DIR%
-    rmdir /s /q "%TARGET_DIR%" 2>nul
+:: Force-remove old version before copying
+if exist "!TARGET_DIR!" (
+    echo        [*] Force removing old version from: !TARGET_DIR!
+    attrib -r -s -h "!TARGET_DIR!" /s /d >nul 2>&1
+    rmdir /s /q "!TARGET_DIR!" 2>nul
 )
-if exist "%TARGET_DIR%" (
-    echo        [*] Cleaning remaining files...
-    del /f /q /s "%TARGET_DIR%" >nul 2>&1
-    rmdir /s /q "%TARGET_DIR%" 2>nul
+if exist "!TARGET_DIR!" (
+    echo        [*] Force cleaning remaining files...
+    attrib -r -s -h "!TARGET_DIR!\*" /s /d >nul 2>&1
+    del /f /q /s "!TARGET_DIR!" >nul 2>&1
+    rmdir /s /q "!TARGET_DIR!" 2>nul
 )
-if exist "%TARGET_DIR%" (
+if exist "!TARGET_DIR!" (
     echo        [WARNING] Could not completely remove old directory.
 ) else (
     echo        [OK] Old version removed successfully.
 )
 
-echo        [OK] Target directory ready: %TARGET_DIR%
+echo        [OK] Target directory ready: !TARGET_DIR!
 
 echo.
 
@@ -156,30 +171,39 @@ echo [3/3] Copying fresh extension files...
 for %%I in ("%~dp0..\..") do set "SOURCE_DIR=%%~fI"
 
 :: Create target structure
-mkdir "%TARGET_DIR%" 2>nul
-mkdir "%TARGET_DIR%\CSXS" 2>nul
-mkdir "%TARGET_DIR%\client" 2>nul
-mkdir "%TARGET_DIR%\host" 2>nul
-mkdir "%TARGET_DIR%\data" 2>nul
+mkdir "!TARGET_DIR!" 2>nul
+mkdir "!TARGET_DIR!\CSXS" 2>nul
+mkdir "!TARGET_DIR!\client" 2>nul
+mkdir "!TARGET_DIR!\host" 2>nul
+mkdir "!TARGET_DIR!\data" 2>nul
 
 :: Copy CSXS (manifest)
 echo        [*] Copying CSXS...
-xcopy /e /i /y /q "%SOURCE_DIR%\CSXS" "%TARGET_DIR%\CSXS" >nul
+robocopy "!SOURCE_DIR!\CSXS" "!TARGET_DIR!\CSXS" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+if errorlevel 8 goto :copy_error
 
 :: Copy client
 echo        [*] Copying client...
-xcopy /e /i /y /q "%SOURCE_DIR%\client" "%TARGET_DIR%\client" >nul
+robocopy "!SOURCE_DIR!\client" "!TARGET_DIR!\client" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+if errorlevel 8 goto :copy_error
 
 :: Copy host
 echo        [*] Copying host...
-xcopy /e /i /y /q "%SOURCE_DIR%\host" "%TARGET_DIR%\host" >nul
+robocopy "!SOURCE_DIR!\host" "!TARGET_DIR!\host" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+if errorlevel 8 goto :copy_error
 
 :: Copy data
 echo        [*] Copying data...
-if exist "%SOURCE_DIR%\data" xcopy /e /i /y /q "%SOURCE_DIR%\data" "%TARGET_DIR%\data" >nul
+if exist "!SOURCE_DIR!\data" (
+    robocopy "!SOURCE_DIR!\data" "!TARGET_DIR!\data" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+    if errorlevel 8 goto :copy_error
+)
 
 :: Copy .debug file if present
-if exist "%SOURCE_DIR%\.debug" copy /y "%SOURCE_DIR%\.debug" "%TARGET_DIR%\.debug" >nul
+if exist "!SOURCE_DIR!\.debug" (
+    copy /y "!SOURCE_DIR!\.debug" "!TARGET_DIR!\.debug" >nul
+    if errorlevel 1 goto :copy_error
+)
 
 echo        [OK] All files copied successfully!
 
@@ -189,7 +213,7 @@ echo   Deploy Complete!
 echo ========================================
 echo.
 echo   Extension: %EXTENSION_NAME%
-echo   Location:  %TARGET_DIR%
+echo   Location:  !TARGET_DIR!
 echo.
 echo   CEP Versions Enabled:
 echo     - CSXS.9  (CC 2018/2019)
@@ -204,4 +228,15 @@ echo.
 echo ========================================
 echo.
 
-pause
+echo Press any key to exit...
+pause >nul
+exit /b 0
+
+:copy_error
+echo.
+echo [ERROR] Failed to copy extension files.
+echo        Check the source and target paths, then try again as Administrator.
+echo.
+echo Press any key to exit...
+pause >nul
+exit /b 1

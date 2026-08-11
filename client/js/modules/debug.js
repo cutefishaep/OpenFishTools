@@ -24,7 +24,6 @@ window.DebugModule = (function () {
             });
         }
 
-        // Modal Testing Triggers
         bindClick('btn-test-update-modal', function () {
             if (window.UpdateModule) {
                 window.UpdateModule.showTestModal();

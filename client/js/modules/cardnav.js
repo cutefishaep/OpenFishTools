@@ -6,14 +6,16 @@ window.CardNavModule = (function () {
     var _currentIndex = -1;
     var _cards = [];
     var _scrollCooldown = false;
-    var _cooldownMs = 120; 
+    var _cooldownMs = 70; 
+    var _animationFrame = null;
+    var _isAnimating = false;
 
     
 
     function getVisibleCards() {
         var activeTab = document.querySelector('.tab-content.active');
         if (!activeTab) return [];
-        return Array.prototype.slice.call(activeTab.querySelectorAll('.card'));
+        return Array.prototype.slice.call(activeTab.querySelectorAll('.card, .controller-am-card'));
     }
 
     function focusCard(index) {
@@ -23,6 +25,9 @@ window.CardNavModule = (function () {
         _cards.forEach(function (c) { c.classList.remove('card--focused'); });
         _cards[index].classList.add('card--focused');
         _currentIndex = index;
+        if (window.ControllerModule && typeof window.ControllerModule.setSnapCard === 'function') {
+            window.ControllerModule.setSnapCard(_cards[index].id);
+        }
 
         var container = document.querySelector('.content-container');
         if (!container) return;
@@ -30,8 +35,34 @@ window.CardNavModule = (function () {
         var containerRect = container.getBoundingClientRect();
         var cardRect = card.getBoundingClientRect();
         var targetScrollTop = container.scrollTop + (cardRect.top - containerRect.top) - (container.clientHeight / 2) + (card.offsetHeight / 2);
-        var animOff = document.documentElement.getAttribute('data-anim') === 'off';
-        container.scrollTo({ top: targetScrollTop, behavior: animOff ? 'instant' : 'smooth' });
+        var animOff = document.documentElement.getAttribute('data-anim') === 'off' || document.body.getAttribute('data-anim') === 'off';
+        if (animOff) {
+            container.style.scrollBehavior = 'auto';
+            container.scrollTop = targetScrollTop;
+            _isAnimating = false;
+            return;
+        }
+
+        if (_animationFrame) cancelAnimationFrame(_animationFrame);
+        _isAnimating = true;
+        var previousScrollBehavior = container.style.scrollBehavior;
+        container.style.scrollBehavior = 'auto';
+        var start = container.scrollTop;
+        var distance = targetScrollTop - start;
+        var startedAt = Date.now();
+        var duration = 200;
+        function animate() {
+            var progress = Math.min(1, (Date.now() - startedAt) / duration);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            container.scrollTop = start + distance * eased;
+            if (progress < 1) _animationFrame = requestAnimationFrame(animate);
+            else {
+                _animationFrame = null;
+                _isAnimating = false;
+                container.style.scrollBehavior = previousScrollBehavior;
+            }
+        }
+        _animationFrame = requestAnimationFrame(animate);
     }
 
     function findClosestCardIndex() {
@@ -57,7 +88,7 @@ window.CardNavModule = (function () {
         if (!_enabled) return;
         e.preventDefault();
 
-        if (_scrollCooldown) return;
+        if (_scrollCooldown || _isAnimating) return;
         _scrollCooldown = true;
         setTimeout(function () { _scrollCooldown = false; }, _cooldownMs);
 
@@ -122,11 +153,16 @@ window.CardNavModule = (function () {
     function disable() {
         if (!_enabled) return;
         _enabled = false;
+        if (_animationFrame) { cancelAnimationFrame(_animationFrame); _animationFrame = null; }
+        _isAnimating = false;
         document.documentElement.setAttribute('data-snap', 'off');
 
         _cards.forEach(function (c) { c.classList.remove('card--focused'); });
         _cards = [];
         _currentIndex = -1;
+        if (window.ControllerModule && typeof window.ControllerModule.clearSnapCard === 'function') {
+            window.ControllerModule.clearSnapCard();
+        }
 
         var container = document.querySelector('.content-container');
         if (container) {

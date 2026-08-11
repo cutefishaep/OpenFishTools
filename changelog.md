@@ -2,6 +2,12 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.2.3] - 2026-08-11
+### Changed
+- **Controller Rotation Axis Visibility**: Rotation X and Y axis buttons on the Controller tab are now only visible when the hovered layer is a 3D layer. For 2D layers, only the Z axis button is shown, and the axis automatically resets to Z if previously set to X or Y.
+- **Controller Layer Name Default Text**: Changed the default "No layer selected" / "Select a layer in the active composition" message to a simpler "No Layer" across HTML, client JS, and host ExtendScript.
+- **Code Cleanup**: Removed all code comments from client and host script files (`controller.js`, `controller.jsx`, `graph.jsx`, `animation.jsx`, `misc.jsx`, `textanimate.js`, `debug.js`, `tools.js`, `tts.js`, `main.js`).
+
 ## [1.2.2] - 2026-08-10
 ### Added
 - **Elastic Graph Card**: New Elastic Graph card on the Graph tab with interactive canvas, draggable handle for tuning decay/damping, copy/paste values, and Apply/Clear buttons. Generates elastic overshoot keyframes from two selected keyframes using extrema-point sampling and BEZIER interpolation with derivative-based temporal ease.

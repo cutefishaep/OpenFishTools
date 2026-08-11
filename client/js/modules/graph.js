@@ -1110,7 +1110,12 @@ var GraphModule = (function () {
         };
         cs.evalScript('FishTools.applyVelocity(\'' + JSON.stringify(data) + '\')', function (res) {
             if (res !== "true" && window.ModalModule) {
-                window.ModalModule.error("Failed to apply velocity.", "Speed Graph");
+                var message = "Failed to apply velocity.";
+                try {
+                    var response = JSON.parse(res || '{}');
+                    if (response.error) message = response.error;
+                } catch (e) {}
+                window.ModalModule.error(message, "Speed Graph");
             }
         });
     }

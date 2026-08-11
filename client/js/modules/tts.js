@@ -83,7 +83,6 @@
                 });
             }
 
-            // Persist animation settings
             var dirSelect = document.getElementById('tts-anim-direction');
             if (dirSelect) {
                 dirSelect.addEventListener('change', function () {
@@ -130,7 +129,6 @@
                 select.appendChild(opt);
             });
 
-            // Trigger custom select refresh
             var event = new Event('refresh');
             select.dispatchEvent(event);
         },

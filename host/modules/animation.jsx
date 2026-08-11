@@ -769,13 +769,6 @@ function _X_FLIP() {
         decayCtrl.name = "Decay";
         decayCtrl.property("ADBE Slider Control-0001").setValue(20);
 
-        // ─── X FLIP expression ─────────────────────────────────────────────────
-        // • Beat 1 (odd):  direction LEFT  (-amp)
-        // • Beat 2 (even): direction RIGHT (+amp), alternating
-        // • WITHIN each beat: val1 (decay from beat) AND val2 (anticipation toward
-        //   next beat) BOTH use the CURRENT beat's direction → creates X-BEAT-style
-        //   bounce that stays on the SAME side (kiri→tengah→kiri, or kanan→tengah→kanan)
-        // • 1 frame before next beat: TELEPORT to opposite side to set up next beat
         var posExpr = [
             "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
             "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
@@ -818,7 +811,6 @@ function _X_FLIP() {
         var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
         positionProp.expression = posExpr;
 
-        // ─── Scale X flip expression (-100 / 100) ─────────────────────────────
         var scaleExpr = [
             "if (time < inPoint || time > outPoint){",
             "    [100, 100];",
@@ -876,13 +868,6 @@ function _Y_FLIP() {
         decayCtrl.name = "Decay";
         decayCtrl.property("ADBE Slider Control-0001").setValue(20);
 
-        // ─── Y FLIP expression ─────────────────────────────────────────────────
-        // • Beat 1 (odd):  direction UP   (-amp)
-        // • Beat 2 (even): direction DOWN (+amp), alternating
-        // • WITHIN each beat: val1 (decay from beat) AND val2 (anticipation toward
-        //   next beat) BOTH use the CURRENT beat's direction → creates Y-BEAT-style
-        //   bounce that stays on the SAME side (atas→tengah→atas, or bawah→tengah→bawah)
-        // • 1 frame before next beat: TELEPORT to opposite side to set up next beat
         var posExpr = [
             "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
             "decay = effect(\"Decay\")(\"ADBE Slider Control-0001\");",
@@ -922,7 +907,6 @@ function _Y_FLIP() {
         var positionProp = nullLayer.property("ADBE Transform Group").property("ADBE Position");
         positionProp.expression = posExpr;
 
-        // ─── Scale Y flip expression (100 / -100) ─────────────────────────────
         var scaleExpr = [
             "if (time < inPoint || time > outPoint){",
             "    [100, 100];",

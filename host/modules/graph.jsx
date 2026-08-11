@@ -1,3 +1,5 @@
+var _graphKeyHint = null;
+
 function _findSelectedProps() {
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) return [];
@@ -45,6 +47,33 @@ function _getKeysForProp(prop, comp) {
         var sk = prop.selectedKeys;
         if (sk && sk.length > 0) sel = sk;
     } catch (e) {}
+
+    if (sel.length === 1) {
+        try {
+            var selected = Number(sel[0]);
+            var total = prop.numKeys;
+            if (selected < total) sel.push(selected + 1);
+            else if (selected > 1) sel.unshift(selected - 1);
+        } catch (e) {}
+    }
+
+    if (sel.length > 1) {
+        sel.sort(function (a, b) { return a - b; });
+        var adjacent = [];
+        for (var selectedIndex = 0; selectedIndex < sel.length - 1; selectedIndex++) {
+            if (Number(sel[selectedIndex + 1]) === Number(sel[selectedIndex]) + 1) {
+                adjacent = [Number(sel[selectedIndex]), Number(sel[selectedIndex + 1])];
+                break;
+            }
+        }
+        if (adjacent.length === 2) sel = adjacent;
+    }
+
+    if (sel.length === 0 && _graphKeyHint && _graphKeyHint.length >= 2) {
+        try {
+            if (_graphKeyHint[0] >= 1 && _graphKeyHint[1] <= prop.numKeys) sel = [_graphKeyHint[0], _graphKeyHint[1]];
+        } catch (hintError) {}
+    }
     if (sel.length === 0) {
         var ct = comp.time;
         var nk = 0;
@@ -66,7 +95,56 @@ function _getKeysForProp(prop, comp) {
             } catch (e) {}
         }
     }
+    sel.sort(function (a, b) { return a - b; });
     return sel;
+}
+
+function _graphPropsWithKeys(props, comp, minimumKeys) {
+    var expanded = _expandGraphProps(props);
+    var result = [];
+    for (var i = 0; i < expanded.length; i++) {
+        try {
+            if (expanded[i] && expanded[i].numKeys >= minimumKeys) result.push(expanded[i]);
+        } catch (e) {}
+    }
+    return result;
+}
+
+function _hasSelectedKeyframes(props) {
+    for (var i = 0; i < props.length; i++) {
+        try {
+            if (props[i].selectedKeys && props[i].selectedKeys.length > 0) return true;
+        } catch (e) {}
+    }
+    return false;
+}
+
+function _expandGraphProps(props) {
+    var expanded = [];
+    for (var i = 0; i < props.length; i++) {
+        var prop = props[i];
+        var expandedPosition = false;
+        try {
+            if (prop.matchName === "ADBE Position") {
+                var originalKeys = _getKeysForProp(prop, app.project.activeItem);
+                if (originalKeys && originalKeys.length >= 2) _graphKeyHint = [originalKeys[0], originalKeys[1]];
+                if (!prop.dimensionsSeparated && prop.numKeys > 0) prop.dimensionsSeparated = true;
+                if (prop.dimensionsSeparated) {
+                    var parent = prop.parentProperty;
+                    var names = ["ADBE Position_0", "ADBE Position_1", "ADBE Position_2"];
+                    for (var axis = 0; axis < names.length; axis++) {
+                        try {
+                            var separated = parent.property(names[axis]);
+                            if (separated && separated.numKeys > 0) expanded.push(separated);
+                        } catch (axisError) {}
+                    }
+                    expandedPosition = true;
+                }
+            }
+        } catch (positionError) {}
+        if (!expandedPosition) expanded.push(prop);
+    }
+    return expanded;
 }
 
 function _readEase() {
@@ -122,6 +200,7 @@ function _readEase() {
 }
 
 function _applyEase(dataObj) {
+    _graphKeyHint = null;
     var x1 = dataObj.x1;
     var y1 = dataObj.y1;
     var x2 = dataObj.x2;
@@ -134,6 +213,31 @@ function _applyEase(dataObj) {
     var applied = false;
     app.beginUndoGroup("Apply Graph Ease");
     try {
+        var expandedProps = [];
+        for (var pi = 0; pi < props.length; pi++) {
+            var pp = props[pi];
+            var isSeparatedPos = false;
+            try {
+                if (pp.matchName === "ADBE Position") {
+                    var easeOriginalKeys = _getKeysForProp(pp, comp);
+                    if (easeOriginalKeys && easeOriginalKeys.length >= 2) _graphKeyHint = [easeOriginalKeys[0], easeOriginalKeys[1]];
+                    if (!pp.dimensionsSeparated) {
+                        pp.dimensionsSeparated = true;
+                    }
+                    var parentGroup = pp.parentProperty;
+                    var subNames = ["ADBE Position_0", "ADBE Position_1", "ADBE Position_2"];
+                    for (var si = 0; si < subNames.length; si++) {
+                        try {
+                            var subP = parentGroup.property(subNames[si]);
+                            if (subP && subP.numKeys >= 2) expandedProps.push(subP);
+                        } catch(e2) {}
+                    }
+                    isSeparatedPos = true;
+                }
+            } catch(e) {}
+            if (!isSeparatedPos) expandedProps.push(pp);
+        }
+        props = expandedProps;
         for (var i = 0; i < props.length; i++) {
             var prop = props[i];
             try {
@@ -272,13 +376,16 @@ function _readVelocity() {
 
 function _applyVelocity(dataStr) {
     try {
+        _graphKeyHint = null;
         var data = JSON.parse(dataStr);
         var comp = app.project.activeItem;
         if (!comp || !(comp instanceof CompItem)) return "false";
 
         var props = _findSelectedProps();
-        if (!props || props.length === 0) props = _getAllKeyframeProps(comp);
-        if (!props || props.length === 0) return "true";
+        if (!props || props.length === 0) return JSON.stringify({ ok: false, error: "Select a property and keyframe in the Speed Graph first." });
+        if (!_hasSelectedKeyframes(props)) return JSON.stringify({ ok: false, error: "Select at least one keyframe in the Speed Graph first." });
+        props = _graphPropsWithKeys(props, comp, 1);
+        if (!props || props.length === 0) return JSON.stringify({ ok: false, error: "No selected keyframe property is available." });
 
         var inS = parseFloat(data.inSpeed); if (isNaN(inS)) inS = 0;
         var inI = parseFloat(data.inInflu); if (isNaN(inI)) inI = 33.3;
@@ -371,6 +478,7 @@ function _debugProps() {
 
 function _applyElastic(dataObj) {
     try {
+        _graphKeyHint = null;
         var hx = parseFloat(dataObj.x);
         var hy = parseFloat(dataObj.y);
         if (isNaN(hx)) hx = 0.40;
@@ -382,6 +490,7 @@ function _applyElastic(dataObj) {
         var props = _findSelectedProps();
         if (!props || props.length === 0) props = _getAllKeyframeProps(comp);
         if (!props || props.length === 0) return "{ok:false}";
+        props = _expandGraphProps(props);
 
         var applied = false;
         app.beginUndoGroup("Apply Elastic Bounce");

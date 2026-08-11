@@ -37,6 +37,126 @@
 .todo-item { animation: slideIn 0.18s ease forwards; }
 #beat-tap-btn.pulse { animation: beatPulse 0.3s ease; }
 
+/* Controller card layout follows the supplied controller reference without its demo stage. */
+.controller-target { display:flex; justify-content:space-between; align-items:center; margin:0 2px 10px; color:var(--accent); font-size:10px; }
+.controller-cards-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+.controller-am-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 12px; display:flex; flex-direction:column; align-items:center; position:relative; height:300px; opacity:.45; filter:brightness(.7); transition:opacity .2s ease, filter .2s ease, border-color .2s ease; }
+.controller-am-card.is-active { opacity:1; filter:brightness(1); border-color:var(--accent); }
+.controller-am-card:hover { opacity:1; filter:brightness(1); border-color:var(--accent); }
+[data-snap="on"] .controller-am-card:hover:not(.is-active) { opacity:.45; filter:brightness(.7); border-color:var(--border); }
+.controller-display-pill-wrapper { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+.controller-display-pill { display:flex; align-items:center; background:var(--surface2); padding:6px 12px; border-radius:var(--radius); gap:12px; }
+.controller-val-group { display:flex; flex-direction:column; align-items:center; min-width:32px; }
+.controller-val-num { color:var(--accent); font:13px monospace; line-height:1.2; }
+.controller-val-label { color:var(--text-dim); font-size:8px; margin-top:2px; text-transform:lowercase; font-weight:700; }
+.controller-move-wrapper { width:100%; height:210px; flex:0 0 210px; display:flex; gap:12px; align-items:stretch; justify-content:center; min-height:210px; }
+.controller-move-pad { flex:1; height:100%; border:1px dashed var(--border2); border-radius:var(--radius); position:relative; display:flex; justify-content:center; align-items:center; cursor:crosshair; touch-action:none; }
+.controller-pad-hint { color:var(--text-mut); font-size:10px; pointer-events:none; text-align:center; }
+.controller-corner { position:absolute; width:10px; height:10px; border-color:var(--text-dim); border-style:solid; }
+.controller-corner.c-tl { top:-1px; left:-1px; border-width:2px 0 0 2px; } .controller-corner.c-tr { top:-1px; right:-1px; border-width:2px 2px 0 0; }
+.controller-corner.c-bl { bottom:-1px; left:-1px; border-width:0 0 2px 2px; } .controller-corner.c-br { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
+.controller-z-wheel-area { width:44px; height:210px; min-height:210px; flex:0 0 44px; position:relative; cursor:ns-resize; display:flex; justify-content:center; align-items:center; overflow:hidden; mask-image:linear-gradient(0deg,transparent 0%,black 15%,black 85%,transparent 100%); touch-action:none; visibility:visible !important; }
+.controller-z-wheel-ruler { display:block; visibility:visible; position:absolute; width:100%; height:100%; left:0; top:0; opacity:.9; pointer-events:none; }
+.controller-z-center-mark { position:absolute; top:50%; transform:translateY(-50%); width:90%; height:3px; background:var(--accent); z-index:3; pointer-events:none; }
+.controller-dial-wrapper { position:relative; width:200px; height:200px; display:flex; justify-content:center; align-items:center; margin:auto; touch-action:none; }
+.controller-rotation-axis-switch { display:flex; gap:3px; padding:2px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); margin:0 auto 4px; }
+.controller-rotation-axis-switch button { width:24px; height:20px; padding:0; border:0; border-radius:calc(var(--radius) - 1px); background:transparent; color:var(--text-dim); font-size:9px; font-weight:800; cursor:pointer; }
+.controller-rotation-axis-switch button.active { background:var(--accent); color:var(--bg); }
+.controller-dial-svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.controller-dial-bg { fill:none; stroke:var(--border2); stroke-width:2; } .controller-dial-trail,.controller-dial-trail-overlay { fill:none; stroke:var(--accent); stroke-width:4; stroke-linecap:round; }
+.controller-dial-center-display { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:2; pointer-events:none; }
+.controller-rot-multiplier { position:absolute; bottom:100%; margin-bottom:6px; color:var(--text-dim); font:13px monospace; min-height:18px; }
+.controller-rot-box { background:var(--surface2); padding:8px 18px; border-radius:var(--radius); }
+.controller-rot-val { color:var(--accent); font:22px monospace; }
+.controller-dial-knob { position:absolute; left:171px; top:86px; width:28px; height:28px; background:var(--text); border:1px solid var(--border2); border-radius:50%; box-shadow:var(--shadow); z-index:3; pointer-events:none; }
+.controller-scale-top-bar { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+.controller-link-btn { background:var(--surface2); border:0; color:var(--text-dim); width:34px; height:30px; border-radius:var(--radius); cursor:pointer; display:flex; justify-content:center; align-items:center; }
+.controller-link-btn.linked { color:var(--accent); }
+#card-scale .controller-wheel-area { width:100%; height:210px; flex:0 0 210px; min-height:210px; display:flex; flex-direction:column; position:relative; justify-content:center; }
+#card-scale .controller-wheel-row { min-height:0; height:210px; flex:1 1 0; }
+.controller-wheel-row { flex:1; width:100%; position:relative; cursor:ew-resize; display:flex; align-items:center; overflow:hidden; border-bottom:none; mask-image:linear-gradient(90deg,transparent 0%,black 12%,black 88%,transparent 100%); touch-action:none; }
+.controller-wheel-ruler { position:absolute; width:100%; height:100%; left:0; top:0; opacity:.9; }
+.controller-ruler-tick { position:absolute; display:block; background:var(--text-dim); opacity:.95; }
+.controller-ruler-tick.minor { width:1px; height:82%; top:9%; }
+.controller-ruler-tick.medium { width:1.5px; height:86%; top:7%; background:var(--text); }
+.controller-ruler-tick.major { width:2px; height:90%; top:5%; background:var(--text); }
+.controller-z-wheel-ruler .controller-ruler-tick { top:0; height:1px; }
+.controller-z-wheel-ruler .controller-ruler-tick.minor { width:82%; left:9%; }
+.controller-z-wheel-ruler .controller-ruler-tick.medium { width:86%; left:7%; }
+.controller-z-wheel-ruler .controller-ruler-tick.major { width:90%; left:5%; }
+.controller-center-mark-w { position:absolute; width:3px; height:96%; left:50%; top:2%; z-index:3; transform:translateX(-50%); pointer-events:none; background:var(--accent); }
+.controller-opacity-top-bar { width:100%; display:flex; align-items:center; gap:10px; margin:10px 0 14px; }
+.controller-opacity-icon { color:var(--text-dim); font-size:19px; }
+.controller-opacity-slider-container { flex:1; display:flex; align-items:center; }
+#opacity-slider { appearance:none; -webkit-appearance:none; width:100%; height:5px; background:linear-gradient(to right,var(--accent) 100%,var(--surface2) 100%); border-radius:3px; outline:none; cursor:pointer; overflow:visible; margin:8px 0; }
+#opacity-slider::-webkit-slider-runnable-track { height:5px; background:transparent; border-radius:3px; }
+#opacity-slider::-webkit-slider-thumb { appearance:none; -webkit-appearance:none; width:16px; height:16px; margin-top:-5.5px; border-radius:50%; background:var(--accent); border:2px solid var(--surface); box-shadow:var(--shadow); cursor:pointer; }
+#opacity-slider::-moz-range-track { height:5px; background:var(--surface2); border-radius:3px; }
+#opacity-slider::-moz-range-progress { height:5px; background:var(--accent); border-radius:3px; }
+#opacity-slider::-moz-range-thumb { width:13px; height:13px; border:2px solid var(--surface); border-radius:50%; background:var(--accent); cursor:pointer; }
+.controller-opacity-pill { padding:6px 10px; min-width:58px; justify-content:center; }
+.controller-blend-list { width:100%; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; }
+.controller-blend-item { width:100%; display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border:1px solid transparent; border-radius:var(--radius); background:var(--surface2); color:var(--text-dim); font-size:10px; cursor:pointer; }
+.controller-blend-item:hover { color:var(--text); border-color:var(--border2); }
+.controller-blend-item.is-selected { color:var(--text); border-color:var(--accent); }
+.controller-blend-item .material-icons { display:none; color:var(--accent); font-size:15px; }
+.controller-blend-item.is-selected .material-icons { display:block; }
+@media (max-width:420px) { .controller-cards-grid { grid-template-columns:1fr; } }
+.controller-link { display:flex; align-items:center; justify-content:center; width:25px; height:25px; border:1px solid var(--border); border-radius:var(--radius); color:var(--text-dim); background:transparent; cursor:pointer; }
+.controller-link.active { color:var(--accent); border-color:var(--accent); }
+
+/* Controller follows the selected UI style, like the rest of the tools. */
+body:not(.style-material-you):not(.style-simple) #tab-controller .controller-am-card {
+    border-radius:20px;
+    box-shadow:var(--shadow);
+}
+body:not(.style-material-you):not(.style-simple) #tab-controller .controller-display-pill,
+body:not(.style-material-you):not(.style-simple) #tab-controller .controller-link-btn {
+    border-radius:14px;
+}
+
+.style-material-you #tab-controller .controller-am-card {
+    background:var(--surface2);
+    border:none;
+    border-radius:28px;
+    padding:22px 18px;
+    box-shadow:var(--shadow);
+}
+.style-material-you #tab-controller .controller-display-pill,
+.style-material-you #tab-controller .controller-link-btn,
+.style-material-you #tab-controller .controller-rot-box {
+    border-radius:18px;
+}
+.style-material-you #tab-controller .controller-move-pad,
+.style-material-you #tab-controller .controller-wheel-row {
+    border-color:var(--border2);
+    border-radius:18px;
+}
+
+.style-simple #tab-controller .controller-am-card {
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:2px;
+    padding:8px 10px;
+    box-shadow:none;
+}
+.style-simple #tab-controller .controller-am-card.is-active,
+.style-simple #tab-controller .controller-am-card:hover {
+    border-color:var(--accent);
+}
+.style-simple #tab-controller .controller-display-pill,
+.style-simple #tab-controller .controller-link-btn,
+.style-simple #tab-controller .controller-rot-box,
+.style-simple #tab-controller .controller-move-pad,
+.style-simple #tab-controller .controller-wheel-row {
+    border-radius:0;
+}
+.style-simple #tab-controller .controller-display-pill,
+.style-simple #tab-controller .controller-link-btn,
+.style-simple #tab-controller .controller-rot-box {
+    background:var(--surface);
+}
+
 
 [data-anim="off"] *,
 [data-anim="off"] *::before,
@@ -320,6 +440,7 @@ textarea { min-height: 80px; resize: vertical; }
     padding: 10px 10px 72px;
     scroll-behavior: smooth;
 }
+html[data-anim="off"] .content-container { scroll-behavior: auto !important; }
 
 /* === Card Navigator (Snap Scroll Mode) === */
 .card {
@@ -332,6 +453,16 @@ textarea { min-height: 80px; resize: vertical; }
 }
 
 [data-snap="on"] .card.card--focused {
+    opacity: 1;
+    transform: scale(1);
+    border-color: var(--accent);
+}
+[data-snap="on"] .controller-am-card {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
+    opacity: 0.45;
+    transform: scale(0.985);
+}
+[data-snap="on"] .controller-am-card.card--focused {
     opacity: 1;
     transform: scale(1);
     border-color: var(--accent);

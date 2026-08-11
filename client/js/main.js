@@ -135,6 +135,9 @@ function setupTabs() {
                     window.ElasticGraphModule.resize();
                 }, 10);
             }
+            if (target === 'controller' && window.ControllerModule) {
+                window.ControllerModule.refresh();
+            }
         });
     });
 }
@@ -350,6 +353,12 @@ document.addEventListener('DOMContentLoaded', function () {
     setupFlyoutMenu();
     setupTabs();
     setupDonation();
+
+    if (window.ControllerModule) {
+        try {
+            window.ControllerModule.init();
+        } catch (e) { console.error("ControllerModule init error", e); }
+    }
 
     csInterface.evalScript("app.version", function (res) {
         var majorVersion = parseInt(res, 10);

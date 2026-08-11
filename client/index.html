@@ -933,9 +933,31 @@
             </div>
 
 
+         </div>
+
+        <div id="tab-controller" class="tab-content">
+            <div class="controller-target"><span class="section-label">CONTROLLER</span><span id="controller-layer-name">No Layer</span></div>
+            <div class="controller-cards-grid">
+                <div class="controller-am-card" id="card-move">
+                    <div class="controller-display-pill-wrapper"><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-x" class="controller-val-num">0.00</span><span class="controller-val-label">x</span></div><div class="controller-val-group"><span id="val-pos-y" class="controller-val-num">0.00</span><span class="controller-val-label">y</span></div></div><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-z" class="controller-val-num">0.00</span><span class="controller-val-label">z</span></div></div></div>
+                    <div class="controller-move-wrapper"><div class="controller-move-pad" id="move-pad"><i class="controller-corner c-tl"></i><i class="controller-corner c-tr"></i><i class="controller-corner c-bl"></i><i class="controller-corner c-br"></i><span class="controller-pad-hint">Swipe here to move layer</span></div><div class="controller-z-wheel-area" id="z-wheel"><div class="controller-z-center-mark" id="z-center-mark"></div><div class="controller-z-wheel-ruler" id="z-ruler"></div></div></div>
+                </div>
+                <div class="controller-am-card" id="card-rotate">
+                    <div class="controller-rotation-axis-switch" id="rotation-axis-switch"><button type="button" class="active" data-rotation-axis="Z">Z</button><button type="button" data-rotation-axis="X">X</button><button type="button" data-rotation-axis="Y">Y</button></div>
+                    <div class="controller-dial-wrapper" id="dial-area"><svg class="controller-dial-svg" viewBox="0 0 200 200"><circle class="controller-dial-bg" cx="100" cy="100" r="85"></circle><path class="controller-dial-trail" id="dial-trail-path"></path><path class="controller-dial-trail-overlay" id="dial-trail-overlay-path"></path></svg><div class="controller-dial-center-display"><span class="controller-rot-multiplier" id="rot-multiplier"></span><div class="controller-rot-box"><span id="val-rot" class="controller-rot-val">0°</span></div></div><i class="controller-dial-knob" id="dial-knob"></i></div>
+                </div>
+                <div class="controller-am-card" id="card-scale">
+                    <div class="controller-scale-top-bar"><div class="controller-display-pill"><div class="controller-val-group"><span id="val-scale-w" class="controller-val-num">100.0</span><span class="controller-val-label">Width</span></div></div><button class="controller-link-btn linked" id="btn-link"><span class="material-icons">link</span></button><div class="controller-display-pill"><div class="controller-val-group"><span id="val-scale-h" class="controller-val-num">100.0</span><span class="controller-val-label">Height</span></div></div></div>
+                    <div class="controller-wheel-area"><div class="controller-wheel-row" id="wheel-w"><div class="controller-center-mark-w" id="mark-w"></div><div class="controller-wheel-ruler" id="ruler-w"></div></div><div class="controller-wheel-row" id="wheel-h" style="display:none"><div class="controller-center-mark-w" id="mark-h"></div><div class="controller-wheel-ruler" id="ruler-h"></div></div></div>
+                </div>
+                <div class="controller-am-card" id="card-opacity">
+                    <div class="controller-opacity-top-bar"><span class="material-icons controller-opacity-icon">contrast</span><div class="controller-opacity-slider-container"><input type="range" id="opacity-slider" min="0" max="100" value="100"></div><div class="controller-display-pill controller-opacity-pill"><div class="controller-val-group"><span id="val-opacity" class="controller-val-num">100%</span></div></div></div>
+                    <div class="controller-blend-list" id="blend-list"></div>
+                </div>
+            </div>
         </div>
 
-        
+         
         <div id="tab-settings" class="tab-content">
 
             <div class="card">
@@ -1120,6 +1142,10 @@
             <span class="material-icons">construction</span>
             <span class="tab-label">Tools</span>
         </button>
+        <button class="tab-btn" data-tab="controller" title="Controller">
+            <span class="material-icons">tune</span>
+            <span class="tab-label">Controller</span>
+        </button>
         <button class="tab-btn" data-tab="graph" title="Graph">
             <span class="material-icons">show_chart</span>
             <span class="tab-label">Graph</span>
@@ -1160,6 +1186,7 @@
     <script src="./js/modules/autosave.js"></script>
     <script src="./js/modules/aetoam.js"></script>
     <script src="./js/modules/textanimate.js"></script>
+    <script src="./js/modules/controller.js"></script>
     <script src="./js/main.js"></script>
     <div id="custom-tooltip"></div>
 
