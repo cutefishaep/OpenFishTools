@@ -340,7 +340,7 @@
                 </div>
             </div>
 
-            <div class="card" style="margin-top: 10px;">
+            <div class="card">
                 <h3>Speed Graph</h3>
 
                 <div class="velocity-controls" style="margin-top: 8px;">
@@ -393,7 +393,7 @@
                 </div>
             </div>
 
-            <div class="card" style="margin-top: 10px;">
+            <div class="card">
                 <h3>Elastic Graph</h3>
 
                 <div class="velocity-controls" style="margin-top: 8px;">
@@ -936,7 +936,17 @@
          </div>
 
         <div id="tab-controller" class="tab-content">
-            <div class="controller-target"><span class="section-label">CONTROLLER</span><span id="controller-layer-name">No Layer</span></div>
+            <div class="controller-transport">
+                <button id="btn-prev-marker" class="transport-btn transport-skip">
+                    <span class="material-icons">skip_previous</span>
+                </button>
+                <button id="btn-play-pause" class="transport-btn transport-play">
+                    <span class="material-icons" id="play-pause-icon">play_arrow</span>
+                </button>
+                <button id="btn-next-marker" class="transport-btn transport-skip">
+                    <span class="material-icons">skip_next</span>
+                </button>
+            </div>
             <div class="controller-cards-grid">
                 <div class="controller-am-card" id="card-move">
                     <div class="controller-display-pill-wrapper"><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-x" class="controller-val-num">0.00</span><span class="controller-val-label">x</span></div><div class="controller-val-group"><span id="val-pos-y" class="controller-val-num">0.00</span><span class="controller-val-label">y</span></div></div><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-z" class="controller-val-num">0.00</span><span class="controller-val-label">z</span></div></div></div>

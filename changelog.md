@@ -2,6 +2,17 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.2.5] - 2026-08-12
+### Fixed
+- **Controller Prev/Next Marker Navigation**: Prev/Next buttons now navigate to the previous/next marker correctly. Uses the correct AE scripting API (`marker.numKeys` / `marker.keyTime(i)`) instead of the non-functional `numProperties` / `property(i).time`. When a layer is selected with markers, navigates layer markers; otherwise navigates composition markers. When the playhead is exactly on a marker, prev/next correctly jumps to adjacent markers instead of re-snapping to the same one.
+- **Controller Play/Pause State Sync**: Play/pause button now correctly tracks and displays the play state. Host function returns `"true"` / `"false"` string instead of `"ok"`. Added `transportGetPlayState` API for state sync on panel refresh.
+- **Controller Hover/Leave Race Condition**: Fixed a bug where hovering one card (e.g., Movement) and immediately moving to another (e.g., Rotation) would cause the delayed leave from the first card to wipe the second card's data and displays, corrupting values. `leave()` now only resets shared state when it's still the active card.
+- **Controller Position Drag Race**: `startMove` no longer calls `readLayer()` which would reset the display to a stale AE position before drag. Uses live display values as the drag base.
+- **Controller Rotation Drag Reset**: Fixed rotation value jumping back to the pre-drag value on second drag. Added `C.rotValue` state variable that tracks the live rotation value through `renderRotation()`, so subsequent drags continue from the correct value.
+- **Controller Undo Fragmentation**: One undo step per drag gesture instead of dozens. Each 30ms write batch no longer opens its own undo group. Uses the host's existing `_controllerBeginUndo` / `_controllerEndUndo` functions. Added safety nets in `leave()` and `window blur` to close undo groups if a drag is interrupted.
+- **Controller ClearSnapCard State**: `clearSnapCard()` now properly resets `C.hovered`, `C.rotValue`, and cancels pending leave timers to prevent stale state leaking into the next hover.
+- **Wheel Fade Gradients**: Added `-webkit-mask-image` prefix to z-wheel and scale wheel fade gradients so they render correctly in CEP's Chromium (which requires the `-webkit-` prefix for `mask-image`).
+
 ## [1.2.4] - 2026-08-11
 ### Fixed
 - **Controller Tab Legacy CSS Compatibility**: Replaced all `gap` shorthand on flex containers with the `> * + * { margin }` adjacent-sibling technique, and replaced `gap` on grid containers with `grid-gap`. This ensures the Controller tab layout renders correctly on CC2018 and CC2019, which run on Chromium 61–74 where `gap` on flexbox is not supported (requires Chrome 84+).

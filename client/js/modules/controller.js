@@ -5,7 +5,9 @@
     var C = {
         cs: null, data: null, card: null, timer: null, action: null, writeQueue: {}, writeTimer: null, refreshTimer: null, readToken: 0,
         linked: true, rotationAxis: 'Z', offsetZ: 0, offsetW: 0, offsetH: 0,
-        hovered: { move: false, rotate: false, scale: false, opacity: false }
+        rotValue: null,
+        hovered: { move: false, rotate: false, scale: false, opacity: false },
+        pendingLeave: null
     };
 
     function point(e) {
@@ -93,7 +95,7 @@
             var queue = C.writeQueue; C.writeQueue = {}; C.writeTimer = null;
             var keys = Object.keys(queue); if (!keys.length) return;
             var body = keys.map(function (k) { return queue[k]; }).join('; ');
-            evalScript('app.beginUndoGroup("' + undoLabel() + '"); (function(){ ' + body + '; })(); app.endUndoGroup();');
+            evalScript('(function(){ ' + body + '; })()');
         }, 30);
     }
     function flushWrites(done) {
@@ -102,14 +104,20 @@
         var keys = Object.keys(queue);
         if (!keys.length) { if (done) done(); return; }
         var body = keys.map(function (k) { return queue[k]; }).join('; ');
-        evalScript('app.beginUndoGroup("' + undoLabel() + '"); (function(){ ' + body + '; })(); app.endUndoGroup();', function () { if (done) done(); });
+        evalScript('(function(){ ' + body + '; })()', function () { if (done) done(); });
+    }
+    function beginDragUndo() {
+        evalScript('FishTools.controllerBeginUndo("' + undoLabel() + '")');
+    }
+    function endDragUndo() {
+        evalScript('FishTools.controllerEndUndo()');
     }
     function axis(prop, index, value) { var safe = finite(value, 0); var call = prop === 'ADBE Position' ? 'FishTools.controllerSetPositionAxis(' + index + ',' + safe + ')' : 'FishTools.controllerSetAxis("' + prop + '",' + index + ',' + safe + ')'; queueWrite(prop + ':' + index, call); }
     function positionXY(x, y) { var sx = finite(x, 0), sy = finite(y, 0); queueWrite('ADBE Position:XY', 'FishTools.controllerSetPositionXY(' + sx + ',' + sy + ')'); }
     function positionZ(z) { var sz = finite(z, 0); queueWrite('ADBE Position:2', 'FishTools.controllerSetPositionZ(' + sz + ')'); }
     function scalar(prop, value) { var safe = finite(value, 0); queueWrite(prop, 'FishTools.controllerSetValue("' + prop + '",' + safe + ')'); }
     function rotationProperty() { return C.rotationAxis === 'X' ? 'ADBE Rotate X' : C.rotationAxis === 'Y' ? 'ADBE Rotate Y' : 'ADBE Rotate Z'; }
-    function rotationValue(data) { return C.rotationAxis === 'X' ? data.rotationX : C.rotationAxis === 'Y' ? data.rotationY : data.rotationZ; }
+    function rotationValue(data) { return data ? (C.rotationAxis === 'X' ? data.rotationX : C.rotationAxis === 'Y' ? data.rotationY : data.rotationZ) : 0; }
     var blendModes = ['NORMAL', 'DISSOLVE', 'DARKEN', 'MULTIPLY', 'COLOR_BURN', 'LINEAR_BURN', 'DARKER_COLOR', 'LIGHTEN', 'SCREEN', 'COLOR_DODGE', 'LINEAR_DODGE', 'LIGHTER_COLOR', 'OVERLAY', 'SOFT_LIGHT', 'HARD_LIGHT', 'VIVID_LIGHT', 'LINEAR_LIGHT', 'PIN_LIGHT', 'HARD_MIX', 'DIFFERENCE', 'EXCLUSION', 'SUBTRACT', 'DIVIDE', 'HUE', 'SATURATION', 'COLOR', 'LUMINOSITY'];
     function blendLabel(name) { return name.replace(/_/g, ' ').toLowerCase().replace(/(^| )\w/g, function (c) { return c.toUpperCase(); }); }
     function setBlend(mode) {
@@ -144,7 +152,7 @@
         if (el('dial-knob')) { el('dial-knob').style.left = '171px'; el('dial-knob').style.top = '86px'; }
         if (el('dial-trail-path')) el('dial-trail-path').setAttribute('d', '');
         if (el('dial-trail-overlay-path')) el('dial-trail-overlay-path').setAttribute('d', '');
-        if (el('z-wheel')) { el('z-wheel').style.display = 'none'; el('z-wheel').style.visibility = 'hidden'; }
+        if (el('z-wheel')) { el('z-wheel').style.display = 'none'; }
         document.querySelectorAll('[data-rotation-axis="X"],[data-rotation-axis="Y"]').forEach(function (b) { b.style.display = 'none'; });
     }
 
@@ -161,7 +169,8 @@
     }
 
     function renderRotation(value) {
-        var angle = Number(value || 0), abs = Math.abs(Math.round(angle)), multi = Math.floor(abs / 360), rem = abs % 360;
+        var angle = Number(value || 0); C.rotValue = angle;
+        var abs = Math.abs(Math.round(angle)), multi = Math.floor(abs / 360), rem = abs % 360;
         if (C.hovered.rotate || C.action && C.action.kind === 'rotate') {
             put('rot-multiplier', multi ? (angle >= 0 ? multi : '-' + multi) + 'x' : '');
             put('val-rot', (angle < 0 ? '-' : '') + rem + '°');
@@ -185,8 +194,10 @@
             baseTrail = arc(100, 100, 85, 0, fullCircle);
             overlayTrail = arc(100, 100, 85, 0, fullCircle);
         }
-        if (el('dial-trail-path')) el('dial-trail-path').setAttribute('d', baseTrail);
-        if (el('dial-trail-overlay-path')) el('dial-trail-overlay-path').setAttribute('d', overlayTrail);
+        var trailPath = el('dial-trail-path');
+        if (trailPath) trailPath.setAttribute('d', baseTrail);
+        var overlayPath = el('dial-trail-overlay-path');
+        if (overlayPath) overlayPath.setAttribute('d', overlayTrail);
     }
 
     function readLayer() {
@@ -224,13 +235,11 @@
                 if (el('z-wheel')) {
                     var is3D = !!d.is3D;
                     el('z-wheel').style.display = is3D ? 'flex' : 'none';
-                    el('z-wheel').style.visibility = is3D ? 'visible' : 'hidden';
                 }
                 document.querySelectorAll('[data-rotation-axis="X"],[data-rotation-axis="Y"]').forEach(function (b) { b.style.display = d.is3D ? '' : 'none'; });
                 if (!d.is3D && C.rotationAxis !== 'Z') {
                     C.rotationAxis = 'Z';
                     document.querySelectorAll('[data-rotation-axis]').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-rotation-axis') === 'Z'); });
-                    if (C.card === 'rotate') readLayer();
                 }
             } catch (e) {
                 if (C.card) put('controller-layer-name', 'Host response invalid: ' + String(result || 'empty'));
@@ -241,8 +250,16 @@
 
     function enter(name, card) {
         if (document.documentElement.getAttribute('data-snap') === 'on') return;
+        if (C.pendingLeave) { clearTimeout(C.pendingLeave); C.pendingLeave = null; }
         C.readToken++;
         C.card = name; C.hovered[name] = true; card.classList.add('is-active');
+        ['move', 'rotate', 'scale', 'opacity'].forEach(function (n) {
+            if (n !== name && C.hovered[n]) {
+                C.hovered[n] = false;
+                var otherCard = el('card-' + n);
+                if (otherCard) otherCard.classList.remove('is-active');
+            }
+        });
         put('controller-layer-name', 'Reading selected layer...');
         if (C.timer) clearInterval(C.timer); C.timer = null;
         if (C.refreshTimer) clearTimeout(C.refreshTimer);
@@ -254,12 +271,19 @@
     }
     function leave(name, card) {
         if (document.documentElement.getAttribute('data-snap') === 'on') return;
+        C.hovered[name] = false; card.classList.remove('is-active');
+        if (C.card !== name) return;
+        var wasAction = !!C.action;
         C.readToken++;
-        C.hovered[name] = false; card.classList.remove('is-active'); C.action = null;
+        C.action = null;
+        C.rotValue = null;
         var leftData = C.data; C.data = null;
         if (C.refreshTimer) clearTimeout(C.refreshTimer);
         if (C.timer) clearInterval(C.timer); C.timer = null; C.card = null;
         resetDisplays();
+        if (wasAction) {
+            flushWrites(function () { endDragUndo(); });
+        }
         if (leftData) {
             syncRulerValues(leftData);
         } else {
@@ -269,33 +293,54 @@
     }
 
     function startMove(kind, e) {
-        if (!C.data || (!C.hovered.move && kind !== 'anchor')) return;
-        var p = point(e), value = kind === 'position' ? C.data.position : C.data.anchor;
+        if (C.refreshTimer) { clearTimeout(C.refreshTimer); C.refreshTimer = null; }
+        
+        var p = point(e), value;
+        if (kind === 'position') {
+            var dispX = finite(el('val-pos-x') ? Number(el('val-pos-x').textContent) : 0, 0);
+            var dispY = finite(el('val-pos-y') ? -Number(el('val-pos-y').textContent) : 0, 0);
+            var dispZ = C.data && C.data.position ? C.data.position[2] : 0;
+            value = [dispX, dispY, dispZ];
+        } else {
+            var dispX = finite(el('val-pos-x') ? Number(el('val-pos-x').textContent) : 0, 0);
+            var dispY = finite(el('val-pos-y') ? -Number(el('val-pos-y').textContent) : 0, 0);
+            value = [dispX, dispY, 0];
+        }
         if (!isFinite(p.x) || !isFinite(p.y)) return;
         C.action = { kind: kind, x: p.x, y: p.y, value: value || [0, 0], offset: 0 }; if (e.preventDefault) e.preventDefault();
+        beginDragUndo();
     }
     function startZ(e) {
-        if (!C.data || !C.hovered.move) return;
+        if (C.refreshTimer) { clearTimeout(C.refreshTimer); C.refreshTimer = null; }
+        C.readToken++;
+        readLayer();
         var p = point(e); if (!isFinite(p.x) || !isFinite(p.y)) return;
-        var curZ = finite(el('val-pos-z') ? Number(el('val-pos-z').textContent) : (C.data.position || [0, 0, 0])[2], 0);
+        var curZ = finite(el('val-pos-z') ? Number(el('val-pos-z').textContent) : (C.data && C.data.position ? C.data.position[2] : 0), 0);
         C.action = { kind: 'z', x: p.x, y: p.y, value: curZ, offset: C.offsetZ };
         if (e.preventDefault) e.preventDefault();
+        beginDragUndo();
     }
     function startScale(axisName, e) {
-        if (!C.data || !C.hovered.scale) return;
+        if (C.refreshTimer) { clearTimeout(C.refreshTimer); C.refreshTimer = null; }
+        C.readToken++;
+        readLayer();
         var p = point(e), index = axisName === 'w' ? 0 : 1;
         if (!isFinite(p.x) || !isFinite(p.y)) return;
         var dispId = axisName === 'w' ? 'val-scale-w' : 'val-scale-h';
-        var curVal = finite(el(dispId) ? Number(el(dispId).textContent) : (C.data.scale || [100, 100])[index], 100);
+        var curVal = finite(el(dispId) ? Number(el(dispId).textContent) : (C.data && C.data.scale ? C.data.scale[index] : 100), 100);
         var initOffset = axisName === 'w' ? C.offsetW : C.offsetH;
         C.action = { kind: axisName, x: p.x, y: p.y, value: curVal, offset: initOffset };
         if (e.preventDefault) e.preventDefault();
+        beginDragUndo();
     }
     function startRotate(e) {
-        if (!C.data || !C.hovered.rotate) return;
+        if (C.refreshTimer) { clearTimeout(C.refreshTimer); C.refreshTimer = null; }
         var p = point(e), rect = el('dial-area').getBoundingClientRect();
         if (!isFinite(p.x) || !isFinite(p.y)) return;
-        C.action = { kind: 'rotate', cx: rect.left + rect.width / 2, cy: rect.top + rect.height / 2, angle: Math.atan2(p.y - (rect.top + rect.height / 2), p.x - (rect.left + rect.width / 2)) * 180 / Math.PI, value: finite(rotationValue(C.data), 0) }; if (e.preventDefault) e.preventDefault();
+        var curRot = C.rotValue !== null ? C.rotValue
+            : (C.data ? finite(rotationValue(C.data), 0) : 0);
+        C.action = { kind: 'rotate', cx: rect.left + rect.width / 2, cy: rect.top + rect.height / 2, angle: Math.atan2(p.y - (rect.top + rect.height / 2), p.x - (rect.left + rect.width / 2)) * 180 / Math.PI, value: curRot }; if (e.preventDefault) e.preventDefault();
+        beginDragUndo();
     }
 
     function drag(e) {
@@ -345,8 +390,31 @@
         [['move', 'card-move'], ['rotate', 'card-rotate'], ['scale', 'card-scale'], ['opacity', 'card-opacity']].forEach(function (item) {
             var card = el(item[1]); if (!card) return;
             card.addEventListener('mouseenter', function () { enter(item[0], card); });
-            card.addEventListener('mouseleave', function () { leave(item[0], card); });
-            card.addEventListener('touchstart', function () { enter(item[0], card); }, false);
+            card.addEventListener('mouseleave', function () {
+                if (C.pendingLeave) clearTimeout(C.pendingLeave);
+                C.pendingLeave = setTimeout(function () {
+                    C.pendingLeave = null;
+                    leave(item[0], card);
+                }, 100);
+            });
+            card.addEventListener('touchstart', function (e) {
+                
+                ['move', 'rotate', 'scale', 'opacity'].forEach(function (n) {
+                    if (n !== item[0] && C.hovered[n]) {
+                        var otherCard = el('card-' + n);
+                        if (otherCard) leave(n, otherCard);
+                    }
+                });
+                enter(item[0], card);
+            }, { passive: true });
+            card.addEventListener('touchend', function () {
+                
+                if (C.pendingLeave) clearTimeout(C.pendingLeave);
+                C.pendingLeave = setTimeout(function () {
+                    C.pendingLeave = null;
+                    leave(item[0], card);
+                }, 400);
+            }, { passive: true });
         });
         var bindPointer = function (node, handler) {
             if (!node) return;
@@ -365,14 +433,95 @@
         var endDrag = function () {
             if (!C.action) return;
             C.action = null;
-            flushWrites();
+            
+            flushWrites(function () { endDragUndo(); });
         };
         window.addEventListener('mouseup', endDrag);
         window.addEventListener('touchend', endDrag);
+        window.addEventListener('blur', function () {
+            if (!C.action) return;
+            C.action = null;
+            flushWrites(function () { endDragUndo(); });
+        });
+        initTransportControls();
     };
+    function initTransportControls() {
+        var cs = C.cs;
+        if (!cs) return;
+
+        var btnPrev = el('btn-prev-marker');
+        var btnPlay = el('btn-play-pause');
+        var btnNext = el('btn-next-marker');
+        var iconPlay = el('play-pause-icon');
+        var isPlaying = false;
+
+        if (btnPrev) {
+            btnPrev.addEventListener('click', function () {
+                cs.evalScript('FishTools.transportPrevMarker()', function (res) {
+                    console.log('[Transport] prev marker result:', res);
+                    if (res && res.indexOf && res.indexOf('err') === 0) {
+                        put('controller-layer-name', 'Prev marker: ' + res);
+                    } else if (!res || res === 'undefined' || (res + '').indexOf('EvalScript error') !== -1) {
+                        put('controller-layer-name', 'Prev marker: host not deployed');
+                    }
+                });
+            });
+        }
+
+        if (btnNext) {
+            btnNext.addEventListener('click', function () {
+                cs.evalScript('FishTools.transportNextMarker()', function (res) {
+                    console.log('[Transport] next marker result:', res);
+                    if (res && res.indexOf && res.indexOf('err') === 0) {
+                        put('controller-layer-name', 'Next marker: ' + res);
+                    } else if (!res || res === 'undefined' || (res + '').indexOf('EvalScript error') !== -1) {
+                        put('controller-layer-name', 'Next marker: host not deployed');
+                    }
+                });
+            });
+        }
+
+        var togglePlay = function () {
+            isPlaying = !isPlaying;
+            if (iconPlay) iconPlay.textContent = isPlaying ? 'pause' : 'play_arrow';
+            if (btnPlay) btnPlay.classList.toggle('is-playing', isPlaying);
+            cs.evalScript('FishTools.transportPlayPause()', function (res) {
+                if (res && res.indexOf('err') === 0) {
+                    console.warn('[Transport] play error:', res);
+                } else if (!res || res === 'undefined') {
+                    console.warn('[Transport] FishTools.transportPlayPause not found — redeploy host');
+                } else {
+                    var playing = res === 'true' || res === true;
+                    if (iconPlay) iconPlay.textContent = playing ? 'pause' : 'play_arrow';
+                    if (btnPlay) btnPlay.classList.toggle('is-playing', playing);
+                }
+            });
+        };
+
+        if (btnPlay) {
+            btnPlay.addEventListener('click', togglePlay);
+            btnPlay.addEventListener('touchend', function (e) {
+                e.preventDefault();
+                togglePlay();
+            }, { passive: false });
+        }
+    }
+
+    function syncTransportState() {
+        if (!C.cs) return;
+        C.cs.evalScript('FishTools.transportGetPlayState()', function (result) {
+            var btnPlay = el('btn-play-pause');
+            var iconPlay = el('play-pause-icon');
+            if (!btnPlay || !iconPlay) return;
+            var playing = result === 'true' || result === true;
+            btnPlay.classList.toggle('is-playing', playing);
+            iconPlay.textContent = playing ? 'pause' : 'play_arrow';
+        });
+    }
     ControllerModule.refresh = function () {
         if (!C.cs) return;
         readLayer();
+        syncTransportState();
     };
     ControllerModule.setSnapCard = function (id) {
         var map = { 'card-move': 'move', 'card-rotate': 'rotate', 'card-scale': 'scale', 'card-opacity': 'opacity' };
@@ -393,8 +542,10 @@
     ControllerModule.clearSnapCard = function () {
         if (C.timer) clearInterval(C.timer);
         if (C.refreshTimer) clearTimeout(C.refreshTimer);
+        if (C.pendingLeave) { clearTimeout(C.pendingLeave); C.pendingLeave = null; }
         C.readToken++;
-        C.timer = null; C.card = null; C.data = null;
+        C.timer = null; C.card = null; C.data = null; C.rotValue = null;
+        C.hovered.move = C.hovered.rotate = C.hovered.scale = C.hovered.opacity = false;
         document.querySelectorAll('.controller-am-card').forEach(function (card) { card.classList.remove('is-active'); });
         resetDisplays();
     };

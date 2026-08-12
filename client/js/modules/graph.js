@@ -98,9 +98,12 @@ var GraphModule = (function () {
 
         if (speedCanvas) {
             speedCanvas.addEventListener('mousedown', onSpeedMouseDown);
+            speedCanvas.addEventListener('touchstart', onSpeedTouchStart, { passive: false });
         }
         window.addEventListener('mousemove', onSpeedMouseMove);
         window.addEventListener('mouseup', onSpeedMouseUp);
+        window.addEventListener('touchmove', onSpeedTouchMove, { passive: false });
+        window.addEventListener('touchend', onSpeedMouseUp);
 
         var btnVelSavePreset = document.getElementById('btn-save-vel-preset');
         if (btnVelSavePreset) btnVelSavePreset.addEventListener('click', saveVelPreset);
@@ -145,6 +148,19 @@ var GraphModule = (function () {
         canvas.height = rect.width;
         width = canvas.width;
         height = canvas.height;
+
+        
+        if (speedCanvas) {
+            var sParent = speedCanvas.parentElement;
+            if (sParent) {
+                var sRect = sParent.getBoundingClientRect();
+                var sW = Math.round(sRect.width) || speedCanvas.width;
+                var sH = Math.round(sW * 0.5); 
+                speedCanvas.width = sW;
+                speedCanvas.height = sH;
+            }
+        }
+
         render();
         renderSpeedPreview();
     }
@@ -951,6 +967,68 @@ var GraphModule = (function () {
 
         speedCanvas.style.cursor = 'grabbing';
         
+        if (isDraggingSpeed === 'cp1') {
+            var newOutInf = ((mx - pos.padX) / pos.graphW) * 200;
+            if (isVelSnapEnabled) newOutInf = Math.round(newOutInf / 5) * 5;
+            newOutInf = Math.max(0.1, Math.min(100, newOutInf));
+            document.getElementById('input-vel-out-infl').value = Math.round(newOutInf);
+        } else {
+            var newInInf = ((speedCanvas.width - pos.padX - mx) / pos.graphW) * 200;
+            if (isVelSnapEnabled) newInInf = Math.round(newInInf / 5) * 5;
+            newInInf = Math.max(0.1, Math.min(100, newInInf));
+            document.getElementById('input-vel-in-infl').value = Math.round(newInInf);
+        }
+
+        if (isVelAutoEnabled) {
+            clearTimeout(autoApplyTimer);
+            autoApplyTimer = setTimeout(applyVelocity, 50);
+        }
+
+        saveLastGraphValues();
+        renderSpeedPreview();
+    }
+
+    function onSpeedTouchStart(e) {
+        e.preventDefault();
+        if (!speedCanvas) return;
+        var touch = e.touches[0];
+        var rect = speedCanvas.getBoundingClientRect();
+        var scaleX = speedCanvas.width / rect.width;
+        var scaleY = speedCanvas.height / rect.height;
+        var mx = (touch.clientX - rect.left) * scaleX;
+        var my = (touch.clientY - rect.top) * scaleY;
+
+        var inSpd = parseFloat(document.getElementById('input-vel-in-speed').value) || 0;
+        var inInf = Math.min(100, Math.max(0.1, parseFloat(document.getElementById('input-vel-in-infl').value) || 33));
+        var outSpd = parseFloat(document.getElementById('input-vel-out-speed').value) || 0;
+        var outInf = Math.min(100, Math.max(0.1, parseFloat(document.getElementById('input-vel-out-infl').value) || 33));
+
+        var pos = getSpeedPos(inInf, inSpd, outInf, outSpd, speedCanvas.width, speedCanvas.height);
+        var dist1 = Math.hypot(mx - pos.cp1X, my - pos.cp1Y);
+        var dist2 = Math.hypot(mx - pos.cp2X, my - pos.cp2Y);
+
+        if (dist1 < 35 || dist2 < 35) {
+            isDraggingSpeed = (dist1 <= dist2) ? 'cp1' : 'cp2';
+        }
+    }
+
+    function onSpeedTouchMove(e) {
+        if (!isDraggingSpeed || !speedCanvas) return;
+        e.preventDefault();
+        var touch = e.touches[0];
+        var rect = speedCanvas.getBoundingClientRect();
+        var scaleX = speedCanvas.width / rect.width;
+        var scaleY = speedCanvas.height / rect.height;
+        var mx = (touch.clientX - rect.left) * scaleX;
+        var my = (touch.clientY - rect.top) * scaleY;
+
+        var inSpd = parseFloat(document.getElementById('input-vel-in-speed').value) || 0;
+        var inInf = Math.min(100, Math.max(0.1, parseFloat(document.getElementById('input-vel-in-infl').value) || 33));
+        var outSpd = parseFloat(document.getElementById('input-vel-out-speed').value) || 0;
+        var outInf = Math.min(100, Math.max(0.1, parseFloat(document.getElementById('input-vel-out-infl').value) || 33));
+
+        var pos = getSpeedPos(inInf, inSpd, outInf, outSpd, speedCanvas.width, speedCanvas.height);
+
         if (isDraggingSpeed === 'cp1') {
             var newOutInf = ((mx - pos.padX) / pos.graphW) * 200;
             if (isVelSnapEnabled) newOutInf = Math.round(newOutInf / 5) * 5;

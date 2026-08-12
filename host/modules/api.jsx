@@ -15,5 +15,9 @@ $.global.FishTools = {
     controllerSetPositionXY: _controllerSetPositionXY,
     controllerSetPositionZ: _controllerSetPositionZ,
     controllerBeginUndo: _controllerBeginUndo,
-    controllerEndUndo: _controllerEndUndo
+    controllerEndUndo: _controllerEndUndo,
+    transportPlayPause: _transportPlayPause,
+    transportGetPlayState: _transportGetPlayState,
+    transportPrevMarker: _transportPrevMarker,
+    transportNextMarker: _transportNextMarker
 };
