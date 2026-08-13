@@ -301,9 +301,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (window.SettingsModule) {
             window.settings = new window.SettingsModule();
-            
-            window.settings.loadSettings();
-            window.settings.setupListeners();
+            window.settings.init();
         }
     } catch (e) {
         console.error('FishTools: Settings init failed', e);

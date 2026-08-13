@@ -6,7 +6,7 @@ window.SettingsModule = function SettingsModule() {
         tipsEnabled: true,
         lastTab: 'main',
         theme: 'dark',
-        uiStyle: 'capsule',
+        uiStyle: 'simple',
         animEnabled: true,
         snapScroll: false,
         showIntro: true,

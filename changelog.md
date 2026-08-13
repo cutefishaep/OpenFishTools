@@ -2,6 +2,14 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.2.6] - 2026-08-13
+### Fixed
+- **Multi-Keyframe Graph Ease**: Fixed a critical bug in `_getKeysForProp` where selecting multiple keyframes (3 or more) truncated the selection to only keyframes 1 and 2. Now graph easing, velocity, and elastic curves apply to all selected keyframe segments simultaneously across single or multiple layers.
+- **Playhead CTI Keyframe Fallback**: Fixed playhead time matching in ExtendScript when no keyframe is explicitly selected so it correctly selects the enclosing pair `[k, k + 1]`.
+- **Default Theme & UI Style Initialization**: Fixed `main.js` to call `window.settings.init()` on startup so `applySettings()` sets `data-theme` and `uiStyle` attributes automatically on `DOMContentLoaded`.
+- **Data Save File Structure**: Cleaned up duplicate root-level theme keys in `data/fishtools_save.json`, establishing a single source of truth inside `"config"`. Set default theme to **Dark** (`"dark"`) and default UI style to **Simple** (`"simple"`).
+- **Windows Deployment Script (`deploy.bat`)**: Updated `deploy.bat` to include copying the `data/` folder and deploying cleanly to both `%ProgramFiles(x86)%\Common Files\Adobe\CEP\extensions\OpenFishTools` and `%APPDATA%\Adobe\CEP\extensions\OpenFishTools`.
+
 ## [1.2.5] - 2026-08-12
 ### Fixed
 - **Controller Prev/Next Marker Navigation**: Prev/Next buttons now navigate to the previous/next marker correctly. Uses the correct AE scripting API (`marker.numKeys` / `marker.keyTime(i)`) instead of the non-functional `numProperties` / `property(i).time`. When a layer is selected with markers, navigates layer markers; otherwise navigates composition markers. When the playhead is exactly on a marker, prev/next correctly jumps to adjacent markers instead of re-snapping to the same one.

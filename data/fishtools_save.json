@@ -1,7 +1,4 @@
 {
-  "theme": "ocean",
-  "animEnabled": true,
-  "uiStyle": "material",
   "config": {
     "tipsEnabled": true,
     "lastTab": "main",

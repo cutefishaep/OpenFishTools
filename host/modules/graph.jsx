@@ -57,23 +57,19 @@ function _getKeysForProp(prop, comp) {
         } catch (e) {}
     }
 
-    if (sel.length > 1) {
-        sel.sort(function (a, b) { return a - b; });
-        var adjacent = [];
-        for (var selectedIndex = 0; selectedIndex < sel.length - 1; selectedIndex++) {
-            if (Number(sel[selectedIndex + 1]) === Number(sel[selectedIndex]) + 1) {
-                adjacent = [Number(sel[selectedIndex]), Number(sel[selectedIndex + 1])];
-                break;
-            }
-        }
-        if (adjacent.length === 2) sel = adjacent;
-    }
-
     if (sel.length === 0 && _graphKeyHint && _graphKeyHint.length >= 2) {
         try {
-            if (_graphKeyHint[0] >= 1 && _graphKeyHint[1] <= prop.numKeys) sel = [_graphKeyHint[0], _graphKeyHint[1]];
+            var validHint = true;
+            for (var h = 0; h < _graphKeyHint.length; h++) {
+                if (_graphKeyHint[h] < 1 || _graphKeyHint[h] > prop.numKeys) {
+                    validHint = false;
+                    break;
+                }
+            }
+            if (validHint) sel = _graphKeyHint.slice(0);
         } catch (hintError) {}
     }
+
     if (sel.length === 0) {
         var ct = comp.time;
         var nk = 0;
@@ -84,7 +80,8 @@ function _getKeysForProp(prop, comp) {
                 var kt2 = prop.keyTime(k + 1);
                 if (ct >= kt1 - 0.001 && ct <= kt2 + 0.001) {
                     sel.push(k);
-                    if (sel.length >= 2) break;
+                    sel.push(k + 1);
+                    break;
                 }
             } catch (e) {}
         }
@@ -95,8 +92,16 @@ function _getKeysForProp(prop, comp) {
             } catch (e) {}
         }
     }
+
     sel.sort(function (a, b) { return a - b; });
-    return sel;
+    var uniqueSel = [];
+    for (var u = 0; u < sel.length; u++) {
+        var val = Number(sel[u]);
+        if (u === 0 || val !== uniqueSel[uniqueSel.length - 1]) {
+            uniqueSel.push(val);
+        }
+    }
+    return uniqueSel;
 }
 
 function _graphPropsWithKeys(props, comp, minimumKeys) {
@@ -560,6 +565,7 @@ function _applyElastic(dataObj) {
                 for (var k = 0; k < keys.length - 1; k++) {
                     var idx1 = keys[k];
                     var idx2 = keys[k + 1];
+                    if (idx2 !== idx1 + 1) continue;
                     var t1 = prop.keyTime(idx1);
                     var t2 = prop.keyTime(idx2);
                     var dt = t2 - t1;

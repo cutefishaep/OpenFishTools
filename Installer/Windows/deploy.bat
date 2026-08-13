@@ -177,31 +177,44 @@ mkdir "!TARGET_DIR!\client" 2>nul
 mkdir "!TARGET_DIR!\host" 2>nul
 mkdir "!TARGET_DIR!\data" 2>nul
 
+set "USER_CEP_DIR=%APPDATA%\Adobe\CEP\extensions"
+set "USER_TARGET_DIR=!USER_CEP_DIR!\!EXTENSION_NAME!"
+mkdir "!USER_TARGET_DIR!" 2>nul
+mkdir "!USER_TARGET_DIR!\CSXS" 2>nul
+mkdir "!USER_TARGET_DIR!\client" 2>nul
+mkdir "!USER_TARGET_DIR!\host" 2>nul
+mkdir "!USER_TARGET_DIR!\data" 2>nul
+
 :: Copy CSXS (manifest)
 echo        [*] Copying CSXS...
 robocopy "!SOURCE_DIR!\CSXS" "!TARGET_DIR!\CSXS" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+robocopy "!SOURCE_DIR!\CSXS" "!USER_TARGET_DIR!\CSXS" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
 if errorlevel 8 goto :copy_error
 
 :: Copy client
 echo        [*] Copying client...
 robocopy "!SOURCE_DIR!\client" "!TARGET_DIR!\client" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+robocopy "!SOURCE_DIR!\client" "!USER_TARGET_DIR!\client" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
 if errorlevel 8 goto :copy_error
 
 :: Copy host
 echo        [*] Copying host...
 robocopy "!SOURCE_DIR!\host" "!TARGET_DIR!\host" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+robocopy "!SOURCE_DIR!\host" "!USER_TARGET_DIR!\host" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
 if errorlevel 8 goto :copy_error
 
 :: Copy data
 echo        [*] Copying data...
 if exist "!SOURCE_DIR!\data" (
     robocopy "!SOURCE_DIR!\data" "!TARGET_DIR!\data" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
+    robocopy "!SOURCE_DIR!\data" "!USER_TARGET_DIR!\data" /E /IS /IT /COPY:DAT /DCOPY:DAT /R:0 /W:0 /NFL /NDL /NJH /NJS /NP >nul
     if errorlevel 8 goto :copy_error
 )
 
 :: Copy .debug file if present
 if exist "!SOURCE_DIR!\.debug" (
     copy /y "!SOURCE_DIR!\.debug" "!TARGET_DIR!\.debug" >nul
+    copy /y "!SOURCE_DIR!\.debug" "!USER_TARGET_DIR!\.debug" >nul
     if errorlevel 1 goto :copy_error
 )
 
