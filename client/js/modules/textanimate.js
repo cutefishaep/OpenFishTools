@@ -224,7 +224,7 @@ window.TextAnimateModule = (function () {
             '      }',
             '    }',
             '    if(hasExisting){',
-            '      return JSON.stringify({error:true,isDuplicate:true,message:"Animasi sudah ada pada layer ini. Silakan hapus terlebih dahulu dengan mengklik tombol hapus (ikon tempat sampah) di bagian atas card Text Animate."});',
+            '      return JSON.stringify({error:true,isDuplicate:true,message:"Animation already exists on this layer. Please remove it first by clicking the delete button (trash icon) at the top of the Text Animate card."});',
             '    }',
             '',
             '    var inDur=' + inDur + ', outDur=' + outDur + ';',

@@ -767,7 +767,7 @@ function _X_FLIP() {
         ampCtrl.property("ADBE Slider Control-0001").setValue(500);
         var decayCtrl = fx.addProperty("ADBE Slider Control");
         decayCtrl.name = "Decay";
-        decayCtrl.property("ADBE Slider Control-0001").setValue(20);
+        decayCtrl.property("ADBE Slider Control-0001").setValue(15);
 
         var posExpr = [
             "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
@@ -778,32 +778,45 @@ function _X_FLIP() {
             "if (time < inPoint || time > outPoint || !m || m.numKeys === 0){",
             "    value;",
             "}else{",
-            "    // Find last beat index (n) at or before current time",
-            "    n = m.nearestKey(time).index;",
-            "    if (m.key(n).time > time) n = n - 1;",
-            "",
-            "    if (n <= 0){",
-            "        // Before first beat: pre-position to LEFT (beat 1 is LEFT)",
-            "        value + [-amp, 0];",
-            "    }else{",
-            "        t1 = m.key(n).time;",
-            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
-            "        oneFrame = thisComp.frameDuration;",
-            "",
-            "        // Odd beat (1,3,5…) = LEFT (-1), Even (2,4,6…) = RIGHT (+1)",
-            "        dir = (n % 2 === 1) ? -1 : 1;",
-            "",
-            "        if (n < m.numKeys && time >= t2 - oneFrame){",
-            "            // 1 frame before next beat → teleport to opposite side",
-            "            val = -dir * amp;",
-            "        }else{",
-            "            // X BEAT formula but BOTH val1 and val2 use the SAME direction",
-            "            // → bounce stays on current side (left bounce stays left, right stays right)",
-            "            val1 = dir * amp / Math.exp((time - t1) * decay);",
-            "            val2 = dir * amp / Math.exp((t2 - time) * decay);",
-            "            val = (Math.abs(val1) > Math.abs(val2)) ? val1 : val2;",
+            "    validKeys = [];",
+            "    for (i = 1; i <= m.numKeys; i++){",
+            "        kt = m.key(i).time;",
+            "        if (kt >= inPoint && kt <= outPoint){",
+            "            validKeys.push(i);",
             "        }",
-            "        value + [val, 0];",
+            "    }",
+            "",
+            "    if (validKeys.length === 0){",
+            "        value;",
+            "    }else{",
+            "        activeIdx = -1;",
+            "        for (k = 0; k < validKeys.length; k++){",
+            "            if (m.key(validKeys[k]).time <= time){",
+            "                activeIdx = k;",
+            "            }else{",
+            "                break;",
+            "            }",
+            "        }",
+            "",
+            "        if (activeIdx === -1){",
+            "            // From inPoint up to 1st marker: start from CENTER (0), smoothly approach 1st marker",
+            "            tNext = m.key(validKeys[0]).time;",
+            "            dir = -1; // 1st marker is LEFT (-1)",
+            "            val = -dir * amp / Math.exp((tNext - time) * decay);",
+            "            value + [val, 0];",
+            "        }else{",
+            "            t1 = m.key(validKeys[activeIdx]).time;",
+            "            hasNext = (activeIdx + 1 < validKeys.length);",
+            "            t2 = hasNext ? m.key(validKeys[activeIdx + 1]).time : (outPoint + 9999);",
+            "",
+            "            // 1st marker in null (activeIdx=0) = LEFT (-1), 2nd (activeIdx=1) = RIGHT (+1)...",
+            "            dir = (activeIdx % 2 === 0) ? -1 : 1;",
+            "",
+            "            val1 = dir * amp / Math.exp((time - t1) * decay);",
+            "            val2 = hasNext ? (dir * amp / Math.exp((t2 - time) * decay)) : 0;",
+            "            val = (Math.abs(val1) > Math.abs(val2)) ? val1 : val2;",
+            "            value + [val, 0];",
+            "        }",
             "    }",
             "}"
         ].join("\n");
@@ -813,22 +826,40 @@ function _X_FLIP() {
 
         var scaleExpr = [
             "if (time < inPoint || time > outPoint){",
-            "    [100, 100];",
+            "    value;",
             "}else{",
             "    m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
             "    if (!m || m.numKeys === 0){",
             "        value;",
             "    }else{",
-            "        n = m.nearestKey(time).index;",
-            "        if (m.key(n).time > time) n = n - 1;",
-            "        if (n <= 0){",
-            "            [-100, 100];",
+            "        validKeys = [];",
+            "        for (i = 1; i <= m.numKeys; i++){",
+            "            kt = m.key(i).time;",
+            "            if (kt >= inPoint && kt <= outPoint){",
+            "                validKeys.push(i);",
+            "            }",
+            "        }",
+            "",
+            "        if (validKeys.length === 0){",
+            "            value;",
             "        }else{",
-            "            t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
-            "            oneFrame = thisComp.frameDuration;",
-            "            beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
-            "            sX = (beatIdx % 2 === 1) ? -100 : 100;",
-            "            [sX, 100];",
+            "            activeIdx = -1;",
+            "            for (k = 0; k < validKeys.length; k++){",
+            "                if (m.key(validKeys[k]).time <= time){",
+            "                    activeIdx = k;",
+            "                }else{",
+            "                    break;",
+            "                }",
+            "            }",
+            "",
+            "            if (activeIdx === -1){",
+            "                // Before 1st marker: default scale",
+            "                value;",
+            "            }else{",
+            "                // 1st marker in null (activeIdx=0) -> -100, 2nd (activeIdx=1) -> +100...",
+            "                sX = (activeIdx % 2 === 0) ? -100 : 100;",
+            "                [sX, value[1]];",
+            "            }",
             "        }",
             "    }",
             "}"
@@ -866,7 +897,7 @@ function _Y_FLIP() {
         ampCtrl.property("ADBE Slider Control-0001").setValue(500);
         var decayCtrl = fx.addProperty("ADBE Slider Control");
         decayCtrl.name = "Decay";
-        decayCtrl.property("ADBE Slider Control-0001").setValue(20);
+        decayCtrl.property("ADBE Slider Control-0001").setValue(15);
 
         var posExpr = [
             "amp = effect(\"Amp\")(\"ADBE Slider Control-0001\");",
@@ -877,29 +908,45 @@ function _Y_FLIP() {
             "if (time < inPoint || time > outPoint || !m || m.numKeys === 0){",
             "    value;",
             "}else{",
-            "    n = m.nearestKey(time).index;",
-            "    if (m.key(n).time > time) n = n - 1;",
-            "",
-            "    if (n <= 0){",
-            "        // Before first beat: pre-position to UP (beat 1 is UP)",
-            "        value + [0, -amp];",
-            "    }else{",
-            "        t1 = m.key(n).time;",
-            "        t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
-            "        oneFrame = thisComp.frameDuration;",
-            "",
-            "        // Odd beat (1,3,5…) = UP (-1), Even (2,4,6…) = DOWN (+1)",
-            "        dir = (n % 2 === 1) ? -1 : 1;",
-            "",
-            "        if (n < m.numKeys && time >= t2 - oneFrame){",
-            "            // 1 frame before next beat → teleport to opposite side",
-            "            val = -dir * amp;",
-            "        }else{",
-            "            val1 = dir * amp / Math.exp((time - t1) * decay);",
-            "            val2 = dir * amp / Math.exp((t2 - time) * decay);",
-            "            val = (Math.abs(val1) > Math.abs(val2)) ? val1 : val2;",
+            "    validKeys = [];",
+            "    for (i = 1; i <= m.numKeys; i++){",
+            "        kt = m.key(i).time;",
+            "        if (kt >= inPoint && kt <= outPoint){",
+            "            validKeys.push(i);",
             "        }",
-            "        value + [0, val];",
+            "    }",
+            "",
+            "    if (validKeys.length === 0){",
+            "        value;",
+            "    }else{",
+            "        activeIdx = -1;",
+            "        for (k = 0; k < validKeys.length; k++){",
+            "            if (m.key(validKeys[k]).time <= time){",
+            "                activeIdx = k;",
+            "            }else{",
+            "                break;",
+            "            }",
+            "        }",
+            "",
+            "        if (activeIdx === -1){",
+            "            // From inPoint up to 1st marker: start from CENTER (0), smoothly approach 1st marker",
+            "            tNext = m.key(validKeys[0]).time;",
+            "            dir = -1; // 1st marker is UP (-1)",
+            "            val = -dir * amp / Math.exp((tNext - time) * decay);",
+            "            value + [0, val];",
+            "        }else{",
+            "            t1 = m.key(validKeys[activeIdx]).time;",
+            "            hasNext = (activeIdx + 1 < validKeys.length);",
+            "            t2 = hasNext ? m.key(validKeys[activeIdx + 1]).time : (outPoint + 9999);",
+            "",
+            "            // 1st marker in null (activeIdx=0) = UP (-1), 2nd (activeIdx=1) = DOWN (+1)...",
+            "            dir = (activeIdx % 2 === 0) ? -1 : 1;",
+            "",
+            "            val1 = dir * amp / Math.exp((time - t1) * decay);",
+            "            val2 = hasNext ? (dir * amp / Math.exp((t2 - time) * decay)) : 0;",
+            "            val = (Math.abs(val1) > Math.abs(val2)) ? val1 : val2;",
+            "            value + [0, val];",
+            "        }",
             "    }",
             "}"
         ].join("\n");
@@ -909,22 +956,40 @@ function _Y_FLIP() {
 
         var scaleExpr = [
             "if (time < inPoint || time > outPoint){",
-            "    [100, 100];",
+            "    value;",
             "}else{",
             "    m = (index + 1 <= thisComp.numLayers && thisComp.layer(index + 1).marker.numKeys > 0) ? thisComp.layer(index + 1).marker : thisComp.marker;",
             "    if (!m || m.numKeys === 0){",
             "        value;",
             "    }else{",
-            "        n = m.nearestKey(time).index;",
-            "        if (m.key(n).time > time) n = n - 1;",
-            "        if (n <= 0){",
-            "            [100, -100];",
+            "        validKeys = [];",
+            "        for (i = 1; i <= m.numKeys; i++){",
+            "            kt = m.key(i).time;",
+            "            if (kt >= inPoint && kt <= outPoint){",
+            "                validKeys.push(i);",
+            "            }",
+            "        }",
+            "",
+            "        if (validKeys.length === 0){",
+            "            value;",
             "        }else{",
-            "            t2 = (n < m.numKeys) ? m.key(n+1).time : outPoint + 9999;",
-            "            oneFrame = thisComp.frameDuration;",
-            "            beatIdx = (n < m.numKeys && time >= t2 - oneFrame) ? (n + 1) : n;",
-            "            sY = (beatIdx % 2 === 1) ? -100 : 100;",
-            "            [100, sY];",
+            "            activeIdx = -1;",
+            "            for (k = 0; k < validKeys.length; k++){",
+            "                if (m.key(validKeys[k]).time <= time){",
+            "                    activeIdx = k;",
+            "                }else{",
+            "                    break;",
+            "                }",
+            "            }",
+            "",
+            "            if (activeIdx === -1){",
+            "                // Before 1st marker: default scale",
+            "                value;",
+            "            }else{",
+            "                // 1st marker in null (activeIdx=0) -> -100, 2nd (activeIdx=1) -> +100...",
+            "                sY = (activeIdx % 2 === 0) ? -100 : 100;",
+            "                [value[0], sY];",
+            "            }",
             "        }",
             "    }",
             "}"
@@ -1292,9 +1357,6 @@ function _FISHEYE() {
         var adj = comp.layers.addSolid([0, 0, 0], "Fish Eye Ripple", comp.width, comp.height, 1);
         adj.adjustmentLayer = true;
         adj.label = 5;
-        adj.startTime = curTime - (2.5 * fd);
-        adj.inPoint = curTime - (2 * fd);
-        adj.outPoint = curTime + (3 * fd);
         if (selectedLayer) {
             try { adj.moveBefore(selectedLayer); } catch(e){}
         }
@@ -1309,21 +1371,29 @@ function _FISHEYE() {
         if (!warp) throw new Error("Warp effect creation failed.");
         var warpStyle = warp.property(1); 
         var bend = warp.property(3);      
-        if (warpStyle) warpStyle.setValue(12); 
+        if (warpStyle) warpStyle.setValue(12); // Fish Eye style
         if (!bend) throw new Error("Could not find Bend property in Warp effect.");
-        bend.setValueAtTime(curTime - (5 * fd), 0);
-        bend.setValueAtTime(curTime - (2 * fd), 20);
-        bend.setValueAtTime(curTime, -100);          
-        bend.setValueAtTime(curTime + (4 * fd), 20);
-        bend.setValueAtTime(curTime + (10 * fd), -5);
-        bend.setValueAtTime(curTime + (18 * fd), 0);
-        adj.inPoint = curTime - (5 * fd);
-        adj.outPoint = curTime + (19 * fd);
+
+        // Keyframe Timings & Values
+        bend.setValueAtTime(curTime - (6 * fd), 0);
+        bend.setValueAtTime(curTime - (2 * fd), 15);
+        bend.setValueAtTime(curTime, -80);          
+        bend.setValueAtTime(curTime + (6 * fd), 15);
+        bend.setValueAtTime(curTime + (14 * fd), -4);
+        bend.setValueAtTime(curTime + (22 * fd), 0);
+
+        adj.inPoint = curTime - (6 * fd);
+        adj.outPoint = curTime + (23 * fd);
+
+        // Standard Easy Ease (F9)
         for (var i = 1; i <= 6; i++) {
             bend.setInterpolationTypeAtKey(i, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
             var ease = new KeyframeEase(0, 33.33333);
             bend.setTemporalEaseAtKey(i, [ease], [ease]);
         }
+
+        for (var l = 1; l <= comp.numLayers; l++) comp.layer(l).selected = false;
+        adj.selected = true;
         return true;
     } catch (err) {
         alert("Fish Eye Error: " + err.toString());

@@ -2,6 +2,47 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.0] - 2026-08-16
+### Added
+- **3D Generator Suite**: Comprehensive procedural 3D model generator featuring 22 specialized tools categorized into clean, dedicated visual groups on the Tools tab:
+  - **Basic 3D**:
+    - **3 SPLIT (`GEN_3D_3SPLIT`)**: Splits the selected layer horizontally into 3 separate 3D slices (Left, Center, Right) parented to a master 3D Null controller.
+    - **2 SPLIT (`GEN_3D_2SPLIT`)**: Splits the selected layer horizontally into 2 separate 3D slices (Left, Right) parented to a master 3D Null controller.
+    - **TUNNEL (`GEN_3D_TUNNEL`)**: Creates a multi-ring forward depth tunnel (Z negative) with 8-tile border precomp, clean subtract center hole mask, dynamic Z Spacing slider (default 350px), continuous spiral Twist Rotation angle control, and alternating Split Rotation toggle.
+  - **Devices & Tech**:
+    - **PHONE (`GEN_3D_PHONE`)**: Realistic smartphone with body bezel, screen texture, 3-lens camera bump, and side buttons.
+    - **Z FLIP (`GEN_3D_ZFLIP`)**: Clamshell foldable phone with interactive X-axis folding hinge, outer cover screen, camera bump, and inner display.
+    - **Z FOLD (`GEN_3D_ZFOLD`)**: Book-style foldable device with interactive Y-axis folding hinge and expansive interior display.
+    - **TABLET (`GEN_3D_TABLET`)**: Ultra-slim tablet mockup with thin bezels and rear camera housing.
+    - **LAPTOP (`GEN_3D_LAPTOP`)**: Laptop mockup with keyboard base, trackpad, and an interactive opening lid hinge.
+    - **MONITOR (`GEN_3D_MONITOR`)**: Studio desktop monitor with ultra-slim display and aluminum desk stand.
+    - **PC TOWER (`GEN_3D_PC`)**: Desktop gaming chassis with tempered glass panel, front mesh, and interior GPU/RAM accents.
+    - **CRT TV (`GEN_3D_CRT`)**: Retro box television with curved screen face, channel dials, speaker grill, and dual rabbit-ear antennas.
+  - **Room & Furniture**:
+    - **ROOM (`GEN_3D_ROOM`)**: 3D stage room with floor, ceiling, and 3 surrounding walls.
+    - **DOOR (`GEN_3D_DOOR`)**: Architectural door assembly with outer frame, molding panels, and interactive opening door leaf.
+    - **WINDOW (`GEN_3D_WINDOW`)**: Window frame with sill and dual independently opening casement panes.
+    - **TABLE (`GEN_3D_TABLE`)**: Wooden dining/conference table with 4 corner pillar legs.
+    - **DESK (`GEN_3D_DESK`)**: Studio workstation desk with wood slab top, wire grommets, modesty panel, and metal legs.
+    - **CABINET (`GEN_3D_CABINET`)**: Two-door storage credenza with interior shelving and dual opening door hinges.
+  - **Props & Character**:
+    - **BOX (`GEN_3D_BOX`)**: Cardboard shipping box with 4 independently opening top flaps and textured outer walls.
+    - **BOOK (`GEN_3D_BOOK`)**: Hardcover book with rounded spine, interior paper block, and opening front cover.
+    - **BINDER (`GEN_3D_BINDER`)**: Office ring binder notebook with spine label and metal ring mechanism.
+    - **GLASSES (`GEN_3D_GLASSES`)**: Modern eyeglasses/sunglasses with bridge, tinted lenses, and dual folding temple arms.
+    - **MC 3D (`GEN_3D_MC`)**: Full 3D Minecraft character generator with UV skin texture extraction, 6-face cubic limbs, 1.06x 3D second-layer outer clothes/armor overlays, and 11-axis pose rigging controls.
+
+### Changed
+- **Internal Null Controller Architecture (100% Duplicate-Safe)**:
+  - All color controls now reside on a dedicated **`Color Controller`** Null inside the generated precomp, linking via internal `thisComp.layer("Color Controller").effect(...)("Color")`.
+  - All angle, flap, and pose controls reside on the internal **`[ObjectName]_Controller`** Null.
+  - Precomp layers in the main composition remain 100% clean with no external effect controls attached, allowing users to freely duplicate (`Ctrl+D`) 3D models in timeline or project panel without breaking expressions or linking back to original comps.
+  - Controller Nulls are ordered at the very top of each precomp layer list for immediate access.
+  - Applied visual layer color-coding across all 3D assemblies (Red for Master Controller, Peach for Color Controller, Green/Cyan for Hinges, Orange for Solids, Purple for Textures).
+  - Automatically enabled `motionBlur = true` across all generated 3D compositions and layers.
+- **Concise 3D Generator Button Tooltips**: Shortened all tooltip hover titles across 3D generator buttons in the UI for clean, uncluttered tooltips.
+- **Code Optimization**: Cleaned and stripped redundant inline comments across ExtendScript modules.
+
 ## [1.2.6] - 2026-08-13
 ### Fixed
 - **Multi-Keyframe Graph Ease**: Fixed a critical bug in `_getKeysForProp` where selecting multiple keyframes (3 or more) truncated the selection to only keyframes 1 and 2. Now graph easing, velocity, and elastic curves apply to all selected keyframe segments simultaneously across single or multiple layers.
