@@ -1,8 +1,8 @@
-#!/bin/bash
+﻿#!/bin/bash
 set -e
 
 APP_NAME="OpenFishTools"
-APP_VERSION="${APP_VERSION:-1.3.1}"
+APP_VERSION="${APP_VERSION:-1.3.2}"
 BUNDLE_ID="com.cutefish.tools"
 EXTENSION_FOLDER_NAME="OpenFishTools"
 

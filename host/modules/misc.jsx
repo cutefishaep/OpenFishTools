@@ -171,6 +171,8 @@ function _CUBE(w, h, d, useLayer) {
             sides[i].scale.setValue([100 * targetWSide / currentW, 100 * targetHSide / currentH, 100]);
         }
 
+        controller.moveToBeginning();
+
         var precompLayer = comp.layers.add(cubeComp);
         precompLayer.startTime = targetInPoint;
         precompLayer.inPoint = targetInPoint;
@@ -328,6 +330,7 @@ function _create3DFace(comp, name, w, h, pos, ori, parent, textureSource, target
     face.name = name;
     face.threeDLayer = true;
     face.motionBlur = true;
+    face.label = textureSource ? 10 : 11;
 
     // Set parent first before assigning local coordinates
     face.parent = parent;
@@ -361,6 +364,22 @@ function _setZRotationExpr(layer, expr) {
         var tGroup = layer.property("ADBE Transform Group") || layer;
         var p = tGroup.property("ADBE Rotate Z") || layer.property("ADBE Rotate Z") || layer.zRotation || layer.rotation;
         if (p) p.expression = expr;
+    } catch (e) {}
+}
+
+function _moveAllNullsToTop(targetComp) {
+    if (!targetComp) return;
+    try {
+        var nullLayers = [];
+        for (var i = 1; i <= targetComp.numLayers; i++) {
+            var lyr = targetComp.layer(i);
+            if (lyr.nullLayer) {
+                nullLayers.push(lyr);
+            }
+        }
+        for (var j = nullLayers.length - 1; j >= 0; j--) {
+            nullLayers[j].moveToBeginning();
+        }
     } catch (e) {}
 }
 
@@ -506,10 +525,7 @@ function _GEN_3D(type) {
             colorControlsList = [
                 { name: "Outer Box Color", val: cOuter },
                 { name: "Inner Shade Color", val: cInner }
-            ];
-            angleControlsList.push({ name: "Front & Back Flaps", val: 65 });
-            angleControlsList.push({ name: "Left & Right Flaps", val: 65 });
-
+            ];
             var bW = (layerSourceItem && layerSourceItem.width > 200) ? Math.min(layerSourceItem.width, 700) : 500;
             var bH = (layerSourceItem && layerSourceItem.height > 200) ? Math.min(layerSourceItem.height, 700) : 500;
             var bD = Math.min(bW, bH);
@@ -532,49 +548,42 @@ function _GEN_3D(type) {
 
             // 4. Hinge Nulls for Top Flaps (Split into Front/Back and Left/Right pairs)
             var flapH = bD * 0.48;
-            var flapW = bW * 0.48;
-            var flapFBExpr = 'var a = 65; try { a = thisComp.layer("' + baseName + '_Controller").effect("Front & Back Flaps")("Angle"); } catch(e) {} -a;';
-            var flapLRExpr = 'var a = 65; try { a = thisComp.layer("' + baseName + '_Controller").effect("Left & Right Flaps")("Angle"); } catch(e) {} -a;';
-
+            var flapW = bW * 0.48;
             // Front Flap Hinge Null
             var flapFrontHinge = objComp.layers.addNull();
             flapFrontHinge.name = "Flap_Front_Hinge";
             flapFrontHinge.threeDLayer = true;
+            flapFrontHinge.label = 14;
             flapFrontHinge.parent = controller;
             flapFrontHinge.position.setValue([0, -hH, -hD]);
-            flapFrontHinge.orientation.setValue([0, 0, 0]);
-            _setXRotationExpr(flapFrontHinge, flapFBExpr);
-            _create3DFace(objComp, "Flap_Front", bW, flapH, [0, 0, 0], [0, 0, 0], flapFrontHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 1.1, [bW / 2, flapH]);
+            flapFrontHinge.orientation.setValue([0, 0, 0]);            _create3DFace(objComp, "Flap_Front", bW, flapH, [0, 0, 0], [0, 0, 0], flapFrontHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 1.1, [bW / 2, flapH]);
 
             // Back Flap Hinge Null
             var flapBackHinge = objComp.layers.addNull();
             flapBackHinge.name = "Flap_Back_Hinge";
             flapBackHinge.threeDLayer = true;
+            flapBackHinge.label = 14;
             flapBackHinge.parent = controller;
             flapBackHinge.position.setValue([0, -hH, hD]);
-            flapBackHinge.orientation.setValue([0, 180, 0]);
-            _setXRotationExpr(flapBackHinge, flapFBExpr);
-            _create3DFace(objComp, "Flap_Back", bW, flapH, [0, 0, 0], [0, 0, 0], flapBackHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 0.8, [bW / 2, flapH]);
+            flapBackHinge.orientation.setValue([0, 180, 0]);            _create3DFace(objComp, "Flap_Back", bW, flapH, [0, 0, 0], [0, 0, 0], flapBackHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 0.8, [bW / 2, flapH]);
 
             // Left Flap Hinge Null
             var flapLeftHinge = objComp.layers.addNull();
             flapLeftHinge.name = "Flap_Left_Hinge";
             flapLeftHinge.threeDLayer = true;
+            flapLeftHinge.label = 14;
             flapLeftHinge.parent = controller;
             flapLeftHinge.position.setValue([-hW, -hH, 0]);
-            flapLeftHinge.orientation.setValue([0, -90, 0]);
-            _setXRotationExpr(flapLeftHinge, flapLRExpr);
-            _create3DFace(objComp, "Flap_Left", bD, flapW, [0, 0, 0], [0, 0, 0], flapLeftHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 0.85, [bD / 2, flapW]);
+            flapLeftHinge.orientation.setValue([0, -90, 0]);            _create3DFace(objComp, "Flap_Left", bD, flapW, [0, 0, 0], [0, 0, 0], flapLeftHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 0.85, [bD / 2, flapW]);
 
             // Right Flap Hinge Null
             var flapRightHinge = objComp.layers.addNull();
             flapRightHinge.name = "Flap_Right_Hinge";
             flapRightHinge.threeDLayer = true;
+            flapRightHinge.label = 14;
             flapRightHinge.parent = controller;
             flapRightHinge.position.setValue([hW, -hH, 0]);
-            flapRightHinge.orientation.setValue([0, 90, 0]);
-            _setXRotationExpr(flapRightHinge, flapLRExpr);
-            _create3DFace(objComp, "Flap_Right", bD, flapW, [0, 0, 0], [0, 0, 0], flapRightHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 0.95, [bD / 2, flapW]);
+            flapRightHinge.orientation.setValue([0, 90, 0]);            _create3DFace(objComp, "Flap_Right", bD, flapW, [0, 0, 0], [0, 0, 0], flapRightHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Outer Box Color", cOuter, 0.95, [bD / 2, flapW]);
         }
         else if (type === "CABINET") {
             var cWood = [0.42, 0.28, 0.18, 1.0];
@@ -586,10 +595,7 @@ function _GEN_3D(type) {
                 { name: "Door Color", val: cDoor },
                 { name: "Handles & Feet Color", val: cMetal },
                 { name: "Interior Shelf Color", val: cShelf }
-            ];
-            angleControlsList.push({ name: "Left Door Hinge Y", val: 0 });
-            angleControlsList.push({ name: "Right Door Hinge Y", val: 0 });
-
+            ];
             var cW = 560, cH = 840, cD = 360;
             var hcW = cW / 2, hcH = cH / 2, hcD = cD / 2;
 
@@ -609,11 +615,10 @@ function _GEN_3D(type) {
             var leftDoorHinge = objComp.layers.addNull();
             leftDoorHinge.name = "Left_Door_Hinge";
             leftDoorHinge.threeDLayer = true;
+            leftDoorHinge.label = 14;
             leftDoorHinge.parent = controller;
             leftDoorHinge.position.setValue([-hcW + 3, 0, -hcD - 3]);
-            leftDoorHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(leftDoorHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Left Door Hinge Y")("Angle"); } catch(e) {} -a;');
-
+            leftDoorHinge.orientation.setValue([0, 0, 0]);
             _create3DFace(objComp, "Left_Door", dW, dH, [0, 0, 0], [0, 0, 0], leftDoorHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Door Color", cDoor, 1.05, [0, dH / 2]);
             _create3DFace(objComp, "Left_Handle", 8, 80, [dW - 18, 0, -6], [0, 0, 0], leftDoorHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Handles & Feet Color", cMetal, 1.0);
 
@@ -621,11 +626,10 @@ function _GEN_3D(type) {
             var rightDoorHinge = objComp.layers.addNull();
             rightDoorHinge.name = "Right_Door_Hinge";
             rightDoorHinge.threeDLayer = true;
+            rightDoorHinge.label = 14;
             rightDoorHinge.parent = controller;
             rightDoorHinge.position.setValue([hcW - 3, 0, -hcD - 3]);
-            rightDoorHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(rightDoorHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Right Door Hinge Y")("Angle"); } catch(e) {} a;');
-
+            rightDoorHinge.orientation.setValue([0, 0, 0]);
             _create3DFace(objComp, "Right_Door", dW, dH, [0, 0, 0], [0, 0, 0], rightDoorHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Door Color", cDoor, 1.0, [dW, dH / 2]);
             _create3DFace(objComp, "Right_Handle", 8, 80, [-dW + 18, 0, -6], [0, 0, 0], rightDoorHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Handles & Feet Color", cMetal, 1.0);
 
@@ -751,7 +755,7 @@ function _GEN_3D(type) {
                 { name: "Trackpad Color", val: cPad },
                 { name: "Screen Bezel Color", val: cBezelLap }
             ];
-            angleControlsList.push({ name: "Screen Hinge X", val: 30 });
+            // Screen is controlled directly via Screen_Hinge Null (Cyan - Rotate X in timeline!)
 
             var lW = 820, lD = 540, bH = 18, sH = 540, sD = 10;
             var hlW = lW / 2, hlD = lD / 2, hbH = bH / 2, hsH = sH / 2, hsD = sD / 2;
@@ -817,14 +821,13 @@ function _GEN_3D(type) {
             var lidNull = objComp.layers.addNull();
             lidNull.name = "Screen_Hinge";
             lidNull.threeDLayer = true;
+            lidNull.label = 14;
             lidNull.motionBlur = true;
             lidNull.inPoint = 0;
             lidNull.outPoint = targetDuration;
             lidNull.parent = controller;
             lidNull.position.setValue([0, baseY - hbH, hlD - 2]);
-            lidNull.orientation.setValue([0, 0, 0]);
-            _setXRotationExpr(lidNull, 'var a = 30; try { a = thisComp.layer("' + baseName + '_Controller").effect("Screen Hinge X")("Angle"); } catch(e) {} -a;');
-
+            lidNull.orientation.setValue([0, 0, 0]);
             // Screen Display (Mockup texture maps to the display!)
             _create3DFace(objComp, "Screen_Display", lW - 32, sH - 32, [0, -hsH, -hsD - 1], [0, 0, 0], lidNull, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezelLap, 0.05);
             _create3DFace(objComp, "Screen_Bezel", lW, sH, [0, -hsH, -hsD], [0, 0, 0], lidNull, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezelLap, 1.0);
@@ -940,7 +943,7 @@ function _GEN_3D(type) {
 
             // Telescopic Antennas
             _create3DFace(objComp, "Antenna_Left", 6, 220, [-90, -htH - 95, 0], [0, 0, -28], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Knobs & Trim Color", cKnob, 1.15);
-            _create3DFace(objComp, "Antenna_Right", 6, 220, [90, -htH - 95, 0], [0, 0, 28], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Knobs & Trim Color", cKnob, 1.15);
+_create3DFace(objComp, "Antenna_Right", 6, 220, [90, -htH - 95, 0], [0, 0, 28], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Knobs & Trim Color", cKnob, 1.15);
         }
         else if (type === "ZFLIP") {
             var cBody = [0.18, 0.20, 0.24, 1.0];
@@ -953,38 +956,41 @@ function _GEN_3D(type) {
                 { name: "Screen Bezel Color", val: cBezel },
                 { name: "Cover Screen Color", val: cCover }
             ];
-            angleControlsList.push({ name: "Fold Angle X", val: 0 });
 
-            var fW = 440, hH = 450, fD = 22;
+            // Calibrated 1:1 ratio for 1080x2640 (9:22 aspect ratio)
+            var fW = 436, hH = 500, fD = 22;
             var hfW = fW / 2, hhH = hH / 2, hfD = fD / 2;
-            var dispW = fW - 20;
-            var innerH = hH - 10; // 440px each half, meeting cleanly at Y = 0 hinge
+            var dispW = 400; // 1080px ratio equivalent
+            var innerH = 489; // 1320px ratio equivalent (total unfolded screen = 400x978px = 1080x2640.6)
 
-            // Lower Base Unit
+            // Lower Base Unit (parented to controller)
             _create3DFace(objComp, "Base_Back_Cover", fW, hH, [0, hhH, hfD], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
-            _create3DFace(objComp, "Base_Inner_Display", dispW, innerH, [0, innerH / 2, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0.5, 1, 1]);
+            _create3DFace(objComp, "Base_Inner_Display", dispW, innerH, [0, innerH / 2 - 0.5, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0.5, 1, 1]);
             _create3DFace(objComp, "Base_Bezel", fW, hH, [0, hhH, -hfD], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
             _create3DFace(objComp, "Base_Bottom_Frame", fW, fD, [0, hH, 0], [90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.7);
             _create3DFace(objComp, "Base_Left_Frame", fD, hH, [-hfW, hhH, 0], [0, -90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.85);
             _create3DFace(objComp, "Base_Right_Frame", fD, hH, [hfW, hhH, 0], [0, 90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.95);
+            _create3DFace(objComp, "Base_Hinge_Wall", fW, fD, [0, 0, 0], [-90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.8);
 
-            // Middle Horizontal Hinge
+            // Middle Horizontal Hinge Null (Cyan - Direct native X Rotation in timeline, NO Effect controls!)
             var flipHinge = objComp.layers.addNull();
             flipHinge.name = "Flip_Hinge";
             flipHinge.threeDLayer = true;
+            flipHinge.label = 14;
             flipHinge.parent = controller;
+            flipHinge.label = 14;
             flipHinge.position.setValue([0, 0, -hfD]);
             flipHinge.orientation.setValue([0, 0, 0]);
-            _setXRotationExpr(flipHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Fold Angle X")("Angle"); } catch(e) {} -a;');
 
             // Upper Flip Unit (parented to flipHinge)
-            _create3DFace(objComp, "Upper_Inner_Display", dispW, innerH, [0, -innerH / 2, -1], [0, 0, 0], flipHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0, 1, 0.5]);
+            _create3DFace(objComp, "Upper_Inner_Display", dispW, innerH, [0, -innerH / 2 + 0.5, -1], [0, 0, 0], flipHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0, 1, 0.5]);
             _create3DFace(objComp, "Upper_Bezel", fW, hH, [0, -hhH, 0], [0, 0, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
             _create3DFace(objComp, "Upper_Back_Cover", fW, hH, [0, -hhH, fD], [0, 180, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
-            _create3DFace(objComp, "Cover_Display", fW * 0.84, hH * 0.60, [0, -hhH - 35, fD + 2], [0, 180, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Screen Color", cCover, 1.1);
+            _create3DFace(objComp, "Cover_Display", 320, 332, [0, -hhH - 40, fD + 2], [0, 180, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Screen Color", cCover, 1.1);
             _create3DFace(objComp, "Upper_Top_Frame", fW, fD, [0, -hH, hfD], [-90, 0, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 1.1);
             _create3DFace(objComp, "Upper_Left_Frame", fD, hH, [-hfW, -hhH, hfD], [0, -90, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.85);
             _create3DFace(objComp, "Upper_Right_Frame", fD, hH, [hfW, -hhH, hfD], [0, 90, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.95);
+            _create3DFace(objComp, "Upper_Hinge_Wall", fW, fD, [0, 0, hfD], [90, 0, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.8);
         }
         else if (type === "ZFOLD") {
             var cBody = [0.16, 0.17, 0.20, 1.0];
@@ -997,38 +1003,42 @@ function _GEN_3D(type) {
                 { name: "Screen Bezel Color", val: cBezel },
                 { name: "Cover Screen Color", val: cCover }
             ];
-            angleControlsList.push({ name: "Fold Angle Y", val: 0 });
 
-            var hW = 420, fH = 920, fD = 22;
+            // Calibrated 1:1 ratio for 1812x2176 (Fold 5/4/3 ~5:6 aspect ratio)
+            var fH = 920, fD = 22;
+            var dispH = 896; // 2176px ratio equivalent
+            var innerW = 373; // 906px ratio equivalent (total unfolded screen = 746x896px = 1812:2176.6)
+            var hW = 385; // Phone half width
             var hhW = hW / 2, hfH = fH / 2, hfD = fD / 2;
-            var innerW = hW - 12; // 408px each half, meeting cleanly at X = 0 hinge
-            var innerH = fH - 24; // 896px
 
-            // Right Half Unit (Base)
+            // Right Half Unit (Base parented to controller)
             _create3DFace(objComp, "Right_Back_Cover", hW, fH, [hhW, 0, hfD], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
-            _create3DFace(objComp, "Right_Inner_Display", innerW, innerH, [innerW / 2, 0, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0.5, 0, 1, 1]);
+            _create3DFace(objComp, "Right_Inner_Display", innerW, dispH, [innerW / 2 - 0.5, 0, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0.5, 0, 1, 1]);
             _create3DFace(objComp, "Right_Bezel", hW, fH, [hhW, 0, -hfD], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
-            _create3DFace(objComp, "Cover_Display", hW - 40, fH - 50, [hhW, 0, hfD + 2], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Screen Color", cCover, 1.1);
+            _create3DFace(objComp, "Cover_Display", 345, 884, [hhW, 0, hfD + 2], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Screen Color", cCover, 1.1);
             _create3DFace(objComp, "Right_Top_Frame", hW, fD, [hhW, -hfH, 0], [-90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 1.1);
             _create3DFace(objComp, "Right_Bottom_Frame", hW, fD, [hhW, hfH, 0], [90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.7);
             _create3DFace(objComp, "Right_Outer_Frame", fD, fH, [hW, 0, 0], [0, 90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.95);
+            _create3DFace(objComp, "Right_Hinge_Wall", fD, fH, [0, 0, 0], [0, -90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.85);
 
-            // Vertical Hinge Null
+            // Vertical Hinge Null (Cyan - Direct native Y Rotation in timeline, NO Effect controls!)
             var foldHinge = objComp.layers.addNull();
             foldHinge.name = "Fold_Hinge";
             foldHinge.threeDLayer = true;
+            foldHinge.label = 14;
             foldHinge.parent = controller;
+            foldHinge.label = 14;
             foldHinge.position.setValue([0, 0, -hfD]);
             foldHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(foldHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Fold Angle Y")("Angle"); } catch(e) {} a;');
 
             // Left Half Unit (parented to foldHinge)
-            _create3DFace(objComp, "Left_Inner_Display", innerW, innerH, [-innerW / 2, 0, -1], [0, 0, 0], foldHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0, 0.5, 1]);
+            _create3DFace(objComp, "Left_Inner_Display", innerW, dispH, [-innerW / 2 + 0.5, 0, -1], [0, 0, 0], foldHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0, 0.5, 1]);
             _create3DFace(objComp, "Left_Bezel", hW, fH, [-hhW, 0, 0], [0, 0, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
             _create3DFace(objComp, "Left_Back_Cover", hW, fH, [-hhW, 0, fD], [0, 180, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
             _create3DFace(objComp, "Left_Top_Frame", hW, fD, [-hhW, -hfH, hfD], [-90, 0, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 1.1);
             _create3DFace(objComp, "Left_Bottom_Frame", hW, fD, [-hhW, hfH, hfD], [90, 0, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.7);
             _create3DFace(objComp, "Left_Outer_Frame", fD, fH, [-hW, 0, hfD], [0, -90, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.85);
+            _create3DFace(objComp, "Left_Hinge_Wall", fD, fH, [0, 0, hfD], [0, 90, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.85);
         }
         else if (type === "BOOK") {
             var cCover = [0.14, 0.22, 0.36, 1.0];
@@ -1041,7 +1051,7 @@ function _GEN_3D(type) {
                 { name: "Pages Paper Color", val: cPages },
                 { name: "Ribbon Color", val: cRibbon }
             ];
-            angleControlsList.push({ name: "Cover Open Angle", val: 0 });
+            // Cover is controlled directly via Cover_Hinge Null (Cyan - Rotate Y in timeline!)
 
             var bW = 600, bH = 860, bD = 84;
             var hbW = bW / 2, hbH = bH / 2, hbD = bD / 2;
@@ -1064,11 +1074,10 @@ function _GEN_3D(type) {
             var bookCoverHinge = objComp.layers.addNull();
             bookCoverHinge.name = "Cover_Hinge";
             bookCoverHinge.threeDLayer = true;
+            bookCoverHinge.label = 14;
             bookCoverHinge.parent = controller;
             bookCoverHinge.position.setValue([-hbW, 0, -hbD]);
-            bookCoverHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(bookCoverHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Cover Open Angle")("Angle"); } catch(e) {} -a;');
-
+            bookCoverHinge.orientation.setValue([0, 0, 0]);
             // Front Cover (Outside Artwork / Mockup & Inside Endpaper)
             _create3DFace(objComp, "Front_Cover_Outside", bW, bH, [hbW, 0, -2], [0, 0, 0], bookCoverHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Color", cCover, 1.05);
             _create3DFace(objComp, "Front_Cover_Inside", bW, bH, [hbW, 0, 2], [0, 180, 0], bookCoverHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Color", cCover, 0.92);
@@ -1083,9 +1092,7 @@ function _GEN_3D(type) {
                 { name: "Metal Rings Color", val: cRings },
                 { name: "Paper Sheets Color", val: cPaper },
                 { name: "Elastic Band Color", val: cBand }
-            ];
-            angleControlsList.push({ name: "Cover Open Angle", val: 0 });
-
+            ];
             var bW = 620, bH = 880, bD = 80;
             var hbW = bW / 2, hbH = bH / 2, hbD = bD / 2;
             var paperThick = bD * 0.45;
@@ -1110,11 +1117,10 @@ function _GEN_3D(type) {
             var binderCoverHinge = objComp.layers.addNull();
             binderCoverHinge.name = "Cover_Hinge";
             binderCoverHinge.threeDLayer = true;
+            binderCoverHinge.label = 14;
             binderCoverHinge.parent = controller;
             binderCoverHinge.position.setValue([-hbW, 0, -hbD]);
-            binderCoverHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(binderCoverHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Cover Open Angle")("Angle"); } catch(e) {} -a;');
-
+            binderCoverHinge.orientation.setValue([0, 0, 0]);
             // Front Cover (Outside & Inside)
             _create3DFace(objComp, "Front_Cover_Outside", bW, bH, [hbW, 0, -2], [0, 0, 0], binderCoverHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Binder Cover Color", cCover, 1.05);
             _create3DFace(objComp, "Front_Cover_Inside", bW, bH, [hbW, 0, 2], [0, 180, 0], binderCoverHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Binder Cover Color", cCover, 0.9);
@@ -1171,10 +1177,7 @@ function _GEN_3D(type) {
                 { name: "Browline Accent Color", val: cAccent },
                 { name: "Lens Tint Color", val: cLens },
                 { name: "Metal Accents Color", val: cMetal }
-            ];
-            angleControlsList.push({ name: "Left Temple Angle", val: 0 });
-            angleControlsList.push({ name: "Right Temple Angle", val: 0 });
-
+            ];
             var gW = 680, gH = 200, gL = 540;
 
             // Front Frame Bridge & Rims (XY Plane, facing front)
@@ -1196,22 +1199,20 @@ function _GEN_3D(type) {
             var leftTempleHinge = objComp.layers.addNull();
             leftTempleHinge.name = "Left_Temple_Hinge";
             leftTempleHinge.threeDLayer = true;
+            leftTempleHinge.label = 14;
             leftTempleHinge.parent = controller;
             leftTempleHinge.position.setValue([-310, -78, 0]);
-            leftTempleHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(leftTempleHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Left Temple Angle")("Angle"); } catch(e) {} a;');
-            _create3DFace(objComp, "Left_Temple_Arm", gL, 20, [0, 0, gL / 2], [0, -90, 0], leftTempleHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Primary Frame Color", cFrame, 0.95);
+            leftTempleHinge.orientation.setValue([0, 0, 0]);            _create3DFace(objComp, "Left_Temple_Arm", gL, 20, [0, 0, gL / 2], [0, -90, 0], leftTempleHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Primary Frame Color", cFrame, 0.95);
             _create3DFace(objComp, "Left_Ear_Sock", 140, 24, [0, 0, gL - 70], [0, -90, 0], leftTempleHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Browline Accent Color", cAccent, 1.05);
 
             // Right Temple Hinge & Arm (Seamlessly connected to frame end-piece at X = 320)
             var rightTempleHinge = objComp.layers.addNull();
             rightTempleHinge.name = "Right_Temple_Hinge";
             rightTempleHinge.threeDLayer = true;
+            rightTempleHinge.label = 14;
             rightTempleHinge.parent = controller;
             rightTempleHinge.position.setValue([310, -78, 0]);
-            rightTempleHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(rightTempleHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Right Temple Angle")("Angle"); } catch(e) {} -a;');
-            _create3DFace(objComp, "Right_Temple_Arm", gL, 20, [0, 0, gL / 2], [0, 90, 0], rightTempleHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Primary Frame Color", cFrame, 0.95);
+            rightTempleHinge.orientation.setValue([0, 0, 0]);            _create3DFace(objComp, "Right_Temple_Arm", gL, 20, [0, 0, gL / 2], [0, 90, 0], rightTempleHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Primary Frame Color", cFrame, 0.95);
             _create3DFace(objComp, "Right_Ear_Sock", 140, 24, [0, 0, gL - 70], [0, 90, 0], rightTempleHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Browline Accent Color", cAccent, 1.05);
         }
         else if (type === "WINDOW") {
@@ -1228,10 +1229,7 @@ function _GEN_3D(type) {
                 { name: "Window Sill Color", val: cSill },
                 { name: "Handle Metal Color", val: cMetal },
                 { name: "Glass Tint Color", val: cGlass }
-            ];
-            angleControlsList.push({ name: "Left Pane Angle", val: 0 });
-            angleControlsList.push({ name: "Right Pane Angle", val: 0 });
-
+            ];
             var wW = 760, wH = 920;
             var hwW = wW / 2, hwH = wH / 2;
 
@@ -1261,11 +1259,10 @@ function _GEN_3D(type) {
             var leftPaneHinge = objComp.layers.addNull();
             leftPaneHinge.name = "Left_Pane_Hinge";
             leftPaneHinge.threeDLayer = true;
+            leftPaneHinge.label = 14;
             leftPaneHinge.parent = controller;
             leftPaneHinge.position.setValue([-hwW, 0, 0]);
-            leftPaneHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(leftPaneHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Left Pane Angle")("Angle"); } catch(e) {} -a;');
-
+            leftPaneHinge.orientation.setValue([0, 0, 0]);
             // A. Crystal Clear Glass Pane (with texture support)
             _create3DFace(objComp, "Left_Glass", sW - 20, sH - 20, [hsW, 0, 0], [0, 0, 0], leftPaneHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Glass Tint Color", cGlass, 1.0);
 
@@ -1300,11 +1297,10 @@ function _GEN_3D(type) {
             var rightPaneHinge = objComp.layers.addNull();
             rightPaneHinge.name = "Right_Pane_Hinge";
             rightPaneHinge.threeDLayer = true;
+            rightPaneHinge.label = 14;
             rightPaneHinge.parent = controller;
             rightPaneHinge.position.setValue([hwW, 0, 0]);
-            rightPaneHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(rightPaneHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Right Pane Angle")("Angle"); } catch(e) {} a;');
-
+            rightPaneHinge.orientation.setValue([0, 0, 0]);
             // A. Crystal Clear Glass Pane (with texture support)
             _create3DFace(objComp, "Right_Glass", sW - 20, sH - 20, [-hsW, 0, 0], [0, 0, 0], rightPaneHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Glass Tint Color", cGlass, 1.0);
 
@@ -1346,7 +1342,7 @@ function _GEN_3D(type) {
                 { name: "Handle Metal Color", val: cHandle },
                 { name: "Panels Inset Color", val: cPanel }
             ];
-            angleControlsList.push({ name: "Door Open Angle", val: 0 });
+            // Door leaf is controlled directly via Door_Hinge Null (Cyan - Rotate Y in timeline!)
 
             var dW = 560, dH = 1080, dD = 36;
             var hdW = dW / 2, hdH = dH / 2, hdD = dD / 2;
@@ -1360,11 +1356,10 @@ function _GEN_3D(type) {
             var doorHinge = objComp.layers.addNull();
             doorHinge.name = "Door_Hinge";
             doorHinge.threeDLayer = true;
+            doorHinge.label = 14;
             doorHinge.parent = controller;
             doorHinge.position.setValue([-hdW + 4, 0, 0]);
-            doorHinge.orientation.setValue([0, 0, 0]);
-            _setYRotationExpr(doorHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Door Open Angle")("Angle"); } catch(e) {} -a;');
-
+            doorHinge.orientation.setValue([0, 0, 0]);
             // Door Leaf Front & Back (parented to doorHinge)
             _create3DFace(objComp, "Door_Front", dW, dH, [hdW, 0, -hdD], [0, 0, 0], doorHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Door Wood Color", cDoor, 1.05);
             _create3DFace(objComp, "Door_Back", dW, dH, [hdW, 0, hdD], [0, 180, 0], doorHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Door Wood Color", cDoor, 0.85);
@@ -1388,12 +1383,10 @@ function _GEN_3D(type) {
             var cTop = [0.55, 0.38, 0.24, 1.0];
             var cFrame = [0.20, 0.21, 0.24, 1.0];
             var cEdge = [0.46, 0.31, 0.19, 1.0];
-            var cAccent = [0.86, 0.76, 0.45, 1.0];
             colorControlsList = [
                 { name: "Desk Top Color", val: cTop },
                 { name: "Metal Frame & Legs Color", val: cFrame },
-                { name: "Edge Trim Color", val: cEdge },
-                { name: "Grommet & Hardware Color", val: cAccent }
+                { name: "Edge Trim Color", val: cEdge }
             ];
 
             var dW = 1100, dD = 580, dThick = 34, lH = 520;
@@ -1407,19 +1400,37 @@ function _GEN_3D(type) {
             _create3DFace(objComp, "Desk_Left_Edge", dD, dThick, [-hdW, 0, 0], [0, -90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Edge Trim Color", cEdge, 0.85);
             _create3DFace(objComp, "Desk_Right_Edge", dD, dThick, [hdW, 0, 0], [0, 90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Edge Trim Color", cEdge, 0.95);
 
-            // Dual Cable Pass-Through Grommets
-            _create3DFace(objComp, "Grommet_Left", 38, 38, [-hdW + 120, -hdThick - 1, hdD - 70], [-90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Grommet & Hardware Color", cAccent, 1.2);
-            _create3DFace(objComp, "Grommet_Right", 38, 38, [hdW - 120, -hdThick - 1, hdD - 70], [-90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Grommet & Hardware Color", cAccent, 1.2);
+            // 4 Volumetric 3D Rectangular Box Legs (Front, Back, Left, Right + Bottom Foot for each leg)
+            var legW = 50;
+            var legD = 50;
+            var deskLegCoords = [
+                { name: "Leg_Front_Left", x: -hdW + 70, z: -hdD + 70 },
+                { name: "Leg_Back_Left", x: -hdW + 70, z: hdD - 70 },
+                { name: "Leg_Front_Right", x: hdW - 70, z: -hdD + 70 },
+                { name: "Leg_Back_Right", x: hdW - 70, z: hdD - 70 }
+            ];
 
-            // Sturdy Steel T-Leg Trestles (Left & Right)
-            var legW = 48;
-            _create3DFace(objComp, "Left_Leg_Front", legW, lH, [-hdW + 80, hdThick + lH / 2, -hdD + 80], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 1.0);
-            _create3DFace(objComp, "Left_Leg_Back", legW, lH, [-hdW + 80, hdThick + lH / 2, hdD - 80], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 1.0);
-            _create3DFace(objComp, "Right_Leg_Front", legW, lH, [hdW - 80, hdThick + lH / 2, -hdD + 80], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 1.0);
-            _create3DFace(objComp, "Right_Leg_Back", legW, lH, [hdW - 80, hdThick + lH / 2, hdD - 80], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 1.0);
+            for (var dl = 0; dl < deskLegCoords.length; dl++) {
+                var dlp = deskLegCoords[dl];
+                var legY = hdThick + lH / 2;
+                // 4 rectangular faces for complete 3D volume
+                _create3DFace(objComp, dlp.name + "_F", legW, lH, [dlp.x, legY, dlp.z - legD / 2], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 1.0);
+                _create3DFace(objComp, dlp.name + "_B", legW, lH, [dlp.x, legY, dlp.z + legD / 2], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.7);
+                _create3DFace(objComp, dlp.name + "_L", legD, lH, [dlp.x - legW / 2, legY, dlp.z], [0, -90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.85);
+                _create3DFace(objComp, dlp.name + "_R", legD, lH, [dlp.x + legW / 2, legY, dlp.z], [0, 90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.95);
+                // Bottom foot plate
+                _create3DFace(objComp, dlp.name + "_Foot", legW, legD, [dlp.x, legY + lH / 2, dlp.z], [90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.5);
+            }
 
-            // Rear Structural Modesty Panel
-            _create3DFace(objComp, "Modesty_Panel", dW - 200, 220, [0, hdThick + 120, hdD - 70], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.85);
+            // Left & Right Side Frame Stretcher Beams (connecting front and back legs under desk)
+            var beamH = 28;
+            var beamL = dD - 140;
+            _create3DFace(objComp, "Beam_Left_Outer", beamL, beamH, [-hdW + 70 - legW / 2 - 1, hdThick + 20, 0], [0, -90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.85);
+            _create3DFace(objComp, "Beam_Right_Outer", beamL, beamH, [hdW - 70 + legW / 2 + 1, hdThick + 20, 0], [0, 90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.95);
+
+            // Rear Structural Modesty Panel (Dual-sided for 3D depth)
+            _create3DFace(objComp, "Modesty_Panel_Front", dW - 200, 240, [0, hdThick + 130, hdD - 70], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.85);
+            _create3DFace(objComp, "Modesty_Panel_Back", dW - 200, 240, [0, hdThick + 130, hdD - 70 + 4], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame & Legs Color", cFrame, 0.65);
         }
         else if (type === "MONITOR") {
             var cScreen = [0.02, 0.02, 0.02, 1.0];
@@ -1456,9 +1467,9 @@ function _GEN_3D(type) {
         }
         else if (type === "PC") {
             var cChassis = [0.12, 0.13, 0.15, 1.0];
-            var cGlass = [0.15, 0.18, 0.22, 0.40];
+            var cGlass = [0.18, 0.22, 0.28, 0.45];
             var cRGB = [0.0, 0.85, 1.0, 1.0];
-            var cHardware = [0.25, 0.27, 0.30, 1.0];
+            var cHardware = [0.25, 0.26, 0.28, 1.0];
             colorControlsList = [
                 { name: "Chassis Case Color", val: cChassis },
                 { name: "Tempered Glass Tint", val: cGlass },
@@ -1495,11 +1506,10 @@ function _GEN_3D(type) {
         for (var c = 0; c < colorControlsList.length; c++) {
             _addCtrlColor(colorCtrlLayer, colorControlsList[c].name, colorControlsList[c].val);
         }
-        for (var k = 0; k < angleControlsList.length; k++) {
-            _addCtrlAngle(controller, angleControlsList[k].name, angleControlsList[k].val);
-        }
+        // All moving parts/hinges use direct 3D Null layer handles (Cyan) at the top of the layer list
 
         // 2. Move all Null controllers to the very top of the layer stack
+        _moveAllNullsToTop(objComp);
         colorCtrlLayer.moveToBeginning();
         controller.moveToBeginning();
 
@@ -1669,7 +1679,7 @@ function _GEN_MC_3D() {
         torsoNull.name = "Torso_Controller";
         torsoNull.threeDLayer = true;
         torsoNull.motionBlur = true;
-        torsoNull.label = 9;
+        torsoNull.label = 13;
         torsoNull.parent = masterCtrl;
         torsoNull.position.setValue([0, 0, 0]);
         torsoNull.orientation.setValue([0, 0, 0]);
@@ -1684,14 +1694,12 @@ function _GEN_MC_3D() {
         headHinge.name = "Head_Hinge";
         headHinge.threeDLayer = true;
         headHinge.motionBlur = true;
-        headHinge.label = 9;
+        headHinge.label = 14;
         headHinge.parent = torsoNull;
         headHinge.position.setValue([0, -6 * S, 0]);
         headHinge.orientation.setValue([0, 0, 0]);
 
-        _setXRotationExpr(headHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Head Rotate X")("Angle"); } catch(e) {} a;');
-        _setYRotationExpr(headHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Head Rotate Y")("Angle"); } catch(e) {} a;');
-        _setZRotationExpr(headHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Head Rotate Z")("Angle"); } catch(e) {} a;');
+        // Head is controlled directly via Head_Hinge Null (Cyan - Native 3D Rotation in timeline!)
 
         _createMCBox("Head", 0, 0, 8, 8, 8, headHinge, [0, -4 * S, 0], 1.0);
         _createMCBox("Hat_Overlay", 32, 0, 8, 8, 8, headHinge, [0, -4 * S, 0], 1.08);
@@ -1706,8 +1714,7 @@ function _GEN_MC_3D() {
         rArmHinge.position.setValue([-6 * S, -5 * S, 0]);
         rArmHinge.orientation.setValue([0, 0, 0]);
 
-        _setXRotationExpr(rArmHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Right Arm Swing X")("Angle"); } catch(e) {} a;');
-        _setZRotationExpr(rArmHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Right Arm Spread Z")("Angle"); } catch(e) {} a;');
+        // Right arm is controlled directly via Right_Arm_Hinge Null (Green - Native 3D Rotation!)
 
         _createMCBox("Right_Arm", 40, 16, 4, 12, 4, rArmHinge, [0, 6 * S, 0], 1.0);
         if (is64x64) {
@@ -1724,8 +1731,7 @@ function _GEN_MC_3D() {
         lArmHinge.position.setValue([6 * S, -5 * S, 0]);
         lArmHinge.orientation.setValue([0, 0, 0]);
 
-        _setXRotationExpr(lArmHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Left Arm Swing X")("Angle"); } catch(e) {} a;');
-        _setZRotationExpr(lArmHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Left Arm Spread Z")("Angle"); } catch(e) {} a;');
+        // Left arm is controlled directly via Left_Arm_Hinge Null (Green - Native 3D Rotation!)
 
         var lArmU = is64x64 ? 32 : 40;
         var lArmV = is64x64 ? 48 : 16;
@@ -1739,13 +1745,12 @@ function _GEN_MC_3D() {
         rLegHinge.name = "Right_Leg_Hinge";
         rLegHinge.threeDLayer = true;
         rLegHinge.motionBlur = true;
-        rLegHinge.label = 9;
+        rLegHinge.label = 8;
         rLegHinge.parent = torsoNull;
         rLegHinge.position.setValue([-2 * S, 6 * S, 0]);
         rLegHinge.orientation.setValue([0, 0, 0]);
 
-        _setXRotationExpr(rLegHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Right Leg Swing X")("Angle"); } catch(e) {} a;');
-        _setZRotationExpr(rLegHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Right Leg Spread Z")("Angle"); } catch(e) {} a;');
+        // Right leg is controlled directly via Right_Leg_Hinge Null (Blue - Native 3D Rotation!)
 
         _createMCBox("Right_Leg", 0, 16, 4, 12, 4, rLegHinge, [0, 6 * S, 0], 1.0);
         if (is64x64) {
@@ -1757,13 +1762,12 @@ function _GEN_MC_3D() {
         lLegHinge.name = "Left_Leg_Hinge";
         lLegHinge.threeDLayer = true;
         lLegHinge.motionBlur = true;
-        lLegHinge.label = 9;
+        lLegHinge.label = 8;
         lLegHinge.parent = torsoNull;
         lLegHinge.position.setValue([2 * S, 6 * S, 0]);
         lLegHinge.orientation.setValue([0, 0, 0]);
 
-        _setXRotationExpr(lLegHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Left Leg Swing X")("Angle"); } catch(e) {} a;');
-        _setZRotationExpr(lLegHinge, 'var a = 0; try { a = thisComp.layer("MC_Character_Controller").effect("Left Leg Spread Z")("Angle"); } catch(e) {} a;');
+        // Left leg is controlled directly via Left_Leg_Hinge Null (Blue - Native 3D Rotation!)
 
         var lLegU = is64x64 ? 16 : 0;
         var lLegV = is64x64 ? 48 : 16;
@@ -1772,25 +1776,13 @@ function _GEN_MC_3D() {
             _createMCBox("Left_Pants_Overlay", 0, 48, 4, 12, 4, lLegHinge, [0, 6 * S, 0], 1.06);
         }
 
-        // Angle Controls on internal Master Controller ONLY
-        var angleControlsList = [
-            { name: "Head Rotate X", val: 0 },
-            { name: "Head Rotate Y", val: 0 },
-            { name: "Head Rotate Z", val: 0 },
-            { name: "Right Arm Swing X", val: 0 },
-            { name: "Right Arm Spread Z", val: 0 },
-            { name: "Left Arm Swing X", val: 0 },
-            { name: "Left Arm Spread Z", val: 0 },
-            { name: "Right Leg Swing X", val: 0 },
-            { name: "Right Leg Spread Z", val: 0 },
-            { name: "Left Leg Swing X", val: 0 },
-            { name: "Left Leg Spread Z", val: 0 }
-        ];
-
-        for (var k = 0; k < angleControlsList.length; k++) {
-            _addCtrlAngle(masterCtrl, angleControlsList[k].name, angleControlsList[k].val);
+        // Move ALL null controllers to the very top of objComp in hierarchy order
+        var mcNulls = [masterCtrl, torsoNull, headHinge, rArmHinge, lArmHinge, rLegHinge, lLegHinge];
+        for (var n = mcNulls.length - 1; n >= 0; n--) {
+            if (mcNulls[n] && mcNulls[n].moveToBeginning) {
+                mcNulls[n].moveToBeginning();
+            }
         }
-        masterCtrl.moveToBeginning();
 
         // Add clean precomp to main composition with NO external effect controls
         var precompLayer = comp.layers.add(objComp);
@@ -1842,12 +1834,15 @@ function _PURGE(target) {
 
 function _addBeatMark() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "NO_COMP";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"message":"Please open a composition first!"}';
     try {
-        app.executeCommand(2157);
-        return "true";
+        app.beginUndoGroup("Tap Beat Marker");
+        comp.markerProperty.setValueAtTime(comp.time, new MarkerValue(""));
+        app.endUndoGroup();
+        return '{"success":true,"time":' + comp.time + '}';
     } catch (e) {
-        return "ERROR:" + e.toString();
+        try { app.executeCommand(2157); } catch(err) {}
+        return '{"success":true}';
     }
 }
 
@@ -1855,20 +1850,31 @@ tools.BEATMARK = function () { return _addBeatMark(); };
 
 function _clearBeatMarks() {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "NO_COMP";
+    if (!comp || !(comp instanceof CompItem)) return '{"error":true,"message":"Please open a composition first to clear beat markers."}';
     try {
-        app.beginUndoGroup("Clear Beat Marks");
+        app.beginUndoGroup("Clear Beat Markers");
         var markers = comp.markerProperty;
         while (markers.numKeys > 0) {
             markers.removeKey(1);
         }
+        for (var s = 0; s < comp.selectedLayers.length; s++) {
+            var lyr = comp.selectedLayers[s];
+            var lm = lyr.property("ADBE Marker") || lyr.markerProperty || lyr.marker;
+            if (lm) {
+                while (lm.numKeys > 0) {
+                    lm.removeKey(1);
+                }
+            }
+        }
         app.endUndoGroup();
-        return "0";
+        return '{"success":true,"message":"All beat markers cleared successfully!"}';
     } catch (e) {
         app.endUndoGroup();
-        return "ERROR:" + e.toString();
+        return '{"error":true,"message":"Failed to clear markers: ' + e.toString().replace(/"/g, '\\"') + '"}';
     }
 }
+
+tools.CLEARBEATS = function () { return _clearBeatMarks(); };
 
 function _DEBUG_ALL() {
     var comp = app.project.activeItem;
@@ -2205,76 +2211,181 @@ function _OVERLAP_3D(comp, layer) {
     }
 }
 
-function _autoBeatDetect(threshold, channel) {
+function _autoBeatDetect(sensitivityPercent, channel) {
     var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) return "ERROR:Please select a composition!";
-    
-    var selLayers = comp.selectedLayers;
-    if (selLayers.length === 0) return "ERROR:Please select an audio layer!";
-    
-    var audioLayer = selLayers[0];
-    if (!audioLayer.hasAudio) return "ERROR:Selected layer has no audio!";
+    if (!comp || !(comp instanceof CompItem)) {
+        return '{"error":true,"type":"warn","message":"Please select an active composition first!"}';
+    }
 
-    var thres = parseFloat(threshold) || 15;
+    var selLayers = comp.selectedLayers;
+    if (selLayers.length === 0) {
+        return '{"error":true,"type":"warn","message":"Please select an audio layer in the composition."}';
+    }
+
+    // Find the first selected layer with audio
+    var audioLayer = null;
+    for (var s = 0; s < selLayers.length; s++) {
+        if (selLayers[s].hasAudio) {
+            audioLayer = selLayers[s];
+            break;
+        }
+    }
+
+    if (!audioLayer) {
+        return '{"error":true,"type":"warn","message":"The selected layer has no audio. Please select an audio layer."}';
+    }
+
+    // Sensitivity range: 1 to 100% (Default: 70%)
+    // Higher sensitivity (80-100%) = detects lighter / more subtle beats & fast rhythms
+    // Lower sensitivity (10-30%) = detects only heavy / powerful bass kicks & drops
+    var sens = parseFloat(sensitivityPercent);
+    if (isNaN(sens) || sens < 1) sens = 70;
+    if (sens > 100) sens = 100;
+
     var chanName = channel || "Both Channels";
 
     app.beginUndoGroup("Auto Beat Detection");
     try {
-        var commandId = app.findMenuCommandId("Convert Audio to Keyframes");
-        if (commandId === 0) {
-            commandId = 2507; 
+        // Deselect all layers and select ONLY the target audio layer
+        for (var d = 0; d < comp.selectedLayers.length; d++) {
+            comp.selectedLayers[d].selected = false;
         }
-        
-        app.executeCommand(commandId); 
-        
+        audioLayer.selected = true;
+
+        // Try localized menu command lookup first, with robust fallbacks
+        var commandId = app.findMenuCommandId("Convert Audio to Keyframes");
+        if (!commandId || commandId === 0) commandId = app.findMenuCommandId("Audio to Keyframes");
+        if (!commandId || commandId === 0) commandId = app.findMenuCommandId("Audio in Keyframes konvertieren");
+        if (!commandId || commandId === 0) commandId = app.findMenuCommandId("Convertir l'audio en images clés");
+        if (!commandId || commandId === 0) commandId = 2507; // standard AE command ID
+
+        app.executeCommand(commandId);
+
+        // Find the newly generated Audio Amplitude layer (always created at the top)
         var ampLayer = null;
         for (var i = 1; i <= comp.numLayers; i++) {
-            var l = comp.layer(i);
-            if (l.name === "Audio Amplitude" && l.selected) {
-                ampLayer = l;
+            var lyr = comp.layer(i);
+            if (lyr.name.indexOf("Audio Amplitude") !== -1 || lyr.name.indexOf("Audio-Amplitude") !== -1 || lyr.name.indexOf("Amplitude audio") !== -1 || lyr.name.indexOf("オーディオ振幅") !== -1) {
+                ampLayer = lyr;
                 break;
             }
         }
 
-        if (!ampLayer) {
-            if (comp.layer(1).name === "Audio Amplitude") ampLayer = comp.layer(1);
-        }
-
-        if (!ampLayer) throw new Error("Could not find generated 'Audio Amplitude' layer.");
-
-        var targetEffect = null;
-        try {
-            targetEffect = ampLayer.effect(chanName) || ampLayer.effect("Both Channels") || ampLayer.effect(3) || ampLayer.effect(1);
-        } catch(e) {}
-
-        if (!targetEffect) throw new Error("Could not find Audio Amplitude effect: " + chanName);
-        
-        var slider = targetEffect.property("Slider") || targetEffect.property(1);
-
-        if (!slider) throw new Error("Could not find Slider property inside Audio Amplitude.");
-
-        var markers = comp.markerProperty;
-        var lastMarkTime = -1;
-        var minInterval = 0.25; 
-
-        for (var i = 1; i <= slider.numKeys; i++) {
-            var val = slider.keyValue(i);
-            var time = slider.keyTime(i);
-
-            if (val > thres && (time - lastMarkTime) > minInterval) {
-                markers.setValueAtTime(time, new MarkerValue(""));
-                lastMarkTime = time;
+        if (!ampLayer && comp.numLayers > 0) {
+            var topLyr = comp.layer(1);
+            if (topLyr && topLyr !== audioLayer) {
+                ampLayer = topLyr;
             }
         }
 
-        ampLayer.remove();
+        if (!ampLayer) {
+            throw new Error("Could not create Audio Amplitude keyframes. Ensure the audio layer has sound enabled.");
+        }
+
+        // Find the target effect channel
+        var effects = ampLayer.property("ADBE Effect Group") || ampLayer.property("Effects") || ampLayer.effect;
+        var targetEffect = null;
+
+        if (effects && effects.numProperties > 0) {
+            if (chanName === "Left Channel") {
+                targetEffect = effects.property("Left Channel") || effects.property("Linker Kanal") || effects.property(1);
+            } else if (chanName === "Right Channel") {
+                targetEffect = effects.property("Right Channel") || effects.property("Rechter Kanal") || effects.property(2);
+            } else {
+                targetEffect = effects.property("Both Channels") || effects.property("Beide Kanäle") || effects.property("Canaux gauche et droite") || effects.property(3) || effects.property(1);
+            }
+            if (!targetEffect) {
+                targetEffect = effects.property(effects.numProperties >= 3 ? 3 : 1);
+            }
+        }
+
+        if (!targetEffect) {
+            throw new Error("Could not find Audio Amplitude channel effect.");
+        }
+
+        var slider = targetEffect.property("ADBE Slider Control-0001") || targetEffect.property("Slider") || targetEffect.property(1);
+        if (!slider || slider.numKeys === 0) {
+            throw new Error("No audio keyframes found. Please verify the audio layer is not silent.");
+        }
+
+        // Collect all amplitude values and calculate track statistics
+        var numKeys = slider.numKeys;
+        var vals = [];
+        var times = [];
+        var maxV = 0;
+        var minV = 999999;
+        var sumV = 0;
+
+        for (var k = 1; k <= numKeys; k++) {
+            var v = slider.keyValue(k);
+            var t = slider.keyTime(k);
+            vals.push(v);
+            times.push(t);
+            if (v > maxV) maxV = v;
+            if (v < minV) minV = v;
+            sumV += v;
+        }
+
+        var avgV = sumV / Math.max(numKeys, 1);
+
+        if (maxV <= 0.05) {
+            try { ampLayer.remove(); } catch(e) {}
+            app.endUndoGroup();
+            return '{"success":true,"count":0,"message":"The selected audio track appears to be silent."}';
+        }
+
+        // CORRECT SENSITIVITY CALCULATION:
+        // sensFraction: 0.01 (min) to 1.0 (max)
+        // High sensitivity (e.g. 80-100%) -> lower threshold cutoff -> detects subtle beats & fast rhythm
+        // Low sensitivity (e.g. 10-30%) -> high threshold cutoff -> detects only heavy bass drops
+        var sensFraction = sens / 100.0;
+        var floorLevel = Math.max(avgV * 0.6, minV);
+        var ceilingLevel = maxV * 0.95;
+        var dynamicThreshold = ceilingLevel - (sensFraction * (ceilingLevel - floorLevel));
+
+        var absoluteNoiseGate = Math.max(1.0, maxV * 0.08);
+        if (dynamicThreshold < absoluteNoiseGate) {
+            dynamicThreshold = absoluteNoiseGate;
+        }
+
+        // Adaptive minInterval based on sensitivity (allows fast rhythm at high sensitivity):
+        var minInterval = 0.26 - (sensFraction * 0.16); // 0.10s (at 100%) to 0.26s (at 0%)
+
+        var markers = comp.markerProperty;
+        var lastMarkTime = -10.0;
+        var markerCount = 0;
+
+        for (var i = 0; i < vals.length; i++) {
+            var val = vals[i];
+            var time = times[i];
+            var prevVal = (i > 0) ? vals[i - 1] : 0;
+            var nextVal = (i < vals.length - 1) ? vals[i + 1] : 0;
+
+            // True local peak detection (avoids continuous plateau triggering)
+            var isLocalPeak = (val >= prevVal && val >= nextVal);
+
+            if (isLocalPeak && val >= dynamicThreshold && val >= absoluteNoiseGate && (time - lastMarkTime) >= minInterval) {
+                markers.setValueAtTime(time, new MarkerValue(""));
+                lastMarkTime = time;
+                markerCount++;
+            }
+        }
+
+        // Remove temporary Audio Amplitude layer to keep user comp clean
+        try { ampLayer.remove(); } catch (e) {}
+
+        // Reselect original audio layer
+        try { audioLayer.selected = true; } catch (e) {}
+
         app.endUndoGroup();
-        return "SUCCESS";
+        return '{"success":true,"count":' + markerCount + ',"message":"' + markerCount + ' beat markers created successfully!"}';
     } catch (e) {
         if (app.isInUndoGroup) app.endUndoGroup();
-        return "ERROR:" + e.toString();
+        return '{"error":true,"message":"' + e.toString().replace(/"/g, '\\"') + '"}';
     }
 }
+
+tools.BEAT_AUTO = function (threshold, channel) { return _autoBeatDetect(threshold, channel); };
 
 function _changeCompRatio(w, h) {
     var targetComps = [];

@@ -124,17 +124,19 @@ BeatMakerModule.prototype.tap = function (e) {
     var tapBtn = document.getElementById(this.tapBtnId);
 
     if (self.cs) {
-        self.cs.evalScript('executeTool("BEATMARK")', function (res) {
-            if (res === 'NO_COMP') {
-                if (window.ModalModule) {
-                    window.ModalModule.warn('Please open a composition first before tapping beats.', 'Beat Maker');
-                }
+        self.cs.evalScript('tools.BEATMARK()', function (res) {
+            var data = null;
+            try { data = JSON.parse(res); } catch (e) {}
+            if (data && data.error) {
+                if (window.ModalModule) window.ModalModule.warn(data.message, 'Beat Maker');
                 return;
             }
-            tapBtn.classList.add('pulse');
-            setTimeout(function () {
-                tapBtn.classList.remove('pulse');
-            }, 300);
+            if (tapBtn) {
+                tapBtn.classList.add('pulse');
+                setTimeout(function () {
+                    tapBtn.classList.remove('pulse');
+                }, 250);
+            }
         });
     }
 };
@@ -143,37 +145,59 @@ BeatMakerModule.prototype.autoDetect = function (threshold, channel) {
     var self = this;
     if (!self.cs) return;
 
-    self.cs.evalScript('(function(){ var c = app.project.activeItem; if (!c || !(c instanceof CompItem)) return "NO_COMP"; if (c.selectedLayers.length === 0) return "NO_LAYER"; if (!c.selectedLayers[0].hasAudio) return "NO_AUDIO"; return "OK"; })()', function (res) {
-        if (res === 'NO_COMP') {
-            if (window.ModalModule) window.ModalModule.warn('Please open a composition first.', 'Auto Beat Detect');
-            return;
-        }
-        if (res === 'NO_LAYER') {
-            if (window.ModalModule) window.ModalModule.warn('Please select an audio layer in the composition.', 'Auto Beat Detect');
-            return;
-        }
-        if (res === 'NO_AUDIO') {
-            if (window.ModalModule) window.ModalModule.warn('The selected layer has no audio. Please select an audio layer.', 'Auto Beat Detect');
-            return;
+    var btn = document.getElementById(this.autoDetectBtnId);
+    var origHTML = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-icons rotating" style="font-size:15px; margin-right:6px;">sync</span> Analyzing Audio...';
+    }
+
+    self.cs.evalScript('tools.BEAT_AUTO("' + threshold + '", "' + channel + '")', function (res) {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHTML;
         }
 
-        self.cs.evalScript('executeTool("BEAT_AUTO", "' + threshold + '", "' + channel + '")', function (res) {
-            if (res && res.indexOf("ERROR") !== -1) {
-                if (window.ModalModule) window.ModalModule.error(res.replace("ERROR:", ""), "Auto Beat");
+        var data = null;
+        try {
+            data = JSON.parse(res);
+        } catch (e) {
+            if (res && res.indexOf("ERROR:") === 0) {
+                data = { error: true, message: res.replace("ERROR:", "") };
+            } else if (res && res.indexOf("SUCCESS") === 0) {
+                data = { success: true, message: "Beat markers generated!" };
             }
-        });
+        }
+
+        if (!data) return;
+
+        if (data.error) {
+            if (window.ModalModule) {
+                if (data.type === 'warn') {
+                    window.ModalModule.warn(data.message, 'Auto Beat Detect');
+                } else {
+                    window.ModalModule.error(data.message, 'Auto Beat Detect');
+                }
+            }
+        } else if (data.success) {
+            if (window.ModalModule) {
+                window.ModalModule.info(data.message || (data.count + ' beat markers created!'), 'Auto Beat Detect');
+            }
+        }
     });
 };
 
 BeatMakerModule.prototype.clearAll = function () {
     var self = this;
-    if (self.cs) {
-        self.cs.evalScript('executeTool("CLEARBEATS")', function (res) {
-            if (res === 'NO_COMP') {
-                if (window.ModalModule) {
-                    window.ModalModule.warn('Please open a composition first to clear beat markers.', 'Beat Maker');
-                }
-            }
-        });
-    }
+    if (!self.cs) return;
+
+    self.cs.evalScript('tools.CLEARBEATS()', function (res) {
+        var data = null;
+        try { data = JSON.parse(res); } catch (e) {}
+        if (data && data.error) {
+            if (window.ModalModule) window.ModalModule.warn(data.message, 'Beat Maker');
+        } else if (data && data.success) {
+            if (window.ModalModule) window.ModalModule.info(data.message, 'Beat Maker');
+        }
+    });
 };

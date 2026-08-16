@@ -2,9 +2,23 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
-## [1.3.1] - 2026-08-16
+## [1.3.2] - 2026-08-16
+### Added
+- **Windows Version Updater Script (`scripts/update_version.bat` & `scripts/update_version.ps1`)**: Added native Windows batch and PowerShell scripts to automatically synchronize project versions across `CSXS/manifest.xml`, `Installer/Windows/OpenFishTools_Setup.iss`, `Installer/Mac/build_pkg.sh`, and Mac installer HTML resources.
+
+### Changed
+- **100% Direct 3D Null Layer Handles (Zero Effect Controls Overhead)**: Converted all movable hinges, flaps, lids, doors, and character limbs across all 3D models (Z Flip, Z Fold, Laptop, MC 3D, Box, Cabinet, Window, Door, Book, Binder, Glasses) to direct native 3D Null layer handles located at the very top of the timeline with distinct color coding (Red for Master, Magenta for Color/Torso, Cyan for Hinges, Green for Arms, Blue for Legs), completely eliminating Effect Controls Angle sliders.
+- **3D Desk Volumetric Box Legs & Clean Surface**: Removed cable grommet patches for a completely clean, smooth minimalist tabletop surface and upgraded desk legs into full 3D volumetric rectangular box pillars (Front, Back, Left, Right faces with bottom foot plates) plus side stretcher beams and dual-sided modesty panel.
+- **Auto Beat Marker Engine Overhaul**:
+  - **Inverted Sensitivity Fixed**: Sensitivity slider is now scaled 1%–100% (default 70%), where higher sensitivity correctly detects more subtle beats and fast rhythms, while lower sensitivity isolates only heavy bass drops/kicks.
+  - **Adaptive Dynamic Peak Detection**: Upgraded detection algorithm from raw threshold to adaptive local maxima (transient peak) detection with dynamic noise gating and track statistics, preventing marker spamming on loud sections and ensuring consistent beat detection on quiet tracks.
+  - **Multi-Language AE Command Fallbacks**: Robust Audio-to-Keyframes command resolution across English, German, French, and Japanese AE installations with automated layer selection and cleanup.
+  - **Enhanced Clear Beats**: `CLEAR BEATS` now wipes both composition markers and selected layer markers cleanly.
+
 ### Fixed
-- **3D Z Flip & Z Fold Split Screen Texture Mapping**: Fixed a bug where assigning a texture layer to Z Flip or Z Fold duplicated the entire screen squashed onto both halves. Implemented UV `cropBounds` slicing so a single continuous screen texture is split across the hinge (Top/Bottom halves for Z Flip, Left/Right halves for Z Fold) meeting seamlessly at the hinge axis.
+- **3D Z Flip & Z Fold Split Screen Texture Mapping**: Slices a single continuous screen texture across the hinge (Top/Bottom halves for Z Flip, Left/Right halves for Z Fold) with zero image distortion or squashing.
+- **3D Z Flip & Z Fold Hinge Gaps & Spine Enclosure**: Added internal hinge walls, spine protective covers, and center gasket bars (`Hinge_Spine_Cover`, `Hinge_Inner_Bar`, `Base_Hinge_Wall`, `Upper_Hinge_Wall`, `Left_Hinge_Wall`, `Right_Hinge_Wall`), completely eliminating hollow holes and center light-leaking gaps during folding.
+- **Screen Aspect Ratio Calibration**: Calibrated 3D inner screen dimensions to exact 1:1 real-device proportions (1080×2640 9:22 for Z Flip, 1812×2176 ~5:6 for Z Fold) ensuring zero stretching.
 
 ## [1.3.0] - 2026-08-16
 ### Added
