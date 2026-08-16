@@ -60,17 +60,14 @@ git push origin v1.1.1
 ```
 The workflow will extract the latest version section from `changelog.md`, format rich release notes, attach `OpenFishTools.exe` & `OpenFishTools.pkg`, and publish the release.
 
-### Always Deploy After Changes
-Every time you modify any client/host/CSXS file, immediately deploy so the change reaches After Effects.
+### Deployment (Machine-Wide Only)
+Deployments must strictly target system/machine-wide CEP directories, never user AppData. Do not copy files into `%APPDATA%\Adobe\CEP\extensions\`.
 
-**Windows:**
-```bash
-echo "" | cmd /c "Installer\Windows\deploy.bat"
-```
-The script copies the repo into `%APPDATA%\Adobe\CEP\extensions\OpenFishTools` and enables `PlayerDebugMode` for CSXS.9–12 (the `[FAIL]` messages in its output are a batch-script artifact; verify with `reg query HKCU\Software\Adobe\CSXS.<n> /v PlayerDebugMode`). After deploying, the user must reload the panel / restart After Effects.
+**Windows (Machine-Wide):**
+- Target: `%ProgramFiles(x86)%\Common Files\Adobe\CEP\extensions\OpenFishTools` (or `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\OpenFishTools`)
+- Run `Installer\Windows\deploy.bat` (Run as Administrator).
 
-**macOS:**
-```bash
-bash Installer/Mac/deploy.command
-```
-Or double-click `Installer/Mac/deploy.command` in Finder. The script requests admin privileges (`sudo`) and copies the repo into `/Library/Application Support/Adobe/CEP/extensions/OpenFishTools` (system-level, matching the pkg installer location), then enables `PlayerDebugMode` for CSXS.9–12 via `defaults write com.adobe.CSXS.<n> PlayerDebugMode 1` (verify with `defaults read com.adobe.CSXS.<n> PlayerDebugMode`). After deploying, the user must reload the panel / restart After Effects.
+**macOS (Machine-Wide):**
+- Target: `/Library/Application Support/Adobe/CEP/extensions/OpenFishTools`
+- Run `bash Installer/Mac/deploy.command` (with `sudo`).
+

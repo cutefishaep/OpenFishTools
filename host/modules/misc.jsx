@@ -195,7 +195,7 @@ function _CUBE(w, h, d, useLayer) {
     }
 }
 
-function _create3DFace(comp, name, w, h, pos, ori, parent, textureSource, targetStartTime, targetInPoint, targetDuration, mainCompName, precompName, colorCtrlName, defaultRgba, shadeMult, customAnchor, cornerRoundness) {
+function _create3DFace(comp, name, w, h, pos, ori, parent, textureSource, targetStartTime, targetInPoint, targetDuration, mainCompName, precompName, colorCtrlName, defaultRgba, shadeMult, customAnchor, cornerRoundness, cropBounds) {
     var cleanW = Math.max(2, Math.round(w));
     var cleanH = Math.max(2, Math.round(h));
     var face;
@@ -207,11 +207,48 @@ function _create3DFace(comp, name, w, h, pos, ori, parent, textureSource, target
         face.outPoint = targetDuration;
         var nativeW = face.width || cleanW;
         var nativeH = face.height || cleanH;
-        face.scale.setValue([100 * cleanW / nativeW, 100 * cleanH / nativeH, 100]);
-        if (customAnchor) {
-            face.anchorPoint.setValue([customAnchor[0] * nativeW / cleanW, customAnchor[1] * nativeH / cleanH, 0]);
+
+        if (cropBounds && cropBounds.length >= 4) {
+            var u1 = cropBounds[0];
+            var v1 = cropBounds[1];
+            var u2 = cropBounds[2];
+            var v2 = cropBounds[3];
+            var cropW = Math.max(1, (u2 - u1) * nativeW);
+            var cropH = Math.max(1, (v2 - v1) * nativeH);
+
+            face.scale.setValue([100 * cleanW / cropW, 100 * cleanH / cropH, 100]);
+            var centerX = ((u1 + u2) / 2) * nativeW;
+            var centerY = ((v1 + v2) / 2) * nativeH;
+            face.anchorPoint.setValue([centerX, centerY, 0]);
+
+            try {
+                var maskGroup = face.property("ADBE Mask Parade") || face.property("Masks");
+                if (maskGroup) {
+                    var newMask = maskGroup.addProperty("ADBE Mask Atom");
+                    newMask.maskMode = MaskMode.ADD;
+                    var maskShape = newMask.property("ADBE Mask Shape");
+                    var shape = maskShape.value;
+                    var x1 = u1 * nativeW;
+                    var y1 = v1 * nativeH;
+                    var x2 = u2 * nativeW;
+                    var y2 = v2 * nativeH;
+                    shape.vertices = [
+                        [x1, y1],
+                        [x2, y1],
+                        [x2, y2],
+                        [x1, y2]
+                    ];
+                    shape.closed = true;
+                    maskShape.setValue(shape);
+                }
+            } catch (e) {}
         } else {
-            face.anchorPoint.setValue([nativeW / 2, nativeH / 2, 0]);
+            face.scale.setValue([100 * cleanW / nativeW, 100 * cleanH / nativeH, 100]);
+            if (customAnchor) {
+                face.anchorPoint.setValue([customAnchor[0] * nativeW / cleanW, customAnchor[1] * nativeH / cleanH, 0]);
+            } else {
+                face.anchorPoint.setValue([nativeW / 2, nativeH / 2, 0]);
+            }
         }
     } else {
         face = comp.layers.addSolid([1, 1, 1], name, cleanW, cleanH, 1.0);
@@ -242,7 +279,7 @@ function _create3DFace(comp, name, w, h, pos, ori, parent, textureSource, target
         } catch (e) {}
     }
 
-    if (typeof cornerRoundness === "number" && cornerRoundness > 0) {
+    if (typeof cornerRoundness === "number" && cornerRoundness > 0 && (!cropBounds || cropBounds.length < 4)) {
         try {
             var r = Math.min(cornerRoundness, Math.min(cleanW, cleanH) / 2);
             var layerW = face.width || cleanW;
@@ -920,10 +957,12 @@ function _GEN_3D(type) {
 
             var fW = 440, hH = 450, fD = 22;
             var hfW = fW / 2, hhH = hH / 2, hfD = fD / 2;
+            var dispW = fW - 20;
+            var innerH = hH - 10; // 440px each half, meeting cleanly at Y = 0 hinge
 
             // Lower Base Unit
             _create3DFace(objComp, "Base_Back_Cover", fW, hH, [0, hhH, hfD], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
-            _create3DFace(objComp, "Base_Inner_Display", fW - 20, hH - 12, [0, hhH, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05);
+            _create3DFace(objComp, "Base_Inner_Display", dispW, innerH, [0, innerH / 2, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0.5, 1, 1]);
             _create3DFace(objComp, "Base_Bezel", fW, hH, [0, hhH, -hfD], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
             _create3DFace(objComp, "Base_Bottom_Frame", fW, fD, [0, hH, 0], [90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.7);
             _create3DFace(objComp, "Base_Left_Frame", fD, hH, [-hfW, hhH, 0], [0, -90, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 0.85);
@@ -939,7 +978,7 @@ function _GEN_3D(type) {
             _setXRotationExpr(flipHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Fold Angle X")("Angle"); } catch(e) {} -a;');
 
             // Upper Flip Unit (parented to flipHinge)
-            _create3DFace(objComp, "Upper_Inner_Display", fW - 20, hH - 12, [0, -hhH, -1], [0, 0, 0], flipHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05);
+            _create3DFace(objComp, "Upper_Inner_Display", dispW, innerH, [0, -innerH / 2, -1], [0, 0, 0], flipHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0, 1, 0.5]);
             _create3DFace(objComp, "Upper_Bezel", fW, hH, [0, -hhH, 0], [0, 0, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
             _create3DFace(objComp, "Upper_Back_Cover", fW, hH, [0, -hhH, fD], [0, 180, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
             _create3DFace(objComp, "Cover_Display", fW * 0.84, hH * 0.60, [0, -hhH - 35, fD + 2], [0, 180, 0], flipHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Screen Color", cCover, 1.1);
@@ -962,10 +1001,12 @@ function _GEN_3D(type) {
 
             var hW = 420, fH = 920, fD = 22;
             var hhW = hW / 2, hfH = fH / 2, hfD = fD / 2;
+            var innerW = hW - 12; // 408px each half, meeting cleanly at X = 0 hinge
+            var innerH = fH - 24; // 896px
 
             // Right Half Unit (Base)
             _create3DFace(objComp, "Right_Back_Cover", hW, fH, [hhW, 0, hfD], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
-            _create3DFace(objComp, "Right_Inner_Display", hW - 14, fH - 24, [hhW, 0, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05);
+            _create3DFace(objComp, "Right_Inner_Display", innerW, innerH, [innerW / 2, 0, -hfD - 1], [0, 0, 0], controller, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0.5, 0, 1, 1]);
             _create3DFace(objComp, "Right_Bezel", hW, fH, [hhW, 0, -hfD], [0, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
             _create3DFace(objComp, "Cover_Display", hW - 40, fH - 50, [hhW, 0, hfD + 2], [0, 180, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Cover Screen Color", cCover, 1.1);
             _create3DFace(objComp, "Right_Top_Frame", hW, fD, [hhW, -hfH, 0], [-90, 0, 0], controller, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 1.1);
@@ -982,7 +1023,7 @@ function _GEN_3D(type) {
             _setYRotationExpr(foldHinge, 'var a = 0; try { a = thisComp.layer("' + baseName + '_Controller").effect("Fold Angle Y")("Angle"); } catch(e) {} a;');
 
             // Left Half Unit (parented to foldHinge)
-            _create3DFace(objComp, "Left_Inner_Display", hW - 14, fH - 24, [-hhW, 0, -1], [0, 0, 0], foldHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05);
+            _create3DFace(objComp, "Left_Inner_Display", innerW, innerH, [-innerW / 2, 0, -1], [0, 0, 0], foldHinge, layerSourceItem, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 0.05, null, null, [0, 0, 0.5, 1]);
             _create3DFace(objComp, "Left_Bezel", hW, fH, [-hhW, 0, 0], [0, 0, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Screen Bezel Color", cBezel, 1.0);
             _create3DFace(objComp, "Left_Back_Cover", hW, fH, [-hhW, 0, fD], [0, 180, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Chassis Color", cBody, 1.0);
             _create3DFace(objComp, "Left_Top_Frame", hW, fD, [-hhW, -hfH, hfD], [-90, 0, 0], foldHinge, null, targetStartTime, targetInPoint, targetDuration, mCompName, precompName, "Metal Frame Color", cFrame, 1.1);

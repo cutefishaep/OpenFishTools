@@ -2,6 +2,10 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.1] - 2026-08-16
+### Fixed
+- **3D Z Flip & Z Fold Split Screen Texture Mapping**: Fixed a bug where assigning a texture layer to Z Flip or Z Fold duplicated the entire screen squashed onto both halves. Implemented UV `cropBounds` slicing so a single continuous screen texture is split across the hinge (Top/Bottom halves for Z Flip, Left/Right halves for Z Fold) meeting seamlessly at the hinge axis.
+
 ## [1.3.0] - 2026-08-16
 ### Added
 - **3D Generator Suite**: Comprehensive procedural 3D model generator featuring 22 specialized tools categorized into clean, dedicated visual groups on the Tools tab:
