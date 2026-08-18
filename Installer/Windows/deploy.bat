@@ -9,8 +9,11 @@ setlocal
 net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo Requesting Administrator privileges...
-    powershell -NoProfile -Command "Start-Process '%~f0' -ArgumentList 'admin_run' -Verb RunAs -Wait"
-    exit /b %errorlevel%
+    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin_oft.vbs"
+    echo UAC.ShellExecute "cmd.exe", "/c """"%~f0"""" admin_run", "", "runas", 1 >> "%temp%\getadmin_oft.vbs"
+    "%temp%\getadmin_oft.vbs"
+    del "%temp%\getadmin_oft.vbs" 2>nul
+    exit /b
 )
 
 :admin_run
@@ -25,12 +28,15 @@ echo   OpenFishTools - System CEP Deploy
 echo ========================================
 echo.
 
-:: 1. PlayerDebugMode for CEP 9-16
+:: 1. PlayerDebugMode for CEP 7-16 (CC 2017 - CC 2027+, HKCU & HKLM)
 echo [1/3] Enabling PlayerDebugMode...
-for %%i in (9 10 11 12 13 14 15 16) do (
+for %%i in (7 8 9 10 11 12 13 14 15 16) do (
     reg add "HKCU\Software\Adobe\CSXS.%%i" /v "PlayerDebugMode" /t REG_SZ /d "1" /f >nul 2>&1
+    reg add "HKLM\Software\Adobe\CSXS.%%i" /v "PlayerDebugMode" /t REG_SZ /d "1" /f >nul 2>&1
+    reg add "HKCU\Software\Wow6432Node\Adobe\CSXS.%%i" /v "PlayerDebugMode" /t REG_SZ /d "1" /f >nul 2>&1
+    reg add "HKLM\Software\Wow6432Node\Adobe\CSXS.%%i" /v "PlayerDebugMode" /t REG_SZ /d "1" /f >nul 2>&1
 )
-echo       [OK] PlayerDebugMode enabled.
+echo       [OK] PlayerDebugMode enabled for CSXS 7-16.
 echo.
 
 :: 2. Cleanup old folders
@@ -59,6 +65,10 @@ if exist "%SOURCE%\data" (
     xcopy "%SOURCE%\data" "%TARGET%\data\" /E /I /Y /Q >nul
 )
 
+if exist "%SOURCE%\Logo.svg" (
+    copy /y "%SOURCE%\Logo.svg" "%TARGET%\Logo.svg" >nul 2>&1
+)
+
 if exist "%SOURCE%\.debug" (
     copy /y "%SOURCE%\.debug" "%TARGET%\.debug" >nul 2>&1
 )
@@ -70,12 +80,8 @@ echo   Deploy Complete!
 echo   Location: %TARGET%
 echo ========================================
 echo.
-exit /b 0
-
-:error
-echo.
-echo [ERROR] Failed to deploy files to System CEP.
-echo Please close After Effects and run as Administrator.
+echo Launch Adobe After Effects and open:
+echo   Window ^> Extensions ^> OpenFishTools
 echo.
 pause
-exit /b 1
+exit /b 0

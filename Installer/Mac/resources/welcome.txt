@@ -1,0 +1,19 @@
+﻿OpenFishTools Setup
+CEP Extension for Adobe After Effects v1.3.3
+
+This package installs OpenFishTools into the shared system CEP extensions
+directory.
+
+PACKAGE COMPONENTS
+- OpenFishTools extension files
+- Automatic configuration of PlayerDebugMode for CC 2018 through CC 2027
+- Extension uninstaller script
+
+SYSTEM REQUIREMENTS
+- macOS 10.14 or later
+- Adobe After Effects CC 2018 or later
+- Administrator privileges for installation
+
+Disclaimer: OpenFishTools is an independent extension. Adobe and After Effects
+are trademarks of Adobe Inc. OpenFishTools is not affiliated with, endorsed
+by, or sponsored by Adobe Inc.

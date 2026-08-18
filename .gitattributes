@@ -1,0 +1,7 @@
+* text=auto
+*.sh text eol=lf
+*.command text eol=lf
+*.tool text eol=lf
+scripts/preinstall text eol=lf
+scripts/postinstall text eol=lf
+scripts_uninstall/postinstall text eol=lf

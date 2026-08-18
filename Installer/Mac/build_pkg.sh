@@ -2,7 +2,7 @@
 set -e
 
 APP_NAME="OpenFishTools"
-APP_VERSION="${APP_VERSION:-1.3.2}"
+APP_VERSION="${APP_VERSION:-1.3.3}"
 BUNDLE_ID="com.cutefish.tools"
 EXTENSION_FOLDER_NAME="OpenFishTools"
 
@@ -61,6 +61,10 @@ rsync -av \
     --exclude="changelog.md" \
     "$PROJECT_ROOT/" \
     "$PAYLOAD_DIR/$EXTENSION_FOLDER_NAME/"
+
+info "Copying uninstaller..."
+cp "$SCRIPT_DIR/uninstaller.tool" "$PAYLOAD_DIR/$EXTENSION_FOLDER_NAME/Uninstall OpenFishTools.tool"
+chmod +x "$PAYLOAD_DIR/$EXTENSION_FOLDER_NAME/Uninstall OpenFishTools.tool"
 
 info "Payloads prepared."
 

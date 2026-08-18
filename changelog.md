@@ -2,6 +2,24 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.3] - 2026-08-18
+### Added
+- **Universal ZXP Package & CI/CD Automated Builds**:
+  - Added pure native CMD script (`scripts/build_zxp.bat`) for instant local packaging of `OpenFishTools.zxp` without third-party dependencies.
+  - Integrated automated `OpenFishTools.zxp` package creation into GitHub Actions CI/CD workflow (`.github/workflows/release.yml`) so every release automatically publishes `.exe`, `.pkg`, and `.zxp`.
+- **Cross-Platform Git Line-Ending Safety (`.gitattributes`)**: Added repository `.gitattributes` to force LF line endings on all Unix/macOS shell scripts, preventing "bad interpreter" crashes on macOS.
+
+### Changed
+- **Installer Plain Text Migration (macOS)**: Replaced HTML-based installer resources (`license.html`, `welcome.html`, `conclusion.html`) with clean plain text `.txt` files in `Installer/Mac/resources/` and updated `distribution.xml`, resolving raw HTML markup rendering in the macOS installer interface.
+- **Windows Deployment (`deploy.bat`) Pure CMD Refactor**: Rewrote `Installer/Windows/deploy.bat` to 100% native CMD with Windows Script Host UAC elevation, eliminating PowerShell execution policy hurdles and string escaping issues.
+- **Security & Antivirus False-Positive Hardening**:
+  - Bundled macOS uninstaller as a static payload asset (`uninstaller.tool`) instead of runtime script-in-script generation (heredoc) in `postinstall`.
+  - Replaced placeholder Windows installer GUID with a uniquely generated GUID in `Installer/Windows/OpenFishTools_Setup.iss`.
+  - Scoped preinstall cleanup to the active user's environment to prevent heuristic scanner warnings.
+
+### Fixed
+- **PlayerDebugMode Compatibility for After Effects CC 2017 & CC 2018**: Expanded registry and plist `PlayerDebugMode` setup to explicitly cover `CSXS.7` (CC 2017) and `CSXS.8` (CC 2018) through `CSXS.16` (CC 2027+) across all Windows/macOS deployment scripts and installers, fixing panel loading issues on CC 2018.
+
 ## [1.3.2] - 2026-08-16
 ### Added
 - **Windows Version Updater Script (`scripts/update_version.bat` & `scripts/update_version.ps1`)**: Added native Windows batch and PowerShell scripts to automatically synchronize project versions across `CSXS/manifest.xml`, `Installer/Windows/OpenFishTools_Setup.iss`, `Installer/Mac/build_pkg.sh`, and Mac installer HTML resources.

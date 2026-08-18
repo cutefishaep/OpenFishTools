@@ -29,19 +29,21 @@ if [ -f "$MANIFEST" ]; then
     echo "  ✅ Updated CSXS/manifest.xml"
 fi
 
-# 2. Update Mac Welcome HTML
-WELCOME="$ROOT_DIR/Installer/Mac/resources/welcome.html"
-if [ -f "$WELCOME" ]; then
-    perl -pi -e "s/CEP Extension for Adobe After Effects v[0-9\.]+/CEP Extension for Adobe After Effects v$NEW_VER/g" "$WELCOME"
-    echo "  ✅ Updated welcome.html"
-fi
+# 2. Update Mac Welcome Resource
+for w in "$ROOT_DIR/Installer/Mac/resources/welcome.txt" "$ROOT_DIR/Installer/Mac/resources/welcome.html"; do
+    if [ -f "$w" ]; then
+        perl -pi -e "s/CEP Extension for Adobe After Effects v[0-9\.]+/CEP Extension for Adobe After Effects v$NEW_VER/g" "$w"
+        echo "  ✅ Updated $(basename "$w")"
+    fi
+done
 
-# 3. Update Mac Conclusion HTML
-CONCLUSION="$ROOT_DIR/Installer/Mac/resources/conclusion.html"
-if [ -f "$CONCLUSION" ]; then
-    perl -pi -e "s/OpenFishTools v[0-9\.]+ has been installed/OpenFishTools v$NEW_VER has been installed/g" "$CONCLUSION"
-    echo "  ✅ Updated conclusion.html"
-fi
+# 3. Update Mac Conclusion Resource
+for c in "$ROOT_DIR/Installer/Mac/resources/conclusion.txt" "$ROOT_DIR/Installer/Mac/resources/conclusion.html"; do
+    if [ -f "$c" ]; then
+        perl -pi -e "s/OpenFishTools v[0-9\.]+ has been installed/OpenFishTools v$NEW_VER has been installed/g" "$c"
+        echo "  ✅ Updated $(basename "$c")"
+    fi
+done
 
 # 4. Update Windows Inno Setup .iss
 ISS="$ROOT_DIR/Installer/Windows/OpenFishTools_Setup.iss"

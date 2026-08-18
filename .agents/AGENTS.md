@@ -5,5 +5,6 @@
 - Use `./scripts/update_version.sh <version>` when bumping project versions.
 - Document all changes in `changelog.md` under `## [X.Y.Z] - YYYY-MM-DD`.
 - Deployments must be machine-wide only (`%ProgramFiles(x86)%\Common Files\Adobe\CEP\extensions\OpenFishTools` on Windows, `/Library/Application Support/Adobe/CEP/extensions/OpenFishTools` on Mac). Never deploy to AppData.
+- ZXP package can be compiled locally via `scripts/build_zxp.bat`.
 - Windows installer is configured in `Installer/Windows/OpenFishTools_Setup.iss`.
 - Mac installer builder script is located in `Installer/Mac/build_pkg.sh`.

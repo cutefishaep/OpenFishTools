@@ -2,24 +2,25 @@
 # =============================================================================
 # OpenFishTools CEP Extension — Mac Postinstall Script
 # 1. Enables PlayerDebugMode for Adobe CEP CSXS 9–12 (CC 2018 – CC 2027)
-# 2. Creates the Uninstall OpenFishTools.tool inside the extension folder
+# 2. Sets correct permissions on the bundled uninstaller
 # =============================================================================
 
 EXTENSION_NAME="OpenFishTools"
 EXTENSION_INSTALL_DIR="/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME"
 
 # ─── CSXS Versions ────────────────────────────────────────────────────────────
-# CC 2018       → CSXS 9
+# CC 2017       → CSXS 7
+# CC 2018       → CSXS 8
 # CC 2019       → CSXS 9
 # CC 2020       → CSXS 10
 # CC 2021       → CSXS 11
-# CC 2022       → CSXS 11
+# CC 2022       → CSXS 11 / CSXS 12
 # CC 2023       → CSXS 12
 # CC 2024       → CSXS 12
-# CC 2025       → CSXS 12
-# CC 2026       → CSXS 12
-# CC 2027       → CSXS 12
-CSXS_VERSIONS=(9 10 11 12)
+# CC 2025       → CSXS 12 / CSXS 13
+# CC 2026       → CSXS 14 / CSXS 15
+# CC 2027       → CSXS 16
+CSXS_VERSIONS=(7 8 9 10 11 12 13 14 15 16)
 
 echo "==> OpenFishTools Postinstall: Enabling PlayerDebugMode..."
 
@@ -34,103 +35,29 @@ echo "==> Detected user: $REAL_USER (home: $USER_HOME)"
 
 # ─── Set PlayerDebugMode — System-wide plist ──────────────────────────────────
 for v in "${CSXS_VERSIONS[@]}"; do
-    PLIST_PATH="/Library/Preferences/com.adobe.CSXS.$v.plist"
-    echo "==> Setting system PlayerDebugMode for CSXS $v → $PLIST_PATH"
-    defaults write "/Library/Preferences/com.adobe.CSXS.$v" PlayerDebugMode 1
+    echo "==> Setting system PlayerDebugMode for CSXS $v"
+    defaults write "/Library/Preferences/com.adobe.CSXS.$v" PlayerDebugMode -string "1"
 done
 
 # ─── Set PlayerDebugMode — Per-user plist ────────────────────────────────────
 if [ -n "$USER_HOME" ] && [ "$REAL_USER" != "root" ]; then
     for v in "${CSXS_VERSIONS[@]}"; do
         PLIST_PATH="$USER_HOME/Library/Preferences/com.adobe.CSXS.$v.plist"
-        echo "==> Setting user PlayerDebugMode for CSXS $v → $PLIST_PATH"
-        sudo -u "$REAL_USER" defaults write "$USER_HOME/Library/Preferences/com.adobe.CSXS.$v" PlayerDebugMode 1
-        # Ensure ownership is correct
+        echo "==> Setting user PlayerDebugMode for CSXS $v"
+        sudo -u "$REAL_USER" defaults write "$USER_HOME/Library/Preferences/com.adobe.CSXS.$v" PlayerDebugMode -string "1"
         chown "$REAL_USER" "$PLIST_PATH" 2>/dev/null || true
     done
 fi
 
-# ─── Ensure extension directory exists ───────────────────────────────────────
-mkdir -p "$EXTENSION_INSTALL_DIR"
-
-# ─── Create Uninstaller inside the extension folder ──────────────────────────
+# ─── Set permissions on bundled uninstaller ──────────────────────────────────
 UNINSTALLER_PATH="$EXTENSION_INSTALL_DIR/Uninstall OpenFishTools.tool"
-
-cat > "$UNINSTALLER_PATH" << 'UNINSTALLER_EOF'
-#!/bin/bash
-# =============================================================================
-# OpenFishTools Uninstaller
-# Double-click this file in Finder to uninstall OpenFishTools.
-# =============================================================================
-
-EXTENSION_NAME="OpenFishTools"
-SYSTEM_CEP_PATH="/Library/Application Support/Adobe/CEP/extensions"
-USER_CEP_PATH="$HOME/Library/Application Support/Adobe/CEP/extensions"
-
-# Confirm uninstall
-CONFIRM=$(osascript -e 'button returned of (display dialog "Are you sure you want to uninstall OpenFishTools?\n\nThis will remove the extension from Adobe After Effects." buttons {"Cancel", "Uninstall"} default button "Cancel" with title "OpenFishTools Uninstaller" with icon caution)')
-
-if [ "$CONFIRM" != "Uninstall" ]; then
-    echo "Uninstall cancelled."
-    exit 0
+if [ -f "$UNINSTALLER_PATH" ]; then
+    chmod +x "$UNINSTALLER_PATH"
+    chown root:wheel "$UNINSTALLER_PATH"
+    echo "==> Uninstaller permissions set: $UNINSTALLER_PATH"
 fi
 
-# Ask if they want to remove PlayerDebugMode
-REMOVE_DEBUG=$(osascript -e 'button returned of (display dialog "Do you also want to remove Adobe CEP PlayerDebugMode settings?\n\nChoose \"Yes\" to disable debug mode. Choose \"No\" to keep it (recommended if you use other custom or unsigned CEP extensions)." buttons {"No", "Yes"} default button "No" with title "OpenFishTools Uninstaller" with icon caution)')
-
-# Determine if admin privileges are required
-NEEDS_ADMIN=false
-if [ -d "$SYSTEM_CEP_PATH/$EXTENSION_NAME" ]; then
-    NEEDS_ADMIN=true
-fi
-if [ "$REMOVE_DEBUG" = "Yes" ]; then
-    NEEDS_ADMIN=true
-fi
-
-if [ "$NEEDS_ADMIN" = true ]; then
-    CMD=""
-    if [ -d "$SYSTEM_CEP_PATH/$EXTENSION_NAME" ]; then
-        CMD="rm -rf '/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME'"
-    fi
-    if [ "$REMOVE_DEBUG" = "Yes" ]; then
-        for v in 9 10 11 12; do
-            if [ -n "$CMD" ]; then
-                CMD="$CMD; "
-            fi
-            CMD="${CMD}defaults delete /Library/Preferences/com.adobe.CSXS.$v PlayerDebugMode 2>/dev/null || true"
-        done
-    fi
-    if [ -n "$CMD" ]; then
-        osascript -e "do shell script \"$CMD\" with administrator privileges"
-    fi
-fi
-
-# Remove user-level installation (if present)
-if [ -d "$USER_CEP_PATH/$EXTENSION_NAME" ]; then
-    rm -rf "$USER_CEP_PATH/$EXTENSION_NAME"
-fi
-
-# Remove user-level PlayerDebugMode entries if selected
-if [ "$REMOVE_DEBUG" = "Yes" ]; then
-    for v in 9 10 11 12; do
-        defaults delete "$HOME/Library/Preferences/com.adobe.CSXS.$v" PlayerDebugMode 2>/dev/null || true
-    done
-fi
-
-if [ "$REMOVE_DEBUG" = "Yes" ]; then
-    osascript -e 'display dialog "OpenFishTools has been successfully uninstalled.\n\nCEP PlayerDebugMode settings have been removed.\n\nRestart Adobe After Effects to complete the removal." buttons {"OK"} default button "OK" with title "OpenFishTools Uninstaller" with icon note'
-else
-    osascript -e 'display dialog "OpenFishTools has been successfully uninstalled.\n\nCEP PlayerDebugMode settings were kept intact.\n\nRestart Adobe After Effects to complete the removal." buttons {"OK"} default button "OK" with title "OpenFishTools Uninstaller" with icon note'
-fi
-
-exit 0
-UNINSTALLER_EOF
-
-# Make the uninstaller executable
-chmod +x "$UNINSTALLER_PATH"
-chown root:wheel "$UNINSTALLER_PATH"
-
-echo "==> Uninstaller created at: $UNINSTALLER_PATH"
 echo "==> Postinstall complete. OpenFishTools has been installed successfully."
 
 exit 0
+

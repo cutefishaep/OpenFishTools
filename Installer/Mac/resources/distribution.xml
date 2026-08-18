@@ -6,9 +6,9 @@
     <domains enable_localSystem="true" enable_currentUserHome="false" />
     <options customize="always" require-scripts="true" rootVolumeOnly="true" />
 
-    <welcome    file="welcome.html"    mime-type="text/html" />
-    <license    file="license.html"    mime-type="text/html" />
-    <conclusion file="conclusion.html" mime-type="text/html" />
+    <welcome    file="welcome.txt"    mime-type="text/plain" />
+    <license    file="license.txt"    mime-type="text/plain" />
+    <conclusion file="conclusion.txt" mime-type="text/plain" />
 
     <volume-check>
         <allowed-os-versions>

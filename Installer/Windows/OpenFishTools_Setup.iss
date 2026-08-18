@@ -1,6 +1,6 @@
 ﻿#define MyAppName       "OpenFishTools"
 #ifndef MyAppVersion
-  #define MyAppVersion  "1.3.2"
+  #define MyAppVersion  "1.3.3"
 #endif
 #define MyAppPublisher  "cutefishaep"
 #define MyAppURL        "https://github.com/cutefishaep/OpenFishTools"
@@ -8,7 +8,7 @@
 #define MySourceRoot    "..\.."
 
 [Setup]
-AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+AppId={{5C7AD4D0-3A23-4675-A387-A35D3488030A}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} v{#MyAppVersion}
@@ -51,7 +51,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 WelcomeLabel1=Welcome to the [name] Setup Wizard
 WelcomeLabel2=This wizard will install [name/ver], a CEP extension for Adobe After Effects.%n%nPlease close Adobe After Effects before continuing.%n%nPlayerDebugMode will be enabled automatically for CC 2018 through CC 2027.%n%nDisclaimer: OpenFishTools is an independent extension. Adobe and After Effects are trademarks of Adobe Inc. OpenFishTools is not affiliated with or endorsed by Adobe Inc.
 FinishedHeadingLabel=Installation Complete
-FinishedLabel=OpenFishTools has been installed successfully.%n%nOpen Adobe After Effects and select Window > Extensions > Fish Tools to launch the panel.
+FinishedLabel=OpenFishTools has been installed successfully.%n%nOpen Adobe After Effects and select Window > Extensions > OpenFishTools to launch the panel.
 
 [Files]
 Source: "{#MySourceRoot}\CSXS\*";   DestDir: "{app}\CSXS";   Flags: recursesubdirs createallsubdirs ignoreversion
@@ -62,20 +62,29 @@ Source: "{#MySourceRoot}\Logo.svg"; DestDir: "{app}";         Flags: ignoreversi
 Source: "SetupIcon.ico";            DestDir: "{app}";         Flags: ignoreversion
 
 [Registry]
+Root: HKCU; Subkey: "Software\Adobe\CSXS.7";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Adobe\CSXS.8";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 
+Root: HKLM; Subkey: "Software\Adobe\CSXS.7";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKLM; Subkey: "Software\Adobe\CSXS.8";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 
+Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.7";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.8";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKCU; Subkey: "Software\Wow6432Node\Adobe\CSXS.12"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+
+Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.7";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
+Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.8";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.9";  ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.10"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
 Root: HKLM; Subkey: "Software\Wow6432Node\Adobe\CSXS.11"; ValueType: string; ValueName: "PlayerDebugMode"; ValueData: "1"; Flags: createvalueifdoesntexist
@@ -119,21 +128,29 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usUninstall then begin
     if RemoveDebugMode then begin
+      RegDeleteValue(HKCU, 'Software\Adobe\CSXS.7', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Adobe\CSXS.8', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Adobe\CSXS.9', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Adobe\CSXS.10', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Adobe\CSXS.11', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Adobe\CSXS.12', 'PlayerDebugMode');
       
+      RegDeleteValue(HKLM, 'Software\Adobe\CSXS.7', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Adobe\CSXS.8', 'PlayerDebugMode');
       RegDeleteValue(HKLM, 'Software\Adobe\CSXS.9', 'PlayerDebugMode');
       RegDeleteValue(HKLM, 'Software\Adobe\CSXS.10', 'PlayerDebugMode');
       RegDeleteValue(HKLM, 'Software\Adobe\CSXS.11', 'PlayerDebugMode');
       RegDeleteValue(HKLM, 'Software\Adobe\CSXS.12', 'PlayerDebugMode');
       
+      RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.7', 'PlayerDebugMode');
+      RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.8', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.9', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.10', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.11', 'PlayerDebugMode');
       RegDeleteValue(HKCU, 'Software\Wow6432Node\Adobe\CSXS.12', 'PlayerDebugMode');
       
+      RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.7', 'PlayerDebugMode');
+      RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.8', 'PlayerDebugMode');
       RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.9', 'PlayerDebugMode');
       RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.10', 'PlayerDebugMode');
       RegDeleteValue(HKLM, 'Software\Wow6432Node\Adobe\CSXS.11', 'PlayerDebugMode');

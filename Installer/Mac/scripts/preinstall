@@ -15,7 +15,7 @@ if [ -d "$SYSTEM_CEP_PATH/$EXTENSION_NAME" ]; then
     rm -rf "$SYSTEM_CEP_PATH/$EXTENSION_NAME"
 fi
 
-# Detect logged-in user home directory
+# Remove from detected active user's home directory only
 REAL_USER=$(stat -f "%Su" /dev/console 2>/dev/null)
 if [ -z "$REAL_USER" ] || [ "$REAL_USER" = "root" ]; then
     REAL_USER=$(ls -la /dev/console | awk '{print $3}')
@@ -29,13 +29,6 @@ if [ -n "$REAL_USER" ] && [ "$REAL_USER" != "root" ]; then
     fi
 fi
 
-# Clean up legacy installations across user home directories
-for u_home in /Users/*; do
-    if [ -d "$u_home/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME" ]; then
-        echo "==> Removing legacy installation at: $u_home/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME"
-        rm -rf "$u_home/Library/Application Support/Adobe/CEP/extensions/$EXTENSION_NAME"
-    fi
-done
-
 echo "==> Preinstall complete. Previous installation removed successfully."
 exit 0
+

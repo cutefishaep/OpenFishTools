@@ -16,6 +16,7 @@ This document contains guidelines, architectural rules, and workflows for AI age
 | **Frontend UI** | HTML5 / CSS3 / ES6 JS | Located in `client/`. Vanilla JS modules without heavy frameworks. |
 | **Host Engine** | ExtendScript (`.jsx`) | Located in `host/`. Communicates with After Effects DOM via `CSInterface.evalScript`. |
 | **Extension Manifest** | `CSXS/manifest.xml` | Configures CEP extension bundle (`com.cutefish.tools.panel`). |
+| **ZXP Package** | Universal Archive | `scripts/build_zxp.bat` packaging `OpenFishTools.zxp`. |
 | **Windows Installer** | Inno Setup 6 | `Installer/Windows/OpenFishTools_Setup.iss` compiling `OpenFishTools.exe`. |
 | **Mac Installer** | `pkgbuild` & `productbuild` | `Installer/Mac/build_pkg.sh` producing `OpenFishTools.pkg`. |
 | **CI/CD Automation** | GitHub Actions | `.github/workflows/release.yml` automating builds, release note parsing, and deployment. |

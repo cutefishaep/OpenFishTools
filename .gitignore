@@ -8,3 +8,6 @@ Installer/Mac/build/
 Installer/Mac/resources/*_component.pkg
 Installer/Mac/*.pkg
 Installer/Windows/Output/
+*.exe
+*.zxp
+build_zxp_payload/

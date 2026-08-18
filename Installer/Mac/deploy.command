@@ -96,10 +96,12 @@ enable_debug() {
     fi
 }
 
-enable_debug "9"  "CC 2018/2019"
-enable_debug "10" "2020"
-enable_debug "11" "2022-2024"
-enable_debug "12" "2025-2027+"
+enable_debug "7"  "CC 2017"
+enable_debug "8"  "CC 2018"
+enable_debug "9"  "CC 2019"
+enable_debug "10" "CC 2020"
+enable_debug "11" "CC 2021/2022"
+enable_debug "12" "CC 2023-2027+"
 
 printf "\n"
 if [ "$DEBUG_ALL_OK" = "1" ]; then
@@ -108,8 +110,8 @@ else
     warn "Some keys failed to enable."
     printf "        [*] Try enabling manually:\n"
     printf "            1. Open Terminal\n"
-    printf "            2. Run: defaults write com.adobe.CSXS.9 PlayerDebugMode 1\n"
-    printf "            3. Repeat for CSXS.10, CSXS.11, CSXS.12\n"
+    printf "            2. Run: defaults write com.adobe.CSXS.8 PlayerDebugMode 1\n"
+    printf "            3. Repeat for other CSXS versions (7 through 16)\n"
     printf "\n"
 fi
 
