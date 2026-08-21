@@ -2,6 +2,45 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.4] - 2026-08-21
+### Added
+- **Alight Motion Elastic & Easing Graph Engine**:
+  - Implemented exact mathematical oscillation models for **Elastic**, **Bounce**, and **Cyclic** easings directly mirroring Alight Motion parameter equations (Step Length, Attack, Decay, Magnitude, Bounciness, Sharpness, Skew).
+  - Integrated dual curve direction modes: **Arrival (`IN`)** with overshoot dynamics and **Departure (`OUT`)** with anticipation dynamics.
+  - Added keyframe expression generator with timeline range guards and smooth natural settling.
+  - Added extensible preset library with real-time curve previews and categorization filter chips (`All`, `Elastic`, `Bounce`, `Cyclic`).
+- **Full Viewport Preview Stage & Out-of-Bounds Detection**:
+  - Expanded the controller canvas into a full-container stage with an outer dark pasteboard area and a centered, high-contrast composition frame bounding box.
+  - Added full visual visibility for elements moving, scaling, or rotating outside composition dimensions.
+- **Multi-Layer Simultaneous Transformation & Relative Delta (Null-Parent Behavior)**:
+  - Supported selecting 2 or more layers in After Effects simultaneously.
+  - Applied relative delta transformations across Position, Scale, Rotation, and Opacity, preserving spatial offsets and multi-layer layouts without collapsing coordinates.
+  - Added automatic `"Mixed"` value status indicators across position, rotation, scale, and opacity inputs when multiple layers are selected.
+  - Rendered all selected layers concurrently on the 3D projected preview stage with distinct primary accent and companion layer outlines.
+- **Value Graph-Aligned 10-Step Grid & Magnetic Snapping**:
+  - Implemented a 10-division decimal grid matching the Value Graph Editor layout with a distinguished 50% center crosshair.
+  - Added smart magnetic grid snapping when dragging layers on the move swipe pad.
+- **Transport Bar Grid & Preview Toggles**:
+  - Docked Grid Guide toggle button (`grid_view`) at the far-left and Preview Visibility toggle button (`visibility`) at the far-right with persistent `localStorage` states.
+
+### Changed
+- **Asymmetric Proportional Scale Preservation**:
+  - Unlinking scale allows modifying Width or Height independently without altering or resetting the opposite axis.
+  - Linked scaling applies additive and proportional deltas without flattening asymmetric layer ratios.
+- **Hover-On-Demand Resource Optimization**:
+  - Halted background polling and host script evaluation when the cursor is idle or outside the controller card, displaying a clean `"Hover here to adjust"` overlay and reducing After Effects CPU consumption.
+  - Added drag lifecycle guards ensuring active mouse/touch drags outside card boundaries continue uninterrupted until released.
+- **Text-Only Action Buttons**:
+  - Removed decorative icons from **Donation (`PAYPAL`, `QRIS`)**, **Backup & Restore (`BACKUP`, `RESTORE`)**, **Report Bug**, and **Open Data Directory** for a cleaner, modern text-first aesthetic.
+
+### Fixed
+- **CEF 59 (CC 2018) Flexbox Height Collapse on Blend Mode List**:
+  - Replaced nested flex height models with explicit block scrolling on `.controller-blend-list` with minimum row heights (`28px`), preventing list collapse in After Effects CC 2018.
+- **Selection Deselection Ghost Shape Cleanup**:
+  - Ensured `C.data` is immediately cleared and preview displays are cleanly reset when no layer is selected in After Effects.
+- **ExtendScript Block Scope & Syntax Resilience**:
+  - Fixed trailing block termination on `_controllerSetPositionZ` and verified zero-overhead ES3 compatibility across all host JSX modules.
+
 ## [1.3.3] - 2026-08-18
 ### Added
 - **Universal ZXP Package & CI/CD Automated Builds**:

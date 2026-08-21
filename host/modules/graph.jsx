@@ -484,10 +484,12 @@ function _debugProps() {
 function _applyElastic(dataObj) {
     try {
         _graphKeyHint = null;
-        var hx = parseFloat(dataObj.x);
-        var hy = parseFloat(dataObj.y);
-        if (isNaN(hx)) hx = 0.40;
-        if (isNaN(hy)) hy = 0.55;
+        if (typeof dataObj === 'string') {
+            try { dataObj = JSON.parse(dataObj); } catch (parseErr) {}
+        }
+        var type = (dataObj && dataObj.type) ? dataObj.type : 'elastic';
+        var mode = (dataObj && dataObj.mode) ? dataObj.mode : 'in';
+        var params = (dataObj && dataObj.params) ? dataObj.params : {};
 
         var comp = app.project.activeItem;
         if (!comp || !(comp instanceof CompItem)) return "{ok:false}";
@@ -495,13 +497,210 @@ function _applyElastic(dataObj) {
         var props = _findSelectedProps();
         if (!props || props.length === 0) props = _getAllKeyframeProps(comp);
         if (!props || props.length === 0) return "{ok:false}";
-        props = _expandGraphProps(props);
+
+        // 1. Elastic Easing (Alight Motion ElasticEasing)
+        function evalElastic(t, sL, decay, mag) {
+            if (t <= 0) return 0.0;
+            if (t >= 1) return 1.0;
+            var stepLength = (typeof sL === 'number' && !isNaN(sL)) ? Math.max(0.05, Math.min(0.95, sL)) : 0.35;
+            var d = (typeof decay === 'number' && !isNaN(decay) && decay <= 1.0) ? Math.max(0.0, Math.min(0.95, decay)) : 0.45;
+            var m = (typeof mag === 'number' && !isNaN(mag)) ? Math.max(0.1, Math.min(3.0, mag)) : 1.0;
+            var exp = 1.0 + 15.0 * (d * d);
+
+            function basic(time) {
+                var omega = (Math.PI * time) / stepLength;
+                var tC = Math.max(0.005, Math.min(1.0, time));
+                var env = Math.abs(Math.pow(1.0 - tC, exp));
+                return Math.cos(omega) * env;
+            }
+
+            if (t < stepLength) {
+                var v0 = 1.0 - (basic(stepLength) * m);
+                var v1 = (1.0 - Math.cos((Math.PI * t) / stepLength)) / 2.0;
+                var normT = t / stepLength;
+                var powVal = 1.0 - Math.pow(normT, 3.0);
+                var baseVal = 1.0 - (basic(t) * m);
+                return (v1 * v0 * powVal) + (baseVal * (1.0 - powVal));
+            } else {
+                return 1.0 - (basic(t) * m);
+            }
+        }
+
+        // 2. Bounce Easing (Alight Motion BounceEasing)
+        function evalBounce(t, firstStepLength, bounciness, maxBounces) {
+            var fStep = (typeof firstStepLength === 'number' && !isNaN(firstStepLength)) ? Math.max(0.05, Math.min(0.95, firstStepLength)) : 0.45;
+            var bnc = (typeof bounciness === 'number' && !isNaN(bounciness)) ? Math.max(0.05, Math.min(0.95, bounciness)) : 0.65;
+            var maxB = (typeof maxBounces === 'number' && !isNaN(maxBounces)) ? Math.max(1, Math.min(10, Math.round(maxBounces))) : 4;
+            if (fStep <= 0) return 1.0;
+            if (t <= 0) return 0.0;
+            if (t >= 1) return 1.0;
+
+            var tShifted = t + (fStep / 2.0);
+            var step = fStep;
+            var height = 1.0;
+            var start = 0.0;
+            var bounceCount = 0;
+
+            while (tShifted > start + step) {
+                start += step;
+                step *= bnc;
+                height *= bnc;
+                bounceCount++;
+                if (bounceCount >= maxB || height < 0.005) return 1.0;
+            }
+
+            var norm = (tShifted - start) / step;
+            var x = Math.abs((norm - 0.5) * 2.0);
+            return (1.0 - height) + (x * x) * height;
+        }
+
+        // 3. Cyclic Easing (Alight Motion CyclicEasing)
+        function evalCyclic(t, stepLength, sharpness, skew, decay) {
+            if (t <= 0) return 0.0;
+            if (t >= 1) return 1.0;
+            var sL = (typeof stepLength === 'number' && !isNaN(stepLength)) ? Math.max(0.005, Math.min(0.95, stepLength)) : 0.35;
+            var shp = (typeof sharpness === 'number' && !isNaN(sharpness)) ? Math.max(0.0, Math.min(1.0, sharpness)) : 0.0;
+            var skw = Math.max(0.001, Math.min(0.999, (typeof skew === 'number' && !isNaN(skew)) ? skew : 0.5));
+            var dcy = (typeof decay === 'number' && !isNaN(decay)) ? Math.max(0.0, Math.min(0.9, decay)) : 0.0;
+
+            function pctInStep(time) {
+                var rem = ((time % sL) + sL) % sL;
+                return rem / sL;
+            }
+
+            function skewInterp(time) {
+                var pct = pctInStep(time);
+                var factor;
+                if (pct < skw) {
+                    factor = 0.5 * (pct / skw);
+                } else if (pct > skw) {
+                    factor = 0.5 + 0.5 * ((pct - skw) / (1.0 - skw));
+                } else {
+                    factor = 0.5;
+                }
+                var stepBase = time - (pct * sL);
+                return stepBase + (factor * sL);
+            }
+
+            function cosInterp(time) {
+                var phase = (time / sL) * (Math.PI * 2.0);
+                return 1.0 - (Math.cos(phase) + 1.0) / 2.0;
+            }
+
+            function sawInterp(time) {
+                return 1.0 - (Math.abs(pctInStep(time) - 0.5) * 2.0);
+            }
+
+            var skewedT = skewInterp(t);
+            var cosV = cosInterp(skewedT);
+            var sawV = sawInterp(skewedT);
+            var v = cosV * (1.0 - shp) + sawV * shp;
+
+            var base = t - (t % sL);
+            if (base + sL / 4.0 > 1.0) {
+                v = 0.0;
+            } else if (base + sL / 2.0 < 1.0) {
+                if (base + sL * 3.0 / 4.0 > 1.0 && pctInStep(t) > skw) {
+                    v = 1.0;
+                }
+            }
+
+            return v * (1.0 - t * dcy) + (t * dcy);
+        }
+
+        function calculateCurve(t) {
+            var raw;
+            if (type === 'bounce') {
+                raw = evalBounce(mode === 'out' ? 1.0 - t : t, params.firstStepLength, params.bounciness, params.maxBounces);
+            } else if (type === 'cyclic') {
+                raw = evalCyclic(mode === 'out' ? 1.0 - t : t, params.stepLength, params.sharpness, params.skew, params.decay);
+            } else {
+                raw = evalElastic(mode === 'out' ? 1.0 - t : t, params.stepLength, params.decay, params.magnitude);
+            }
+            return (mode === 'out') ? 1.0 - raw : raw;
+        }
+
+        function elasticVal(t) {
+            return calculateCurve(t);
+        }
+
+        function findExtrema() {
+            var pts = [];
+
+            if (type === 'bounce') {
+                var fStep = (typeof params.firstStepLength === 'number' && !isNaN(params.firstStepLength)) ? Math.max(0.05, Math.min(0.95, params.firstStepLength)) : 0.45;
+                var bnc = (typeof params.bounciness === 'number' && !isNaN(params.bounciness)) ? Math.max(0.05, Math.min(0.95, params.bounciness)) : 0.65;
+                var maxB = (typeof params.maxBounces === 'number' && !isNaN(params.maxBounces)) ? Math.max(1, Math.min(10, Math.round(params.maxBounces))) : 4;
+
+                // 1. Initial point
+                pts.push({ t: 0.0, val: elasticVal(0.0), isFloor: (mode === 'out'), isApex: (mode === 'in') });
+
+                var curTime = fStep / 2.0;
+                var step = fStep * bnc;
+                var height = bnc;
+                var bounces = 0;
+
+                // First floor contact
+                if (curTime < 0.98) {
+                    var tNorm = (mode === 'out') ? 1.0 - curTime : curTime;
+                    pts.push({ t: tNorm, val: elasticVal(tNorm), isFloor: true, isApex: false });
+                }
+
+                while (curTime + step <= 0.98 && bounces < maxB && height > 0.02) {
+                    var apexT = curTime + (step / 2.0);
+                    var floorT = curTime + step;
+
+                    var normApex = (mode === 'out') ? 1.0 - apexT : apexT;
+                    var normFloor = (mode === 'out') ? 1.0 - floorT : floorT;
+
+                    pts.push({ t: normApex, val: elasticVal(normApex), isFloor: false, isApex: true });
+                    pts.push({ t: normFloor, val: elasticVal(normFloor), isFloor: true, isApex: false });
+
+                    curTime += step;
+                    step *= bnc;
+                    height *= bnc;
+                    bounces++;
+                }
+
+                // Final destination
+                pts.push({ t: 1.0, val: elasticVal(1.0), isFloor: (mode === 'in'), isApex: (mode === 'out') });
+                pts.sort(function (a, b) { return a.t - b.t; });
+                return pts;
+            }
+
+            // General numerical extrema for Elastic and Cyclic
+            pts.push({ t: 0.0, val: elasticVal(0.0), isApex: false, isFloor: false });
+            var steps = 600;
+            var prevV = elasticVal(0.0001);
+            var prevS = 0.0;
+            for (var ii = 1; ii < steps; ii++) {
+                var tt = ii / steps;
+                var curV = elasticVal(tt);
+                var curS = curV - prevV;
+                if (ii > 1 && curS !== 0 && prevS !== 0) {
+                    if ((curS > 0 && prevS < 0) || (curS < 0 && prevS > 0)) {
+                        var pk = (ii - 0.5) / steps;
+                        var pkVal = elasticVal(pk);
+                        var lastPt = pts[pts.length - 1];
+                        if (Math.abs(pkVal - lastPt.val) > 0.015 && pk < 0.96) {
+                            pts.push({ t: pk, val: pkVal, isApex: true, isFloor: false });
+                        }
+                    }
+                }
+                prevS = curS;
+                prevV = curV;
+            }
+            pts.push({ t: 1.0, val: elasticVal(1.0), isApex: false, isFloor: false });
+            return pts;
+        }
+
+        var extrema = findExtrema();
 
         var applied = false;
-        app.beginUndoGroup("Apply Elastic Bounce");
+        app.beginUndoGroup('Apply ' + type.charAt(0).toUpperCase() + type.slice(1) + ' ' + (mode === 'out' ? 'Out' : 'In'));
 
-        for (var p = 0; p < props.length; p++) {
-            var prop = props[p];
+        for (var pi = 0; pi < props.length; pi++) {
+            var prop = props[pi];
             try {
                 var nk = 0;
                 try { nk = prop.numKeys; } catch (e) { continue; }
@@ -510,6 +709,14 @@ function _applyElastic(dataObj) {
                 var keys = _getKeysForProp(prop, comp);
                 if (!keys || keys.length < 2) continue;
                 keys.sort(function (a, b) { return a - b; });
+
+                var isSpatial = false;
+                try {
+                    if (prop.propertyValueType === PropertyValueType.TwoD_SPATIAL ||
+                        prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL) {
+                        isSpatial = true;
+                    }
+                } catch (spErr) {}
 
                 var dim = 1;
                 try {
@@ -521,146 +728,151 @@ function _applyElastic(dataObj) {
                     if (prop.expressionEnabled) prop.expressionEnabled = false;
                 } catch (e) {}
 
-                var targetTrough = Math.max(0.02, hx);
-                var dampingRatio = 0.04 + hy * 0.32;
-                var omega = (2.0 * Math.PI) / targetTrough;
-                var decay = dampingRatio * omega;
-
-                function elasticVal(t) {
-                    if (t <= 0) return 0;
-                    if (t >= 1) return 1;
-                    var fade = Math.pow(1 - t * t, 2);
-                    var env = Math.exp(-decay * t) * fade;
-                    var wave = Math.cos(omega * t);
-                    return 1 - (env * wave);
+                // Extract all selected key times and values upfront
+                var keyTimes = [];
+                var keyValues = [];
+                for (var ki = 0; ki < keys.length; ki++) {
+                    keyTimes.push(prop.keyTime(keys[ki]));
+                    keyValues.push(prop.keyValue(keys[ki]));
                 }
 
-                function findExtrema() {
-                    var pts = [{ t: 0, val: 0 }];
-                    var steps = 500;
-                    var prevV = elasticVal(0);
-                    var prevS = 0;
-                    for (var i = 1; i <= steps; i++) {
-                        var t = i / steps;
-                        var curV = elasticVal(t);
-                        var curS = curV - prevV;
-                        if (i > 1 && curS !== 0 && prevS !== 0) {
-                            if ((curS > 0 && prevS < 0) || (curS < 0 && prevS > 0)) {
-                                var pk = ((i - 0.5) / steps);
-                                pts.push({ t: pk, val: elasticVal(pk) });
-                            }
-                        }
-                        prevS = curS;
-                        prevV = curV;
-                    }
-                    pts.push({ t: 1, val: 1 });
-                    return pts;
-                }
-
-                var extrema = findExtrema();
-
-                var allNewTimes = [];
-                var allNewValues = [];
-
-                for (var k = 0; k < keys.length - 1; k++) {
-                    var idx1 = keys[k];
-                    var idx2 = keys[k + 1];
-                    if (idx2 !== idx1 + 1) continue;
-                    var t1 = prop.keyTime(idx1);
-                    var t2 = prop.keyTime(idx2);
+                for (var k = 0; k < keyTimes.length - 1; k++) {
+                    var t1 = keyTimes[k];
+                    var t2 = keyTimes[k + 1];
                     var dt = t2 - t1;
                     if (dt <= 0) continue;
 
-                    var val1 = prop.keyValue(idx1);
-                    var val2 = prop.keyValue(idx2);
+                    var val1 = keyValues[k];
+                    var val2 = keyValues[k + 1];
 
-                    for (var e = 0; e < extrema.length; e++) {
-                        if (k > 0 && e === 0) continue;
+                    // 1. Remove only pre-existing keys strictly between t1 and t2
+                    for (var rki = prop.numKeys; rki >= 1; rki--) {
+                        var rkt = prop.keyTime(rki);
+                        if (rkt > t1 + 0.001 && rkt < t2 - 0.001) {
+                            try { prop.removeKey(rki); } catch (rmErr) {}
+                        }
+                    }
 
+                    // 2. Insert intermediate peaks & valleys between t1 and t2
+                    for (var e = 1; e < extrema.length - 1; e++) {
                         var et = extrema[e].t;
                         var ev = extrema[e].val;
-
-                        allNewTimes.push(t1 + et * dt);
+                        var newT = t1 + et * dt;
+                        var newVal;
 
                         if (dim === 1) {
-                            allNewValues.push(val1 + (val2 - val1) * ev);
+                            newVal = val1 + (val2 - val1) * ev;
                         } else {
-                            var arr = [];
+                            newVal = [];
                             for (var d = 0; d < dim; d++) {
-                                arr.push(val1[d] + (val2[d] - val1[d]) * ev);
+                                newVal.push(val1[d] + (val2[d] - val1[d]) * ev);
                             }
-                            allNewValues.push(arr);
+                        }
+
+                        try {
+                            prop.setValueAtTime(newT, newVal);
+                        } catch (setErr) {}
+                    }
+                }
+
+                var totalT1 = keyTimes[0];
+                var totalT2 = keyTimes[keyTimes.length - 1];
+
+                // 3. Set Spatial Tangents to linear across [totalT1, totalT2] to prevent wobble
+                if (isSpatial) {
+                    for (var sk = 1; sk <= prop.numKeys; sk++) {
+                        var skt = prop.keyTime(sk);
+                        if (skt >= totalT1 - 0.001 && skt <= totalT2 + 0.001) {
+                            try {
+                                prop.setSpatialAutoBezierAtKey(sk, false);
+                                prop.setSpatialContinuousAtKey(sk, false);
+                                if (dim === 2) {
+                                    prop.setSpatialTangentsAtKey(sk, [0, 0], [0, 0]);
+                                } else if (dim === 3) {
+                                    prop.setSpatialTangentsAtKey(sk, [0, 0, 0], [0, 0, 0]);
+                                }
+                            } catch (tangentErr) {}
                         }
                     }
                 }
 
-                var totalKeys = prop.numKeys;
-                for (var kk = totalKeys; kk >= 1; kk--) {
-                    try { prop.removeKey(kk); } catch (e) {}
+                // 4. Set Physics-Accurate Dynamic Easing:
+                // - Bounce: Sharp LINEAR V-cusp on floor impacts (no deceleration/float), Smooth BEZIER on apexes!
+                // - Elastic & Cyclic: Smooth harmonic Easy Ease (F9)
+                var easeDim = isSpatial ? 1 : dim;
+                var apexEaseObj = new KeyframeEase(0, 45.0);
+                var standardEaseObj = new KeyframeEase(0, 33.333333);
+
+                var apexInArr = [];
+                var apexOutArr = [];
+                var stdInArr = [];
+                var stdOutArr = [];
+                for (var ed = 0; ed < easeDim; ed++) {
+                    apexInArr.push(apexEaseObj);
+                    apexOutArr.push(apexEaseObj);
+                    stdInArr.push(standardEaseObj);
+                    stdOutArr.push(standardEaseObj);
                 }
 
-                for (var n = 0; n < allNewTimes.length; n++) {
-                    try {
-                        prop.setValueAtTime(allNewTimes[n], allNewValues[n]);
-                    } catch (e) {}
-                }
+                for (var bk = 1; bk <= prop.numKeys; bk++) {
+                    var bkt = prop.keyTime(bk);
+                    if (bkt >= totalT1 - 0.001 && bkt <= totalT2 + 0.001) {
+                        try {
+                            if (type === 'bounce') {
+                                var matchedPt = null;
+                                for (var kpi = 0; kpi < keyTimes.length - 1; kpi++) {
+                                    var segT1 = keyTimes[kpi];
+                                    var segDt = keyTimes[kpi + 1] - segT1;
+                                    for (var epi = 0; epi < extrema.length; epi++) {
+                                        var targetT = segT1 + extrema[epi].t * segDt;
+                                        if (Math.abs(bkt - targetT) < 0.004) {
+                                            matchedPt = extrema[epi];
+                                            break;
+                                        }
+                                    }
+                                    if (matchedPt) break;
+                                }
 
-                var finalNk = prop.numKeys;
-                for (var m = 1; m <= finalNk; m++) {
-                    try {
-                        prop.setInterpolationTypeAtKey(m, KeyframeInterpolationType.BEZIER, KeyframeInterpolationType.BEZIER);
-                    } catch (e) {}
-                }
-
-                function elasticDeriv(t) {
-                    var h = 0.0001;
-                    var tm = Math.max(0, t - h);
-                    var tp = Math.min(1, t + h);
-                    return (elasticVal(tp) - elasticVal(tm)) / (tp - tm);
-                }
-
-                var influence = 33;
-                for (var m = 1; m <= finalNk; m++) {
-                    try {
-                        var kt = prop.keyTime(m);
-                        var overallT1 = prop.keyTime(1);
-                        var overallT2 = prop.keyTime(finalNk);
-                        var overallDt = overallT2 - overallT1;
-                        if (overallDt <= 0) continue;
-                        var tn = (kt - overallT1) / overallDt;
-                        tn = Math.max(0, Math.min(1, tn));
-                        var deriv = elasticDeriv(tn);
-
-                        var firstVal = prop.keyValue(1);
-                        var lastVal = prop.keyValue(finalNk);
-
-                        if (dim === 1) {
-                            var spd = (lastVal - firstVal) * deriv / overallDt;
-                            var ease = new KeyframeEase(spd, influence);
-                            prop.setTemporalEaseAtKey(m, [ease], [ease]);
-                        } else {
-                            var inArr = [];
-                            var outArr = [];
-                            for (var dd = 0; dd < dim; dd++) {
-                                var dspd = (lastVal[dd] - firstVal[dd]) * deriv / overallDt;
-                                inArr.push(new KeyframeEase(dspd, influence));
-                                outArr.push(new KeyframeEase(dspd, influence));
+                                if (matchedPt && matchedPt.isFloor) {
+                                    // Sharp physical impact (Linear - No floaty slow down!)
+                                    prop.setInterpolationTypeAtKey(
+                                        bk,
+                                        KeyframeInterpolationType.LINEAR,
+                                        KeyframeInterpolationType.LINEAR
+                                    );
+                                } else {
+                                    // Smooth apex peak (Parabolic gravity ease)
+                                    prop.setInterpolationTypeAtKey(
+                                        bk,
+                                        KeyframeInterpolationType.BEZIER,
+                                        KeyframeInterpolationType.BEZIER
+                                    );
+                                    prop.setTemporalEaseAtKey(bk, apexInArr, apexOutArr);
+                                }
+                            } else {
+                                // Elastic & Cyclic: Standard Easy Ease (F9)
+                                prop.setInterpolationTypeAtKey(
+                                    bk,
+                                    KeyframeInterpolationType.BEZIER,
+                                    KeyframeInterpolationType.BEZIER
+                                );
+                                prop.setTemporalEaseAtKey(bk, stdInArr, stdOutArr);
                             }
-                            prop.setTemporalEaseAtKey(m, inArr, outArr);
-                        }
-                    } catch (e) {}
+                        } catch (easeErr) {}
+                    }
                 }
 
                 applied = true;
-            } catch (e) {
+            } catch (propErr) {
                 continue;
             }
         }
 
         app.endUndoGroup();
-        return applied ? "{ok:true}" : "{ok:false}";
+        return applied ? '{ok:true}' : '{ok:false}';
     } catch (e) {
         try { app.endUndoGroup(); } catch (e2) {}
-        return "{ok:false}";
+        return '{ok:false}';
     }
 }
+

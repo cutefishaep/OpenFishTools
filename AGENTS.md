@@ -66,7 +66,7 @@ Deployments must strictly target system/machine-wide CEP directories, never user
 
 **Windows (Machine-Wide):**
 - Target: `%ProgramFiles(x86)%\Common Files\Adobe\CEP\extensions\OpenFishTools` (or `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\OpenFishTools`)
-- Run `Installer\Windows\deploy.bat` (Run as Administrator).
+- Run `Installer\Windows\deploy_fast.bat` (Ultra-fast multi-threaded sync) or `Installer\Windows\deploy.bat` (Run as Administrator).
 
 **macOS (Machine-Wide):**
 - Target: `/Library/Application Support/Adobe/CEP/extensions/OpenFishTools`

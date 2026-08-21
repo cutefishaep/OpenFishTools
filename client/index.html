@@ -394,13 +394,19 @@
             </div>
 
             <div class="card">
-                <h3>Elastic Graph</h3>
+                <div class="row-between" style="margin-bottom: 8px;">
+                    <h3 style="margin: 0;">Oscillation Graph</h3>
+                    <div class="toggle-group" id="elastic-type-selector" style="background: var(--surface2); padding: 2px; border-radius: 4px;">
+                        <button id="btn-type-elastic" class="icon-toggle active" style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px;" title="Elastic">Elastic</button>
+                        <button id="btn-type-bounce" class="icon-toggle" style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px;" title="Bounce">Bounce</button>
+                        <button id="btn-type-cyclic" class="icon-toggle" style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px;" title="Cyclic">Cyclic</button>
+                    </div>
+                </div>
 
                 <div class="velocity-controls" style="margin-top: 8px;">
-                    <div class="graph-wrapper mb-8"
-                        style="background: #0a0a0a; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; position: relative;">
-                        <canvas id="elastic-graph-canvas" width="400" height="250"
-                            style="width: 100%; height: auto; display: block; cursor: grab;"></canvas>
+                    <div class="graph-wrapper">
+                        <canvas id="elastic-graph-canvas" width="400" height="270"
+                            style="cursor: grab;"></canvas>
                     </div>
 
                     <div class="graph-toolbar">
@@ -408,13 +414,15 @@
                             <div class="toggle-group">
                                 <button id="btn-elastic-snap" class="icon-toggle" title="Snap to Grid"><span
                                         class="material-icons">grid_4x4</span></button>
+                                <button id="btn-elastic-reverse" class="icon-toggle" title="Reverse Curve"><span
+                                        class="material-icons">swap_horiz</span></button>
                             </div>
                             <div class="toggle-group">
                                 <button id="btn-elastic-copy" class="icon-toggle"
-                                    title="Copy Elastic Value"><span
+                                    title="Copy Graph"><span
                                         class="material-icons">content_copy</span></button>
                                 <button id="btn-elastic-paste" class="icon-toggle"
-                                    title="Paste Elastic Value"><span
+                                    title="Paste Graph"><span
                                         class="material-icons">content_paste</span></button>
                             </div>
                         </div>
@@ -426,12 +434,18 @@
 
                     <div class="presets-section"
                         style="margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);">
-                        <div class="row-between">
-                            <span class="section-label">Elastic Presets</span>
+                        <div class="row-between" style="margin-bottom: 6px;">
+                            <span class="section-label">Presets Library</span>
                             <button id="btn-save-elastic-preset" class="icon-btn accent-icon-btn"
-                                title="Save Current Preset">
+                                title="Save Preset">
                                 <span class="material-icons">add_circle</span>
                             </button>
+                        </div>
+                        <div class="toggle-group" id="elastic-preset-filter" style="margin-bottom: 8px; background: var(--surface2); padding: 2px; border-radius: 4px; display: inline-flex;">
+                            <button class="icon-toggle active" data-filter="all" style="font-size:9px; font-weight:700; padding:2px 7px; border-radius:3px;">All</button>
+                            <button class="icon-toggle" data-filter="elastic" style="font-size:9px; font-weight:700; padding:2px 7px; border-radius:3px;">Elastic</button>
+                            <button class="icon-toggle" data-filter="bounce" style="font-size:9px; font-weight:700; padding:2px 7px; border-radius:3px;">Bounce</button>
+                            <button class="icon-toggle" data-filter="cyclic" style="font-size:9px; font-weight:700; padding:2px 7px; border-radius:3px;">Cyclic</button>
                         </div>
                         <div id="elastic-preset-list" class="presets-grid"></div>
                     </div>
@@ -1001,33 +1015,67 @@
          </div>
 
         <div id="tab-controller" class="tab-content">
+            <div class="controller-preview-card" id="controller-preview-card">
+                <canvas id="controller-preview-canvas" width="340" height="165"></canvas>
+                <div class="controller-preview-placeholder" id="controller-preview-placeholder">
+                    <span class="controller-preview-hint">Hover panel below</span>
+                </div>
+            </div>
+
             <div class="controller-transport">
-                <button id="btn-prev-marker" class="transport-btn transport-skip">
+                <button id="btn-toggle-grid" class="transport-btn transport-grid-toggle active" title="Toggle Grid Guides">
+                    <span class="material-icons" id="toggle-grid-icon">grid_view</span>
+                </button>
+                <button id="btn-prev-marker" class="transport-btn transport-skip" title="Previous Marker">
                     <span class="material-icons">skip_previous</span>
                 </button>
-                <button id="btn-play-pause" class="transport-btn transport-play">
+                <button id="btn-play-pause" class="transport-btn transport-play" title="Play / Pause">
                     <span class="material-icons" id="play-pause-icon">play_arrow</span>
                 </button>
-                <button id="btn-next-marker" class="transport-btn transport-skip">
+                <button id="btn-next-marker" class="transport-btn transport-skip" title="Next Marker">
                     <span class="material-icons">skip_next</span>
                 </button>
+                <button id="btn-toggle-preview" class="transport-btn transport-preview-toggle active" title="Toggle Preview Panel">
+                    <span class="material-icons" id="toggle-preview-icon">visibility</span>
+                </button>
             </div>
-            <div class="controller-cards-grid">
-                <div class="controller-am-card" id="card-move">
-                    <div class="controller-display-pill-wrapper"><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-x" class="controller-val-num">0.00</span><span class="controller-val-label">x</span></div><div class="controller-val-group"><span id="val-pos-y" class="controller-val-num">0.00</span><span class="controller-val-label">y</span></div></div><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-z" class="controller-val-num">0.00</span><span class="controller-val-label">z</span></div></div></div>
-                    <div class="controller-move-wrapper"><div class="controller-move-pad" id="move-pad"><i class="controller-corner c-tl"></i><i class="controller-corner c-tr"></i><i class="controller-corner c-bl"></i><i class="controller-corner c-br"></i><span class="controller-pad-hint">Swipe here to move layer</span></div><div class="controller-z-wheel-area" id="z-wheel"><div class="controller-z-center-mark" id="z-center-mark"></div><div class="controller-z-wheel-ruler" id="z-ruler"></div></div></div>
+            <div class="controller-main-card" id="controller-main-card">
+                <div class="controller-hover-overlay" id="controller-hover-overlay">
+                    <span class="material-icons">touch_app</span>
+                    <span class="controller-overlay-text">Hover here to adjust</span>
                 </div>
-                <div class="controller-am-card" id="card-rotate">
-                    <div class="controller-rotation-axis-switch" id="rotation-axis-switch"><button type="button" class="active" data-rotation-axis="Z">Z</button><button type="button" data-rotation-axis="X">X</button><button type="button" data-rotation-axis="Y">Y</button></div>
-                    <div class="controller-dial-wrapper" id="dial-area"><svg class="controller-dial-svg" viewBox="0 0 200 200"><circle class="controller-dial-bg" cx="100" cy="100" r="85"></circle><path class="controller-dial-trail" id="dial-trail-path"></path><path class="controller-dial-trail-overlay" id="dial-trail-overlay-path"></path></svg><div class="controller-dial-center-display"><span class="controller-rot-multiplier" id="rot-multiplier"></span><div class="controller-rot-box"><span id="val-rot" class="controller-rot-val">0°</span></div></div><i class="controller-dial-knob" id="dial-knob"></i></div>
+                <div class="controller-tab-switch">
+                    <button type="button" class="controller-switch-btn active" data-target-panel="move" title="Position">
+                        <span class="material-icons">open_with</span>
+                    </button>
+                    <button type="button" class="controller-switch-btn" data-target-panel="rotate" title="Rotation">
+                        <span class="material-icons">rotate_right</span>
+                    </button>
+                    <button type="button" class="controller-switch-btn" data-target-panel="scale" title="Scale / Size">
+                        <span class="material-icons">aspect_ratio</span>
+                    </button>
+                    <button type="button" class="controller-switch-btn" data-target-panel="opacity" title="Opacity / Blend">
+                        <span class="material-icons">opacity</span>
+                    </button>
                 </div>
-                <div class="controller-am-card" id="card-scale">
-                    <div class="controller-scale-top-bar"><div class="controller-display-pill"><div class="controller-val-group"><span id="val-scale-w" class="controller-val-num">100.0</span><span class="controller-val-label">Width</span></div></div><button class="controller-link-btn linked" id="btn-link"><span class="material-icons">link</span></button><div class="controller-display-pill"><div class="controller-val-group"><span id="val-scale-h" class="controller-val-num">100.0</span><span class="controller-val-label">Height</span></div></div></div>
-                    <div class="controller-wheel-area"><div class="controller-wheel-row" id="wheel-w"><div class="controller-center-mark-w" id="mark-w"></div><div class="controller-wheel-ruler" id="ruler-w"></div></div><div class="controller-wheel-row" id="wheel-h" style="display:none"><div class="controller-center-mark-w" id="mark-h"></div><div class="controller-wheel-ruler" id="ruler-h"></div></div></div>
-                </div>
-                <div class="controller-am-card" id="card-opacity">
-                    <div class="controller-opacity-top-bar"><span class="material-icons controller-opacity-icon">contrast</span><div class="controller-opacity-slider-container"><input type="range" id="opacity-slider" min="0" max="100" value="100"></div><div class="controller-display-pill controller-opacity-pill"><div class="controller-val-group"><span id="val-opacity" class="controller-val-num">100%</span></div></div></div>
-                    <div class="controller-blend-list" id="blend-list"></div>
+                <div class="controller-panel-body">
+                    <div class="controller-panel active" id="card-move">
+                        <div class="controller-display-pill-wrapper"><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-x" class="controller-val-num">0.00</span><span class="controller-val-label">x</span></div><div class="controller-val-group"><span id="val-pos-y" class="controller-val-num">0.00</span><span class="controller-val-label">y</span></div></div><div class="controller-display-pill"><div class="controller-val-group"><span id="val-pos-z" class="controller-val-num">0.00</span><span class="controller-val-label">z</span></div></div></div>
+                        <div class="controller-move-wrapper"><div class="controller-move-pad" id="move-pad"><i class="controller-corner c-tl"></i><i class="controller-corner c-tr"></i><i class="controller-corner c-bl"></i><i class="controller-corner c-br"></i><span class="controller-pad-hint">Swipe here to move layer</span></div><div class="controller-z-wheel-area" id="z-wheel"><div class="controller-z-center-mark" id="z-center-mark"></div><div class="controller-z-wheel-ruler" id="z-ruler"></div></div></div>
+                    </div>
+                    <div class="controller-panel" id="card-rotate" style="display:none;">
+                        <div class="controller-rotation-axis-switch" id="rotation-axis-switch"><button type="button" class="active" data-rotation-axis="Z">Z</button><button type="button" data-rotation-axis="X">X</button><button type="button" data-rotation-axis="Y">Y</button></div>
+                        <div class="controller-dial-wrapper" id="dial-area"><svg class="controller-dial-svg" viewBox="0 0 200 200"><circle class="controller-dial-bg" cx="100" cy="100" r="85"></circle><path class="controller-dial-trail" id="dial-trail-path"></path><path class="controller-dial-trail-overlay" id="dial-trail-overlay-path"></path></svg><div class="controller-dial-center-display"><span class="controller-rot-multiplier" id="rot-multiplier"></span><div class="controller-rot-box"><span id="val-rot" class="controller-rot-val">0°</span></div></div><i class="controller-dial-knob" id="dial-knob"></i></div>
+                    </div>
+                    <div class="controller-panel" id="card-scale" style="display:none;">
+                        <div class="controller-scale-top-bar"><div class="controller-display-pill"><div class="controller-val-group"><span id="val-scale-w" class="controller-val-num">100.0</span><span class="controller-val-label" id="label-scale-w">Width</span></div></div><button class="controller-link-btn linked" id="btn-link"><span class="material-icons">link</span></button><div class="controller-display-pill"><div class="controller-val-group"><span id="val-scale-h" class="controller-val-num">100.0</span><span class="controller-val-label" id="label-scale-h">Height</span></div></div></div>
+                        <div class="controller-shape-roundness-bar" id="shape-roundness-bar" style="display:none;width:100%;align-items:center;margin-bottom:10px;"><span class="material-icons" style="font-size:16px;color:var(--text-dim);margin-right:6px;" title="Shape Roundness">rounded_corner</span><div class="controller-shape-slider-container" style="flex:1;display:flex;align-items:center;margin-right:8px;"><input type="range" id="shape-roundness-slider" min="0" max="250" value="0" style="width:100%;"></div><div class="controller-display-pill" style="padding:4px 8px;min-width:48px;justify-content:center;"><div class="controller-val-group"><span id="val-shape-roundness" class="controller-val-num" style="font-size:11px;">0 px</span></div></div></div>
+                        <div class="controller-wheel-area"><div class="controller-wheel-row" id="wheel-w"><div class="controller-center-mark-w" id="mark-w"></div><div class="controller-wheel-ruler" id="ruler-w"></div></div><div class="controller-wheel-row" id="wheel-h" style="display:none"><div class="controller-center-mark-w" id="mark-h"></div><div class="controller-wheel-ruler" id="ruler-h"></div></div></div>
+                    </div>
+                    <div class="controller-panel" id="card-opacity" style="display:none;">
+                        <div class="controller-opacity-top-bar"><span class="material-icons controller-opacity-icon">contrast</span><div class="controller-opacity-slider-container"><input type="range" id="opacity-slider" min="0" max="100" value="100"></div><div class="controller-display-pill controller-opacity-pill"><div class="controller-val-group"><span id="val-opacity" class="controller-val-num">100%</span></div></div></div>
+                        <div class="controller-blend-list" id="blend-list"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1042,6 +1090,9 @@
                 <div class="settings-row">
                     <span class="status-label" style="margin:0;">THEME</span>
                     <select id="theme-select">
+                        <optgroup label="System">
+                            <option value="ae-default">After Effects (Default Dark)</option>
+                        </optgroup>
                         <optgroup label="Drinks (Dark Mode)">
                             <option value="dark">Matcha Tea (Classic)</option>
                             <option value="amoled">Espresso (Amoled)</option>
@@ -1092,17 +1143,15 @@
                 <h3>Donation</h3>
                 <p class="text-muted mb-8">Your support keeps this project alive.</p>
                 <div class="toolbox-grid col-2">
-                    <button id="btn-paypal" class="btn-secondary"><span
-                            class="material-icons">payment</span>PAYPAL</button>
-                    <button id="btn-qris" class="btn-secondary"><span
-                            class="material-icons">qr_code_2</span>QRIS</button>
+                    <button id="btn-paypal" class="btn-secondary">PAYPAL</button>
+                    <button id="btn-qris" class="btn-secondary">QRIS</button>
                 </div>
             </div>
 
             <div class="card">
                 <h3>Report Bug</h3>
                 <p class="text-muted mb-8">Found a bug? Let us know so we can fix it.</p>
-                <button id="btn-report-bug" class="btn-secondary w-full"><span class="material-icons">bug_report</span>REPORT BUG</button>
+                <button id="btn-report-bug" class="btn-secondary w-full">REPORT BUG</button>
             </div>
 
             <div class="card">
@@ -1155,15 +1204,11 @@
                 <h3>Backup &amp; Restore</h3>
                 <p class="text-muted mb-8">Backup or restore your settings, curves, and presets.</p>
                 <div class="toolbox-grid col-2">
-                    <button id="btn-backup-settings" class="btn-secondary">
-                        <span class="material-icons">backup</span>BACKUP
-                    </button>
-                    <button id="btn-restore-settings" class="btn-secondary">
-                        <span class="material-icons">settings_backup_restore</span>RESTORE
-                    </button>
+                    <button id="btn-backup-settings" class="btn-secondary">BACKUP</button>
+                    <button id="btn-restore-settings" class="btn-secondary">RESTORE</button>
                 </div>
                 <button id="btn-open-settings-dir" class="btn-secondary w-full mt-8">
-                    <span class="material-icons">folder_open</span>OPEN DATA DIRECTORY
+                    OPEN DATA DIRECTORY
                 </button>
             </div>
 

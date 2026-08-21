@@ -166,15 +166,25 @@ var ModalModule = (function () {
         return btn;
     }
 
+    var isClosing = false;
+
     function open() {
+        isClosing = false;
         overlay.classList.add('active');
-        setTimeout(function () { modal.classList.add('active'); }, 10);
+        // Force reflow to guarantee CSS animation triggers cleanly every time
+        void modal.offsetWidth;
+        modal.classList.add('active');
     }
 
     function close() {
+        if (isClosing) return;
+        isClosing = true;
         modal.classList.remove('active');
         overlay.classList.remove('active');
-        activeCallback = null;
+        setTimeout(function () {
+            isClosing = false;
+            activeCallback = null;
+        }, 240);
     }
 
     return {

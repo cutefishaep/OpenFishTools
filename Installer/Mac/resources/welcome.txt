@@ -1,5 +1,5 @@
 ﻿OpenFishTools Setup
-CEP Extension for Adobe After Effects v1.3.3
+CEP Extension for Adobe After Effects v1.3.4
 
 This package installs OpenFishTools into the shared system CEP extensions
 directory.

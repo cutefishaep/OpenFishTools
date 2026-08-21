@@ -1,5 +1,5 @@
 ﻿Installation Complete
-OpenFishTools v1.3.3 has been installed successfully.
+OpenFishTools v1.3.4 has been installed successfully.
 
 GETTING STARTED
 Launch Adobe After Effects and open the panel from:

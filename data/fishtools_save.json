@@ -60,22 +60,131 @@
     "interval": 25,
     "lastSaved": null
   },
-  "elastic_presets": {
+  "oscillation_presets": {
     "presets": [
       {
-        "name": "Bouncy",
-        "x": 0.64,
-        "y": 0.05
+        "name": "Smooth Elastic",
+        "type": "elastic",
+        "mode": "in",
+        "rawString": "elastic 0.3500000 1.0 0.4500000 0.5",
+        "params": {
+          "stepLength": 0.35,
+          "attack": 1.0,
+          "decay": 0.45,
+          "magnitude": 0.5
+        }
       },
       {
-        "name": "Long Bounce",
-        "x": 0.29,
-        "y": 0.05
+        "name": "Snappy Spring",
+        "type": "elastic",
+        "mode": "in",
+        "rawString": "elastic 0.2200000 1.0 0.6500000 0.4",
+        "params": {
+          "stepLength": 0.22,
+          "attack": 1.0,
+          "decay": 0.65,
+          "magnitude": 0.4
+        }
       },
       {
-        "name": "Elastic Bounce",
-        "x": 0.98,
-        "y": 0.95
+        "name": "High Overshoot",
+        "type": "elastic",
+        "mode": "in",
+        "rawString": "elastic 0.2800000 1.0 0.3500000 0.8",
+        "params": {
+          "stepLength": 0.28,
+          "attack": 1.0,
+          "decay": 0.35,
+          "magnitude": 0.85
+        }
+      },
+      {
+        "name": "Elastic Out",
+        "type": "elastic",
+        "mode": "out",
+        "rawString": "reverse elastic 0.3000000 1.0 0.5000000 0.6",
+        "params": {
+          "stepLength": 0.3,
+          "attack": 1.0,
+          "decay": 0.5,
+          "magnitude": 0.6
+        }
+      },
+      {
+        "name": "Natural Bounce",
+        "type": "bounce",
+        "mode": "in",
+        "rawString": "bounce 0.4500000 0.6500000",
+        "params": {
+          "firstStepLength": 0.45,
+          "bounciness": 0.65
+        }
+      },
+      {
+        "name": "Heavy Drop",
+        "type": "bounce",
+        "mode": "in",
+        "rawString": "bounce 0.5500000 0.4000000",
+        "params": {
+          "firstStepLength": 0.55,
+          "bounciness": 0.4
+        }
+      },
+      {
+        "name": "Super Rubber",
+        "type": "bounce",
+        "mode": "in",
+        "rawString": "bounce 0.3500000 0.8200000",
+        "params": {
+          "firstStepLength": 0.35,
+          "bounciness": 0.82
+        }
+      },
+      {
+        "name": "Bounce Out",
+        "type": "bounce",
+        "mode": "out",
+        "rawString": "reverse bounce 0.4500000 0.6500000",
+        "params": {
+          "firstStepLength": 0.45,
+          "bounciness": 0.65
+        }
+      },
+      {
+        "name": "Harmonic Sine",
+        "type": "cyclic",
+        "mode": "in",
+        "rawString": "cyclic 0.3333333 0.0000000 0.5000000 0.0000000",
+        "params": {
+          "stepLength": 0.3333333,
+          "sharpness": 0.0,
+          "skew": 0.5,
+          "decay": 0.0
+        }
+      },
+      {
+        "name": "Sharp Sawtooth",
+        "type": "cyclic",
+        "mode": "in",
+        "rawString": "cyclic 0.3000000 1.0000000 0.2000000 0.0000000",
+        "params": {
+          "stepLength": 0.3,
+          "sharpness": 1.0,
+          "skew": 0.2,
+          "decay": 0.0
+        }
+      },
+      {
+        "name": "Decaying Pulse",
+        "type": "cyclic",
+        "mode": "in",
+        "rawString": "cyclic 0.2500000 0.2000000 0.5000000 0.4500000",
+        "params": {
+          "stepLength": 0.25,
+          "sharpness": 0.2,
+          "skew": 0.5,
+          "decay": 0.45
+        }
       }
     ]
   }
