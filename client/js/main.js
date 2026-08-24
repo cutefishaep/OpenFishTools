@@ -156,7 +156,9 @@ function setupDonation() {
             var modal = document.getElementById('qris-modal');
             var qrcodeDiv = document.getElementById('qrcode');
             if (modal) {
-                modal.style.display = "flex";
+                modal.classList.add("active");
+                var box = modal.querySelector('.modal-box');
+                if (box) box.classList.add("active");
                 qrcodeDiv.innerHTML = '<img src="./assets/qris.png" alt="QRIS Code" style="width: 100%; max-width: 320px; height: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">';
             }
         });
@@ -165,7 +167,10 @@ function setupDonation() {
     var closeQris = document.getElementById('close-qris');
     if (closeQris) {
         closeQris.addEventListener('click', function () {
-            document.getElementById('qris-modal').style.display = 'none';
+            var modal = document.getElementById('qris-modal');
+            modal.classList.remove('active');
+            var box = modal.querySelector('.modal-box');
+            if (box) box.classList.remove('active');
         });
     }
 
