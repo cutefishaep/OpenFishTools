@@ -933,13 +933,7 @@
             panels.forEach(function (p) {
                 var panelEl = el('card-' + p);
                 if (panelEl) {
-                    if (p === name) {
-                        panelEl.style.display = 'flex';
-                        panelEl.classList.add('active');
-                    } else {
-                        panelEl.style.display = 'none';
-                        panelEl.classList.remove('active');
-                    }
+                    panelEl.style.display = (p === name) ? 'flex' : 'none';
                 }
             });
 

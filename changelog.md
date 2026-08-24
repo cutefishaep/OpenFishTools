@@ -2,6 +2,15 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.5] - 2026-08-24
+### Fixed
+- **QRIS Donation Modal Not Opening**:
+  - Migrated the QRIS modal open/close handlers from the legacy inline `style.display` pattern to the current `.active` class system used by `.modal-overlay` / `.modal-box`, fixing the button appearing unresponsive.
+  - Added close-on-outside-click and `Escape` key support to the QRIS modal, matching the behavior of the unified modal system.
+
+### Changed
+- **Controller Panel Switch Cleanup**: Removed no-op `.active` class toggling in `switchPanel()` (`controller.js`) in favor of the consistent inline display style already used by panel markup.
+
 ## [1.3.4] - 2026-08-21
 ### Added
 - **Alight Motion Elastic & Easing Graph Engine**:

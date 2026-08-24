@@ -164,13 +164,26 @@ function setupDonation() {
         });
     }
 
+    function closeQrisModal() {
+        var modal = document.getElementById('qris-modal');
+        if (!modal) return;
+        modal.classList.remove('active');
+        var box = modal.querySelector('.modal-box');
+        if (box) box.classList.remove('active');
+    }
+
     var closeQris = document.getElementById('close-qris');
     if (closeQris) {
-        closeQris.addEventListener('click', function () {
-            var modal = document.getElementById('qris-modal');
-            modal.classList.remove('active');
-            var box = modal.querySelector('.modal-box');
-            if (box) box.classList.remove('active');
+        closeQris.addEventListener('click', closeQrisModal);
+    }
+
+    var qrisModal = document.getElementById('qris-modal');
+    if (qrisModal) {
+        qrisModal.addEventListener('click', function (e) {
+            if (e.target === qrisModal) closeQrisModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && qrisModal.classList.contains('active')) closeQrisModal();
         });
     }
 
