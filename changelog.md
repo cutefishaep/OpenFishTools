@@ -2,6 +2,14 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.6] - 2026-08-25
+### Fixed
+- **AE → AM Converter — 3D Layer Rotation Crash**:
+  - Fixed `TypeError: undefined is not an object` that occurred when converting compositions containing 3D layers.
+  - Root cause: 3D layers in After Effects expose `Rotation X`, `Rotation Y`, and `Rotation Z` instead of a unified `rotation` property, causing `layer.transform.rotation` to return `undefined`.
+  - For 3D layers, the converter now reads **Rotation Z only** (the equivalent of 2D rotation in Alight Motion). Rotation X and Y are intentionally skipped as Alight Motion has no equivalent 3D depth-rotation axis.
+  - Added a safe fallback: if the rotation property cannot be resolved, outputs `<rotation value="0.000000" />` instead of crashing.
+
 ## [1.3.5] - 2026-08-24
 ### Fixed
 - **QRIS Donation Modal Not Opening**:

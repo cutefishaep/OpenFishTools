@@ -869,7 +869,27 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
     }
 
     function getRotationXML(layer) {
-        var rotProp = layer.transform.rotation;
+        // 3D layers don't have a unified "rotation" property; they use Rotation X/Y/Z.
+        // AM only supports 2D rotation, so we only convert Rotation Z and skip X/Y.
+        var is3D = false;
+        try { is3D = !!layer.threeDLayer; } catch (e) {}
+
+        var rotProp;
+        if (is3D) {
+            try {
+                rotProp = layer.transform.property("Rotation Z");
+            } catch (e) { rotProp = null; }
+        } else {
+            try {
+                rotProp = layer.transform.rotation;
+            } catch (e) { rotProp = null; }
+        }
+
+        // Fallback: if still null/undefined, return a static 0 rotation
+        if (!rotProp) {
+            return '      <rotation value=\"0.000000\" />\n';
+        }
+
         var isAnimated = rotProp.numKeys > 0;
         var processRotation = function(val) { return val.toFixed(6); };
         return exportPropertyToXML(rotProp, 'rotation', isAnimated, processRotation, layer);
