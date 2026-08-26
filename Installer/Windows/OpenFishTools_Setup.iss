@@ -1,4 +1,4 @@
-#define MyAppName       "OpenFishTools"
+﻿#define MyAppName       "OpenFishTools"
 #ifndef MyAppVersion
   #define MyAppVersion  "1.3.7"
 #endif
