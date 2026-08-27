@@ -1858,6 +1858,20 @@ input:checked + .slider::before { transform: translateX(16px); background: #000;
 .settings-row .status-label { min-width: 80px; flex-shrink: 0; margin: 0; font-size: 10px; }
 .settings-row .custom-select-container { flex: 1; min-width: 0; max-width: 200px; }
 
+.badge-beta {
+    display: inline-block;
+    font-size: 7.5px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    margin-left: 4px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+}
+
 
 .floating-nav {
     position: fixed; z-index: 1000; display: flex; align-items: center;

@@ -1,6 +1,7 @@
-tools.AE_TO_AM = function(bakeExpr, importAdj) {
+tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
     bakeExpr = (bakeExpr !== false);
     importAdj = !!importAdj;
+    export3D  = !!export3D;
 
     var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) {
@@ -73,6 +74,13 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
             alert("Warning: expression baking partially failed.\n" + e.toString());
         }
         try { comp.openInViewer(); } catch (e) {}
+    }
+
+    if (export3D) {
+        setProgress(65, "Baking 3D parenting...");
+        try { bake3DParenting(comp); } catch (e) {
+            alert("Warning: 3D parenting bake failed.\n" + e.toString());
+        }
     }
 
     setProgress(70, "Saving XML file...");
@@ -290,6 +298,261 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
         return true;
     }
 
+    // ---------------------------------------------------------------------------
+    // 3D EXPORT HELPERS
+    // ---------------------------------------------------------------------------
+
+    /**
+     * Bake 3D parenting world-space values into keyframes for every 3D layer
+     * that has a parent. After baking, unlinks (sets parent = null) but does NOT
+     * delete null layers. This modifies the AE project (undoable).
+     */
+    function bake3DParenting(targetComp) {
+        var frameDuration = targetComp.frameDuration;
+        var startFrame = Math.floor(targetComp.workAreaStart / frameDuration);
+        var endFrame   = Math.floor((targetComp.workAreaStart + targetComp.workAreaDuration) / frameDuration);
+        if (endFrame <= startFrame) endFrame = startFrame + 1;
+
+        // Collect only 3D layers that have a parent
+        var layersToBake = [];
+        for (var i = 1; i <= targetComp.numLayers; i++) {
+            var lyr = targetComp.layer(i);
+            if (lyr.threeDLayer && lyr.parent !== null) {
+                layersToBake.push(lyr);
+            }
+        }
+        if (layersToBake.length === 0) return 0;
+
+        try { targetComp.openInViewer(); } catch (e) {}
+
+        // Phase 1: Set temp expressions, sample every frame, then restore
+        var bakeData = [];
+        for (var l = 0; l < layersToBake.length; l++) {
+            var layer3d = layersToBake[l];
+            var tg       = layer3d.property("ADBE Transform Group");
+            var posProp  = tg.property("ADBE Position");
+            var rotXProp = tg.property("ADBE Rotate X");
+            var rotYProp = tg.property("ADBE Rotate Y");
+            var rotZProp = tg.property("ADBE Rotate Z");
+
+            var origPos  = posProp.expression  || "";
+            var origRotX = rotXProp.expression || "";
+            var origRotY = rotYProp.expression || "";
+            var origRotZ = rotZProp.expression || "";
+
+            try { posProp.expression  = "toWorld(transform.anchorPoint)"; } catch (e) {}
+            try { rotXProp.expression = "var p=parent; p ? p.transform.xRotation + value : value"; } catch (e) {}
+            try { rotYProp.expression = "var p=parent; p ? p.transform.yRotation + value : value"; } catch (e) {}
+            try { rotZProp.expression = "var p=parent; p ? p.transform.zRotation + value : value"; } catch (e) {}
+
+            var timeArr = [], bakedPos = [], bakedRX = [], bakedRY = [], bakedRZ = [];
+            for (var f = startFrame; f <= endFrame; f++) {
+                var t = f * frameDuration;
+                timeArr.push(t);
+                try { bakedPos.push(posProp.valueAtTime(t, false));  } catch (e) { bakedPos.push([0, 0, 0]); }
+                try { bakedRX.push(rotXProp.valueAtTime(t, false));  } catch (e) { bakedRX.push(0); }
+                try { bakedRY.push(rotYProp.valueAtTime(t, false));  } catch (e) { bakedRY.push(0); }
+                try { bakedRZ.push(rotZProp.valueAtTime(t, false));  } catch (e) { bakedRZ.push(0); }
+            }
+
+            // Restore original expressions immediately to avoid side effects
+            try { posProp.expression  = origPos;  } catch (e) {}
+            try { rotXProp.expression = origRotX; } catch (e) {}
+            try { rotYProp.expression = origRotY; } catch (e) {}
+            try { rotZProp.expression = origRotZ; } catch (e) {}
+
+            bakeData.push({
+                layer: layer3d, posProp: posProp,
+                rotXProp: rotXProp, rotYProp: rotYProp, rotZProp: rotZProp,
+                timeArr: timeArr, bakedPos: bakedPos,
+                bakedRX: bakedRX, bakedRY: bakedRY, bakedRZ: bakedRZ
+            });
+        }
+
+        // Phase 2: Write baked keyframes and unlink from parent
+        app.beginUndoGroup("Bake 3D Parenting");
+        for (var b = 0; b < bakeData.length; b++) {
+            var item = bakeData[b];
+            try { item.layer.parent = null; } catch (e) {}  // unlink only, do NOT delete null layers
+            for (var k = 0; k < item.timeArr.length; k++) {
+                try { item.posProp.setValueAtTime(item.timeArr[k],  item.bakedPos[k]); } catch (e) {}
+                try { item.rotXProp.setValueAtTime(item.timeArr[k], item.bakedRX[k]); } catch (e) {}
+                try { item.rotYProp.setValueAtTime(item.timeArr[k], item.bakedRY[k]); } catch (e) {}
+                try { item.rotZProp.setValueAtTime(item.timeArr[k], item.bakedRZ[k]); } catch (e) {}
+            }
+        }
+        app.endUndoGroup();
+        return bakeData.length;
+    }
+
+    /**
+     * Convert AE Orientation Euler angles (degrees) to Alight Motion quaternion format.
+     * AM uses Y-up while AE uses Y-down, so the Y component of the resulting quaternion
+     * is negated to account for the coordinate system difference.
+     * Order: ZYX intrinsic (= XYZ extrinsic), matching AE's Orientation property.
+     * Output format: { x, y, z, w } matching AM's "quat" value="x,y,z,w"
+     *
+     * Example: AE Orientation (0, 90, 0) → "0.000000,-0.707107,0.000000,0.707107"
+     */
+    function eulerToQuatAM(degX, degY, degZ) {
+        var hx = (degX * Math.PI / 180) / 2;
+        var hy = (degY * Math.PI / 180) / 2;
+        var hz = (degZ * Math.PI / 180) / 2;
+        var cx = Math.cos(hx), sx = Math.sin(hx);
+        var cy = Math.cos(hy), sy = Math.sin(hy);
+        var cz = Math.cos(hz), sz = Math.sin(hz);
+        // ZYX order
+        var qw =  cx * cy * cz + sx * sy * sz;
+        var qx =  sx * cy * cz - cx * sy * sz;
+        var qy =  cx * sy * cz + sx * cy * sz;  // negated below for AE→AM axis convention
+        var qz =  cx * cy * sz - sx * sy * cz;
+        return { x: qx, y: -qy, z: qz, w: qw };
+    }
+
+    /**
+     * Generate the Alight Motion hollowbox effect XML for a 3D layer.
+     * - width/height are derived from layer pixel dimensions using a proportional
+     *   scale factor: reference 604.8px layer width -> 1.950 AM units
+     *   (e.g., 604.8 x 1072.2 -> width: 1.950000, height: 3.456931; 604 x 604 -> width: 1.947421, height: 1.947421).
+     * - orient quaternion is computed dynamically from the layer's Orientation property.
+     * - rotate (X/Y/Z rotations) are handled separately by getHollowBoxRotateXML().
+     */
+    function getHollowBoxEffectXML(layer, comp, indent) {
+        var layerW = 100, layerH = 100;
+        if (layer.width !== undefined && layer.height !== undefined && layer.width > 0 && layer.height > 0) {
+            layerW = layer.width;
+            layerH = layer.height;
+        } else if (layer.source && layer.source.width && layer.source.height) {
+            layerW = layer.source.width;
+            layerH = layer.source.height;
+        } else if (typeof layer.sourceRectAtTime === "function") {
+            try {
+                var rect = layer.sourceRectAtTime(0, false);
+                if (rect.width > 0 && rect.height > 0) {
+                    layerW = rect.width;
+                    layerH = rect.height;
+                }
+            } catch (e) {}
+        }
+
+        // Proportional scale: reference 604.8px layer width -> 1.950 AM units
+        var HOLLOW_PX_UNIT = 1.950 / 604.8;
+        var hWidth  = (layerW * HOLLOW_PX_UNIT).toFixed(6);
+        var hHeight = (layerH * HOLLOW_PX_UNIT).toFixed(6);
+
+        // Quaternion from layer Orientation (X, Y, Z degrees)
+        var orientVec = [0, 0, 0];
+        try { orientVec = layer.transform.property("ADBE Orientation").value; } catch (e) {}
+        var q = eulerToQuatAM(orientVec[0], orientVec[1], orientVec[2]);
+        var quatStr = q.x.toFixed(6) + ',' + q.y.toFixed(6) + ',' + q.z.toFixed(6) + ',' + q.w.toFixed(6);
+
+        var out = "";
+        out += indent + '<effect id="com.alightcreative.effects.hollowbox" locallyApplied="true">\n';
+        out += getHollowBoxRotateXML(layer, indent + "  ");
+        out += indent + '  <property name="width"  type="float" value="' + hWidth  + '" />\n';
+        out += indent + '  <property name="height" type="float" value="' + hHeight + '" />\n';
+        out += indent + '  <property name="depth"  type="float" value="0.010000" />\n';
+        out += indent + '  <property name="thick"  type="float" value="0.050000" />\n';
+        out += indent + '  <property name="outset" type="float" value="0.000000" />\n';
+        out += indent + '  <property name="smooth" type="float" value="0.000000" />\n';
+        out += indent + '  <property name="position" type="vec3"  value="0.000000,100.000000,600.000000" />\n';
+        out += indent + '  <property name="scale"    type="float" value="1.000000" />\n';
+        out += indent + '  <property name="frontMode"    type="int"   value="0" />\n';
+        out += indent + '  <property name="frontAmount"  type="float" value="0.500000" />\n';
+        out += indent + '  <property name="frontOutset"  type="float" value="0.500000" />\n';
+        out += indent + '  <property name="topMode"      type="int"   value="0" />\n';
+        out += indent + '  <property name="topAmount"    type="float" value="0.500000" />\n';
+        out += indent + '  <property name="topOutset"    type="float" value="0.500000" />\n';
+        out += indent + '  <property name="leftMode"     type="int"   value="0" />\n';
+        out += indent + '  <property name="leftAmount"   type="float" value="0.500000" />\n';
+        out += indent + '  <property name="leftOutset"   type="float" value="0.500000" />\n';
+        out += indent + '  <property name="rightMode"    type="int"   value="0" />\n';
+        out += indent + '  <property name="rightAmount"  type="float" value="0.500000" />\n';
+        out += indent + '  <property name="rightOutset"  type="float" value="0.500000" />\n';
+        out += indent + '  <property name="backMode"     type="int"   value="0" />\n';
+        out += indent + '  <property name="backAmount"   type="float" value="0.500000" />\n';
+        out += indent + '  <property name="backOutset"   type="float" value="0.500000" />\n';
+        out += indent + '  <property name="bottomMode"   type="int"   value="0" />\n';
+        out += indent + '  <property name="bottomAmount" type="float" value="0.500000" />\n';
+        out += indent + '  <property name="bottomOutset" type="float" value="0.500000" />\n';
+        out += indent + '  <property name="shadingType"    type="int"   value="0" />\n';
+        out += indent + '  <property name="lightIntensity" type="float" value="1.000000" />\n';
+        out += indent + '  <property name="shine"          type="float" value="0.800000" />\n';
+        out += indent + '  <property name="spec"           type="float" value="30.000000" />\n';
+        out += indent + '  <property name="ambient"        type="float" value="0.100000" />\n';
+        out += indent + '  <property name="lightColor"     type="color" value="#ffffffff" />\n';
+        out += indent + '  <property name="lightDir"       type="vec2"  value="75.000000,-75.000000" />\n';
+        out += indent + '  <property name="lightDepth"     type="float" value="100.000000" />\n';
+        out += indent + '  <property name="mirror"         type="bool"  value="false" />\n';
+        out += indent + '  <property name="texStretch"     type="bool"  value="true" />\n';
+        out += indent + '  <property name="texRepeatX"     type="float" value="1.000000" />\n';
+        out += indent + '  <property name="texRepeatY"     type="float" value="1.000000" />\n';
+        out += indent + '  <property name="texAngle"       type="float" value="0.000000" />\n';
+        out += indent + '  <property name="texCrop"        type="float" value="1.000000" />\n';
+        out += indent + '  <property name="texTwirl"       type="float" value="0.000000" />\n';
+        out += indent + '  <property name="MAX_ITER"       type="float" value="200.000000" />\n';
+        out += indent + '  <property name="orient" type="quat" value="' + quatStr + '" />\n';
+        out += indent + '</effect>\n';
+        return out;
+    }
+
+    /**
+     * Generate the animated "rotate" vec3 property for the hollowbox effect.
+     * Reads X/Y/Z Rotation from the 3D layer. Values are negated to compensate
+     * for AE→AM coordinate system differences.
+     * Supports both static (no keyframes) and keyframed rotations.
+     */
+    function getHollowBoxRotateXML(layer, indent) {
+        var rxProp = null, ryProp = null, rzProp = null;
+        try { rxProp = layer.transform.xRotation; } catch (e) {}
+        try { ryProp = layer.transform.yRotation; } catch (e) {}
+        try { rzProp = layer.transform.zRotation || layer.transform.rotation; } catch (e) {}
+
+        var maxKeys = 0;
+        if (rxProp && rxProp.numKeys > maxKeys) maxKeys = rxProp.numKeys;
+        if (ryProp && ryProp.numKeys > maxKeys) maxKeys = ryProp.numKeys;
+        if (rzProp && rzProp.numKeys > maxKeys) maxKeys = rzProp.numKeys;
+
+        if (maxKeys === 0) {
+            // Static: single value
+            var vX = rxProp ? (rxProp.value * -1.0) : 0;
+            var vY = ryProp ? (ryProp.value * -1.0) : 0;
+            var vZ = rzProp ? (rzProp.value * -1.0) : 0;
+            return indent + '<property name="rotate" type="vec3" value="' +
+                   vX.toFixed(6) + ',' + vY.toFixed(6) + ',' + vZ.toFixed(6) + '" />\n';
+        }
+
+        // Collect and merge all key times from X, Y, Z rotation tracks
+        var keyTimeMap = {};
+        function addKeyTimes3D(prop) {
+            if (!prop) return;
+            for (var k = 1; k <= prop.numKeys; k++) {
+                keyTimeMap[prop.keyTime(k).toFixed(4)] = prop.keyTime(k);
+            }
+        }
+        addKeyTimes3D(rxProp);
+        addKeyTimes3D(ryProp);
+        addKeyTimes3D(rzProp);
+
+        var sortedTimes = [];
+        for (var key in keyTimeMap) sortedTimes.push(keyTimeMap[key]);
+        sortedTimes.sort(function(a, b) { return a - b; });
+        sortedTimes = clampKeyTimesToLayerRange(sortedTimes, layer);
+
+        var xml = indent + '<property name="rotate" type="vec3">\n';
+        for (var i = 0; i < sortedTimes.length; i++) {
+            var t = sortedTimes[i];
+            var normTime = getNormalizedTime(t, layer).toFixed(6);
+            var kX = rxProp ? (rxProp.valueAtTime(t, false) * -1.0) : 0;
+            var kY = ryProp ? (ryProp.valueAtTime(t, false) * -1.0) : 0;
+            var kZ = rzProp ? (rzProp.valueAtTime(t, false) * -1.0) : 0;
+            xml += indent + '  <kf t="' + normTime + '" v="' +
+                   kX.toFixed(6) + ',' + kY.toFixed(6) + ',' + kZ.toFixed(6) + '" />\n';
+        }
+        xml += indent + '</property>\n';
+        return xml;
+    }
+
     function renderCompLayers(sourceComp, indent) {
         var localIdMap = {};
         try {
@@ -400,7 +663,8 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
             out += indent + '  </scene>\n';
             out += indent + '</embedScene>\n';
         } else if (layer.nullLayer) {
-            out += indent + '<nullobj id="' + layerId + '" label="' + label + '" startTime="' + startTime + '" endTime="' + endTime + '"' + parentStr + ' mediaFillMode="fill" type="perspective">\n';
+            var nullTypeAttr = (export3D && layer.threeDLayer) ? ' type="perspective"' : '';
+            out += indent + '<nullobj id="' + layerId + '" label="' + label + '" startTime="' + startTime + '" endTime="' + endTime + '"' + parentStr + ' mediaFillMode="fill"' + nullTypeAttr + '>\n';
             out += indent + '  <transform>\n';
             out += getTransformXML(layer);
             out += indent + '  </transform>\n';
@@ -499,6 +763,9 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
                 }
                 out += getMotionTileEffectXML(layer, indent + "  ");
                 out += getMotionBlurEffectXML(layer, sourceComp, indent + "  ");
+                if (export3D && layer.threeDLayer) {
+                    out += getHollowBoxEffectXML(layer, sourceComp, indent + "  ");
+                }
                 out += indent + '  <effect id="com.alightcreative.effects.wipe2" locallyApplied="true">\n';
                 out += indent + '    <property name="start" type="float" value="' + startH.toFixed(6) + '" />\n';
                 out += indent + '    <property name="end"   type="float" value="' + endH.toFixed(6)   + '" />\n';
@@ -520,6 +787,9 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
                 }
                 out += getMotionTileEffectXML(layer, indent + "  ");
                 out += getMotionBlurEffectXML(layer, sourceComp, indent + "  ");
+                if (export3D && layer.threeDLayer) {
+                    out += getHollowBoxEffectXML(layer, sourceComp, indent + "  ");
+                }
             }
             out += indent + '  <property name="size" type="vec2" value="' + sizeW.toFixed(6) + ',' + sizeH.toFixed(6) + '" />\n';
             out += indent + '</shape>\n';
@@ -708,15 +978,20 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
             }
         } catch (e) {}
         try { tXml += getScaleXML(layer); } catch (e) { throw new Error("getScaleXML failed for \"" + layer.name + "\": " + e.toString()); }
-        try { tXml += getRotationXML(layer); } catch (e) { throw new Error("getRotationXML failed for \"" + layer.name + "\": " + e.toString()); }
+        if (export3D && layer.threeDLayer) {
+            tXml += '      <rotation value="0.000000" />\n';
+        } else {
+            try { tXml += getRotationXML(layer); } catch (e) { throw new Error("getRotationXML failed for \"" + layer.name + "\": " + e.toString()); }
+        }
         try { tXml += getOpacityXML(layer); } catch (e) { throw new Error("getOpacityXML failed for \"" + layer.name + "\": " + e.toString()); }
         return tXml;
     }
 
     function getPositionXML(layer) {
         var posProp = layer.transform.position;
+        var is3DLayer = export3D && layer.threeDLayer;
         var isSeparated = posProp.dimensionsSeparated;
-        var isAnimated = isSeparated ? (layer.transform.xPosition.numKeys > 0 || layer.transform.yPosition.numKeys > 0) : (posProp.numKeys > 0);
+        var isAnimated = isSeparated ? (layer.transform.xPosition.numKeys > 0 || layer.transform.yPosition.numKeys > 0 || (is3DLayer && layer.transform.zPosition && layer.transform.zPosition.numKeys > 0)) : (posProp.numKeys > 0);
         var layerW = 100, layerH = 100;
         if (layer.width !== undefined && layer.height !== undefined) {
             layerW = layer.width; layerH = layer.height;
@@ -733,6 +1008,7 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
         var processPosition = function(val) {
             var xVal = val[0];
             var yVal = val[1];
+            var zVal = (is3DLayer && val.length > 2 && typeof val[2] === "number") ? val[2] : 0;
             if (usePivot) {
                 xVal = xVal + (layerW / 2 - targetCenterX);
                 yVal = yVal + (layerH / 2 - targetCenterY);
@@ -740,10 +1016,16 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
                 xVal = xVal + (layerW / 2 - anchor[0]);
                 yVal = yVal + (layerH / 2 - anchor[1]);
             }
-            return xVal.toFixed(6) + ',' + yVal.toFixed(6) + ',0.000000';
+            return xVal.toFixed(6) + ',' + yVal.toFixed(6) + ',' + Number(zVal).toFixed(6);
         };
         if (!isAnimated) {
-            var val = isSeparated ? [layer.transform.xPosition.value, layer.transform.yPosition.value, 0] : posProp.value;
+            var val;
+            if (isSeparated) {
+                var zv = (is3DLayer && layer.transform.zPosition) ? layer.transform.zPosition.value : 0;
+                val = [layer.transform.xPosition.value, layer.transform.yPosition.value, zv];
+            } else {
+                val = posProp.value;
+            }
             return '      <location value="' + processPosition(val) + '" />\n';
         }
         var xml = '      <location>\n';
@@ -751,9 +1033,13 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
         if (isSeparated) {
             var xProp = layer.transform.xPosition;
             var yProp = layer.transform.yPosition;
+            var zProp = is3DLayer ? layer.transform.zPosition : null;
             var timesMap = {};
             for (var k = 1; k <= xProp.numKeys; k++) timesMap[xProp.keyTime(k).toFixed(4)] = xProp.keyTime(k);
             for (var k2 = 1; k2 <= yProp.numKeys; k2++) timesMap[yProp.keyTime(k2).toFixed(4)] = yProp.keyTime(k2);
+            if (zProp) {
+                for (var kz = 1; kz <= zProp.numKeys; kz++) timesMap[zProp.keyTime(kz).toFixed(4)] = zProp.keyTime(kz);
+            }
             for (var key in timesMap) keyTimes.push(timesMap[key]);
             keyTimes.sort(function(a, b){ return a - b; });
         } else {
@@ -764,7 +1050,8 @@ tools.AE_TO_AM = function(bakeExpr, importAdj) {
             var t = keyTimes[i];
             var xVal = isSeparated ? layer.transform.xPosition.valueAtTime(t, true) : posProp.valueAtTime(t, true)[0];
             var yVal = isSeparated ? layer.transform.yPosition.valueAtTime(t, true) : posProp.valueAtTime(t, true)[1];
-            var processed = processPosition([xVal, yVal]);
+            var zVal = isSeparated ? ((is3DLayer && layer.transform.zPosition) ? layer.transform.zPosition.valueAtTime(t, true) : 0) : ((is3DLayer && posProp.valueAtTime(t, true).length > 2) ? posProp.valueAtTime(t, true)[2] : 0);
+            var processed = processPosition([xVal, yVal, zVal]);
             var normTimeNum = getNormalizedTime(t, layer);
             var normTime = normTimeNum.toFixed(6);
             var easeStr = "";

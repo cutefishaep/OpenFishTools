@@ -2,6 +2,17 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.7] - 2026-08-27
+### Added
+- **AE → AM Converter — Export 3D (Beta) Switch**:
+  - Added dedicated `EXPORT 3D` toggle switch in the panel with adaptive high-contrast `BETA` badge styling across all light, dark, and custom themes.
+  - Implemented dynamic Alight Motion `com.alightcreative.effects.hollowbox` 3D cube effect generator for 3D layers.
+  - Added `eulerToQuatAM()` converter calculating Alight Motion quaternion orientations directly from After Effects `Orientation` properties with proper Y-axis coordinate adaptation.
+  - Added 3D world-space parenting baking (`bake3DParenting()`) that converts parented 3D layers to world coordinates and unlinks them non-destructively without deleting null layers from the composition.
+  - Added 3D rotation animation track extractor (`getHollowBoxRotateXML`) converting keyframed and static X/Y/Z rotations into Alight Motion `rotate` vector properties.
+  - Added proportional HollowBox width/height scaling calculated dynamically from layer pixel dimensions using reference base width (604.8px -> 1.950 AM units), ensuring square and rectangular layers retain true aspect ratios.
+  - Added 3D coordinate support in `<location>` transform tag with safe 2D fallback when 3D export is disabled.
+
 ## [1.3.6] - 2026-08-25
 ### Fixed
 - **AE → AM Converter — 3D Layer Rotation Crash**:
