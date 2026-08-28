@@ -265,6 +265,86 @@
                 </button>
             </div>
 
+            <div class="card" id="card-project-pool">
+                <div class="card-header" style="justify-content: space-between;">
+                    <h3><span class="material-icons" style="font-size:14px; margin-right:6px; vertical-align:text-bottom;">inventory_2</span>Project Pool</h3>
+                </div>
+
+                <div class="section-label">Create Preset</div>
+                <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+                    <div class="form-group">
+                        <label class="status-label" style="font-size:9px;">PROJECT NAME</label>
+                        <input type="text" id="pp-project-name" placeholder="My Project" style="height:30px; font-size:11px;">
+                    </div>
+                    <div class="form-group">
+                        <label class="status-label" style="font-size:9px;">SAVE LOCATION</label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="text" id="pp-save-location" placeholder="Click to choose folder..." readonly style="flex:1; min-width:0; height:30px; font-size:10px; cursor:pointer; opacity:0.85;">
+                            <button id="pp-browse-btn" class="btn-secondary" style="height:30px; padding:0 12px; margin-left:6px; flex-shrink:0;" title="Browse Folder">
+                                <span class="material-icons" style="font-size:14px; margin-right:0;">folder_open</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:10px;">
+                    <div class="settings-row" style="border:none; padding:4px 0;">
+                        <span class="status-label" style="font-size:9px;">CONVERT TO AM XML</span>
+                        <label class="switch-container" style="margin:0;">
+                            <span class="switch">
+                                <input type="checkbox" id="pp-convert-am">
+                                <span class="slider"></span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="settings-row" style="border:none; padding:4px 0;">
+                        <span class="status-label" style="font-size:9px;">DOWNGRADE VERSION</span>
+                        <label class="switch-container" style="margin:0;">
+                            <span class="switch">
+                                <input type="checkbox" id="pp-downgrade">
+                                <span class="slider"></span>
+                            </span>
+                        </label>
+                    </div>
+                    <div id="pp-downgrade-options" style="display:none; padding:4px 0 0 0;">
+                        <div class="form-group">
+                            <label class="status-label" style="font-size:9px;">TARGET AE VERSION</label>
+                            <select id="pp-target-version" style="width:100%; height:28px; font-size:10px;">
+                                <option value="">Select AE Version...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-pp-create" class="btn-primary" style="width:100%; height:32px;">
+                    <span class="material-icons" style="font-size:14px; margin-right:4px;">archive</span>
+                    <span style="font-size:10px; font-weight:800; letter-spacing:0.04em;">CREATE PRESET</span>
+                </button>
+
+                <div class="card-header" style="justify-content: space-between; margin-top:16px; margin-bottom:6px; padding:0;">
+                    <div class="section-label" style="margin:0;">Footage Pool <span id="pp-media-count-badge" class="badge" style="display:none; font-size:8px; padding:1px 5px; margin-left:4px;">0</span></div>
+                    <button id="btn-pp-load-media" class="icon-btn accent-icon-btn" title="Refresh Media" style="width:24px; height:24px;">
+                        <span class="material-icons" style="font-size:14px;">sync</span>
+                    </button>
+                </div>
+
+                <div id="pp-media-filter-bar" style="display:none; margin-bottom:8px; display:flex; gap:8px; align-items:center;">
+                    <div style="position:relative; flex:1; min-width:0;">
+                        <input type="text" id="pp-media-search" placeholder="Search footage..." style="width:100%; height:30px; font-size:10px; padding-left:26px; padding-right:8px; border-radius:4px; box-sizing:border-box;">
+                        <span class="material-icons" style="position:absolute; left:7px; top:8px; font-size:14px; color:var(--text-mut); pointer-events:none;">search</span>
+                    </div>
+                    <div style="flex:0 0 100px; width:100px; margin-left:6px;">
+                        <select id="pp-media-type-filter" style="width:100%; height:30px; font-size:10px;">
+                            <option value="all">All</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="pp-media-empty" style="text-align:center; padding:14px 0; color:var(--text-mut); font-size:10px;">
+                    <span class="material-icons" style="font-size:22px; display:block; margin-bottom:4px; opacity:0.4;">photo_library</span>
+                    Click reload above to load project footage
+                </div>
+                <div id="pp-media-grid" class="pp-media-grid" style="display:none;"></div>
+            </div>
+
             <div class="card">
                 <h3>Log</h3>
                 <p id="tip-content">Loading log...</p>
@@ -1314,6 +1394,8 @@
     <script src="./js/modules/tts.js"></script>
     <script src="./js/modules/autosave.js"></script>
     <script src="./js/modules/aetoam.js"></script>
+    <script src="./js/libs/jszip.min.js"></script>
+    <script src="./js/modules/projectpool.js"></script>
     <script src="./js/modules/textanimate.js"></script>
     <script src="./js/modules/controller.js"></script>
     <script src="./js/main.js"></script>

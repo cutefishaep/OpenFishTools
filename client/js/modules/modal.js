@@ -187,11 +187,95 @@ var ModalModule = (function () {
         }, 240);
     }
 
+    function showProgress(title) {
+        resetModal();
+        modal.classList.add('modal-type-info');
+        modal.classList.add('is-required');
+        modal.classList.add('modal-progress');
+
+        titleEl.innerHTML = '<span class="material-icons rotating" style="font-size:15px; color:var(--accent); margin-right:6px; display:inline-block; vertical-align:middle;">sync</span> ' + (title || 'Processing...');
+
+        var statusEl = document.createElement('div');
+        statusEl.className = 'modal-progress-status';
+        statusEl.style.fontSize = '11px';
+        statusEl.style.fontWeight = 'bold';
+        statusEl.style.color = 'var(--text-main, #e0e0e0)';
+        statusEl.style.marginBottom = '8px';
+        statusEl.innerText = 'Initializing...';
+
+        var logBox = document.createElement('pre');
+        logBox.className = 'modal-progress-logs';
+        logBox.style.background = 'var(--surface2, #141416)';
+        logBox.style.border = '1px solid var(--border, #2e2e34)';
+        logBox.style.borderRadius = '6px';
+        logBox.style.padding = '8px 10px';
+        logBox.style.fontFamily = 'monospace';
+        logBox.style.fontSize = '9.5px';
+        logBox.style.lineHeight = '1.45';
+        logBox.style.maxHeight = '140px';
+        logBox.style.overflowY = 'auto';
+        logBox.style.color = 'var(--accent, #38ef7d)';
+        logBox.style.whiteSpace = 'pre-wrap';
+        logBox.style.wordBreak = 'break-all';
+        logBox.style.margin = '0 0 10px 0';
+        logBox.style.userSelect = 'text';
+
+        var logsArray = [];
+
+        contentEl.appendChild(statusEl);
+        contentEl.appendChild(logBox);
+
+        var copyBtn = createBtn('Copy Logs', 'secondary-btn', function () {
+            var text = logsArray.join('\n');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text);
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+            copyBtn.innerHTML = '<span class="material-icons" style="font-size:12px; margin-right:4px;">check</span> Copied!';
+            setTimeout(function () {
+                copyBtn.innerHTML = '<span class="material-icons" style="font-size:12px; margin-right:4px;">content_copy</span> Copy Logs';
+            }, 1500);
+        });
+        copyBtn.style.fontSize = '10px';
+        copyBtn.style.padding = '5px 12px';
+        copyBtn.innerHTML = '<span class="material-icons" style="font-size:12px; margin-right:4px;">content_copy</span> Copy Logs';
+
+        footerEl.appendChild(copyBtn);
+
+        open();
+
+        return {
+            setStatus: function (txt) {
+                statusEl.innerText = txt;
+            },
+            log: function (msg) {
+                var timeStr = new Date().toTimeString().split(' ')[0];
+                var line = '[' + timeStr + '] ' + msg;
+                logsArray.push(line);
+                logBox.innerText = logsArray.join('\n');
+                logBox.scrollTop = logBox.scrollHeight;
+            },
+            getLogs: function () {
+                return logsArray.join('\n');
+            },
+            close: function () {
+                close();
+            }
+        };
+    }
+
     return {
         init: init,
         alert: alertFn,
         confirm: confirm,
         prompt: prompt,
+        showProgress: showProgress,
         error: function (msg, title) {
             alertFn(msg, title || 'Error', 'error', { btnText: 'OK', dangerBtn: true, copyable: true });
         },

@@ -1,39 +1,49 @@
-tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
+tools.EXPORT_AM_XML_CORE = function(comp, xmlFile, bakeExpr, importAdj, export3D, showUi) {
     bakeExpr = (bakeExpr !== false);
     importAdj = !!importAdj;
     export3D  = !!export3D;
+    showUi    = (showUi === true);
 
-    var comp = app.project.activeItem;
     if (!comp || !(comp instanceof CompItem)) {
-        alert("Please select a composition first.");
+        if (showUi) alert("Please select a composition first.");
         return false;
     }
+    if (!xmlFile) return false;
 
-    var progWin = new Window("palette", "Ae > Am Converter", undefined);
-    progWin.orientation = "column";
-    progWin.alignChildren = ["fill", "top"];
-    progWin.spacing = 8;
-    progWin.margins = 16;
-    var progStatus = progWin.add("statictext", undefined, "Preparing...");
-    progStatus.preferredSize.width = 420;
-    var progBarRow = progWin.add("group");
-    progBarRow.orientation = "row";
-    progBarRow.alignChildren = ["fill", "center"];
-    var progBar = progBarRow.add("progressbar", undefined, 0, 100);
-    progBar.preferredSize.width = 360;
-    var progPercentText = progBarRow.add("statictext", undefined, "0%");
-    progPercentText.preferredSize.width = 40;
+    var progWin = null;
+    var progStatus, progBar, progPercentText;
+
+    if (showUi) {
+        try {
+            progWin = new Window("palette", "Ae > Am Converter", undefined);
+            progWin.orientation = "column";
+            progWin.alignChildren = ["fill", "top"];
+            progWin.spacing = 8;
+            progWin.margins = 16;
+            progStatus = progWin.add("statictext", undefined, "Preparing...");
+            progStatus.preferredSize.width = 420;
+            var progBarRow = progWin.add("group");
+            progBarRow.orientation = "row";
+            progBarRow.alignChildren = ["fill", "center"];
+            progBar = progBarRow.add("progressbar", undefined, 0, 100);
+            progBar.preferredSize.width = 360;
+            progPercentText = progBarRow.add("statictext", undefined, "0%");
+            progPercentText.preferredSize.width = 40;
+
+            progWin.onClose = function () {
+                try { progWin.hide(); } catch (e) {}
+            };
+            progWin.center();
+            progWin.show();
+        } catch (e) {}
+    }
 
     function closeProgWin() {
-        try { progWin.hide(); } catch (e) {}
-        try { progWin.close(); } catch (e) {}
+        if (progWin) {
+            try { progWin.hide(); } catch (e) {}
+            try { progWin.close(); } catch (e) {}
+        }
     }
-    progWin.onClose = function () {
-        try { progWin.hide(); } catch (e) {}
-    };
-
-    try { progWin.center(); } catch (e) {}
-    try { progWin.show(); } catch (e) {}
 
     var gBakedPropKeys = {};
     var gBakeProgress = { done: 0, total: 0 };
@@ -41,11 +51,12 @@ tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
     var gXmlLogCounter = 0;
 
     function setProgress(percent, status) {
+        if (!progWin) return;
         if (percent < 0) percent = 0;
         if (percent > 100) percent = 100;
-        try { progBar.value = percent; } catch (e) {}
-        try { progPercentText.text = Math.round(percent) + "%"; } catch (e) {}
-        if (status) { try { progStatus.text = status; } catch (e) {} }
+        try { if (progBar) progBar.value = percent; } catch (e) {}
+        try { if (progPercentText) progPercentText.text = Math.round(percent) + "%"; } catch (e) {}
+        if (status) { try { if (progStatus) progStatus.text = status; } catch (e) {} }
         try { progWin.update(); } catch (e) {}
     }
 
@@ -71,7 +82,7 @@ tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
         setProgress(0, "Counting expressions...");
         try { gBakeProgress.total = countExpressionPropsRecursive(comp, 0); } catch (e) { gBakeProgress.total = 0; }
         try { totalBaked = bakeAllCompsRecursive(comp, 0); } catch (e) {
-            alert("Warning: expression baking partially failed.\n" + e.toString());
+            if (showUi) alert("Warning: expression baking partially failed.\n" + e.toString());
         }
         try { comp.openInViewer(); } catch (e) {}
     }
@@ -79,13 +90,9 @@ tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
     if (export3D) {
         setProgress(65, "Baking 3D parenting...");
         try { bake3DParenting(comp); } catch (e) {
-            alert("Warning: 3D parenting bake failed.\n" + e.toString());
+            if (showUi) alert("Warning: 3D parenting bake failed.\n" + e.toString());
         }
     }
-
-    setProgress(70, "Saving XML file...");
-    var xmlFile = File.saveDialog("Save Alight Motion Project", "Alight Motion XML (*.xml):*.xml");
-    if (!xmlFile) { closeProgWin(); return false; }
 
     var now = new Date();
     var exportDateStr = now.getFullYear() + '-' +
@@ -129,10 +136,11 @@ tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
     xmlFile.close();
 
     setProgress(100, "Done.");
-    try { $.sleep(200); } catch (e) {}
-    closeProgWin();
-
-    alert("Export complete.\nExpressions baked: " + totalBaked + ".");
+    if (showUi) {
+        try { $.sleep(200); } catch (e) {}
+        closeProgWin();
+        alert("Export complete.\nExpressions baked: " + totalBaked + ".");
+    }
     return true;
 
     function countExpressionPropsRecursive(targetComp, depth) {
@@ -1222,4 +1230,16 @@ tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
         xml += '      </' + name + '>\n';
         return xml;
     }
+};
+
+tools.AE_TO_AM = function(bakeExpr, importAdj, export3D) {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) {
+        alert("Please select a composition first.");
+        return false;
+    }
+    var xmlFile = File.saveDialog("Save Alight Motion Project", "Alight Motion XML (*.xml):*.xml");
+    if (!xmlFile) return false;
+
+    return tools.EXPORT_AM_XML_CORE(comp, xmlFile, bakeExpr, importAdj, export3D, true);
 };

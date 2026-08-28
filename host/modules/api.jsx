@@ -23,5 +23,12 @@ $.global.FishTools = {
     transportPlayPause: _transportPlayPause,
     transportGetPlayState: _transportGetPlayState,
     transportPrevMarker: _transportPrevMarker,
-    transportNextMarker: _transportNextMarker
+    transportNextMarker: _transportNextMarker,
+    PP_BROWSE_FOLDER: function () { return tools.PP_BROWSE_FOLDER(); },
+    PP_GET_PROJECT_INFO: function () { return tools.PP_GET_PROJECT_INFO(); },
+    PP_GET_VERSIONS: function () { return tools.PP_GET_VERSIONS(); },
+    PP_CREATE_PRESET: function (name, loc, am, down, ver) { return tools.PP_CREATE_PRESET(name, loc, am, down, ver); },
+    PP_LIST_MEDIA: function () { return tools.PP_LIST_MEDIA(); },
+    PP_REPLACE_MEDIA: function (id, name) { return tools.PP_REPLACE_MEDIA(id, name); },
+    PP_REVEAL_FOLDER: function (path) { return tools.PP_REVEAL_FOLDER(path); }
 };

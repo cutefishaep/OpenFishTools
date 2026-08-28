@@ -2,6 +2,44 @@
 
 All notable changes to the **Fish Tools** Adobe After Effects extension will be documented in this file.
 
+## [1.3.9] - 2026-08-28
+### Added
+- **Project Pool — Project Preset Packaging & Asset Relinking**:
+  - Automatically bundles the active After Effects project, relative `Assets/` footage directory, and Alight Motion `.xml` into a standalone preset archive.
+  - Relinks all copied project footage items directly to `./Assets/` so presets open with zero missing media on any workstation.
+  - Generates `.zip` packages directly inside the target preset folder (`[SaveLocation]/[PresetName]/[PresetName].zip`).
+- **Project Pool — Client-Side JSZip Compression Engine**:
+  - Integrated pure client-side **JSZip** library (`client/js/libs/jszip.min.js`) into the CEP frontend, replacing OS-level shell calls (`system.callSystem`, PowerShell, `cmd.exe`) and eliminating terminal permission issues across Windows and macOS.
+- **Project Pool — Non-Closable Live Progress Modal with Log Copy**:
+  - Added dedicated packaging progress modal (`ModalModule.showProgress`) with live animated spinner, real-time status updates, monospace log console, and a 1-click **Copy Logs** button.
+  - Locked modal during active packaging to prevent premature cancellation, automatically displaying the success dialog upon completion.
+- **Project Pool — 1:1 Square Media Preview with Theme-Adaptive Transparency Checkerboard**:
+  - Enforced strict 1:1 square media cards (`padding-bottom: 100%`) displaying full, un-cropped portrait and landscape footage (`object-fit: contain;`).
+  - Added dynamic transparency checkerboard pattern styled with active theme colors (`var(--bg)` and `var(--surface2)`).
+  - Placed resolution/duration metadata as a sleek badge inside the thumbnail box.
+- **Project Pool — 100% Verified AE to AM XML Engine Integration**:
+  - Integrated the complete, battle-tested `tools.EXPORT_AM_XML_CORE` engine from `host/modules/aetoam.jsx` into Project Pool preset export.
+  - Full support for real media, nested precomps (`<embedScene>`), null objects (`<nullobj>`), solid layers, shape layers, masks, effects (Motion Tile, Motion Blur, 3D HollowBox), expression baking, and animated keyframes with cubic bezier easing curves.
+- **Project Pool — Auto Project Info Detection & Dynamic Category Filter**:
+  - Added `FishTools.PP_GET_PROJECT_INFO` to automatically pre-populate project name and save folder path when opening the extension.
+  - Dynamically populated category dropdown options (`All`, `Photo`, `Video`, `Audio`, `Solid`) based strictly on assets present in the project.
+
+### Fixed
+- **Project Pool — After Effects Version Downgrade Mapping (CC 2018–CC 2026+)**:
+  - Corrected After Effects major version lookup table to properly account for the version jump from v18 (CC 2021) to v22 (CC 2022).
+  - Ensured downgrade options accurately present the 2 preceding AE releases for any version between CC 2015.3 (v13) and CC 2026 (v26).
+- **Project Pool — ExtendScript Parameter Injection & Eval Safety**:
+  - Replaced unescaped string interpolation in `FishTools.PP_CREATE_PRESET` with `JSON.stringify` serialization, preventing syntax errors when target version or file paths contain quotes, backslashes, or empty values.
+- **Project Pool — Media Replacement Index Lookup & Refresh**:
+  - Resolved footage lookup by name and item ID fallback during `FishTools.PP_REPLACE_MEDIA`.
+  - Added auto-reload of the footage grid after replacing media, updating asset status immediately.
+- **Project Pool — Media Card Caption & Hover Overlay Alignment**:
+  - Moved filename caption cleanly outside and below the preview thumbnail tile.
+  - Fixed smart middle truncation for long filenames preserving the file extension cleanly (e.g. `0826 (1)...mp4`).
+  - Fixed CSS selector scoping where the hover replace icon and text overlapped, ensuring the green `swap_horiz` icon sits cleanly above the white `REPLACE` label.
+- **Project Pool — Unified Control Sizing**:
+  - Unified all inputs, buttons, and custom-select triggers across Project Pool to standard 30px height for pixel-perfect alignment in CC 2018+.
+
 ## [1.3.7] - 2026-08-27
 ### Added
 - **AE → AM Converter — Export 3D (Beta) Switch**:

@@ -489,6 +489,12 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("AeToAmModule init error", e); }
         }
 
+        if (window.ProjectPoolModule) {
+            try {
+                window.ProjectPoolModule.init();
+            } catch (e) { console.error("ProjectPoolModule init error", e); }
+        }
+
         if (window.TextAnimateModule) {
             try {
                 window.TextAnimateModule.init();
@@ -693,6 +699,11 @@ function setupCustomSelects() {
 
         function refreshOptions() {
             optionsContainer.innerHTML = '';
+            var _selIdx = select.selectedIndex;
+            var _selText = (_selIdx >= 0 && select.options[_selIdx]) ? select.options[_selIdx].text : 'Select...';
+            var triggerSpan = trigger.querySelector('span');
+            if (triggerSpan) triggerSpan.textContent = _selText;
+
             Array.from(select.children).forEach(function (child) {
                 if (child.tagName === 'OPTGROUP') {
                     var groupHeader = document.createElement('div');
